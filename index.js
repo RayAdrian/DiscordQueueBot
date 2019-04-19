@@ -106,7 +106,9 @@ function processCommand(msg,mentionList,mentionSize){
             var pos = players.indexOf(msg.author.toString());
             if(pos < 0){
                 console.log('Not in lineup');
-                msg.channel.send("You're not in current lineup");
+                msg.channel.send("You're not in current lineup").then(sentMessage => {
+                    sentMessage.delete(MSG_TIME_DEL);
+                });
             }
             else{    
                 players.splice(pos, 1);
