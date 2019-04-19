@@ -1,11 +1,10 @@
 const Discord = require('discord.js');
 const bot = new Discord.Client();
-//const GAME_TAG = '<@&568123122977341490>'; Bot Test Server
 const GAME_TAG = '<@&547735369475555329>';  //Main server
 const RESET = 5;
 const MSG_TIME_DEL = 3000;
 const MSG_TIME_FULL_DEL = 7000;
-const CHANNEL_ID = '547730531450617869'; //Pro-Gaming Channel 
+const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel 
 
 const PREFIX = '.';
 var remaining = RESET; 
