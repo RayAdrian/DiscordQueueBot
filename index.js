@@ -182,7 +182,7 @@ function processCommand(msg,mentionList,mentionSize){
                     }
                     else{
                         if(remaining == 4){
-                            msg.channel.send(GAME_TAG + ' +' + remaining);
+                            console.log(GAME_TAG + ' +' + remaining);
                         }
                         else{
                             if(sameUser == 0){
@@ -231,10 +231,19 @@ function processCommand(msg,mentionList,mentionSize){
                 sentMessage.delete(MSG_TIME_DEL);
             });
             break;
+        case 'game':
+        	if(remaining == 0)
+        		bot.channels.get(CHANNEL_ID).send('tara g ' + lineup);
+        	else{
+        		msg.channel.send(remaining + ' slots remaining. Wait for lineup to be filled').then(sentMessage => {
+                	sentMessage.delete(MSG_TIME_DEL);
+            	});
+        	}
+        	break;
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
             .setTitle('RaymundBot Help')
-            .addField('Commands', 'Type: \n .cs to join lineup\n .leave to remove self from lineup\n .add to add players to lineup\n .kick to remove players from lineup\n .lineup to see current lineup\n .invite to invite players (wew)\n\n Players in lineup will automatically be notified when lineup is complete\n')
+            .addField('Commands', 'Type: \n .cs to join lineup\n .leave to remove self from lineup\n .add to add players to lineup\n .kick to remove players from lineup\n .lineup to see current lineup\n .invite to invite players (wew)\n .game mentions all players in lineup\n .reset to clear lineup\n\n Players in lineup will automatically be notified when lineup is complete\n')
             msg.channel.send(helpEmbed);
             break;
     }
