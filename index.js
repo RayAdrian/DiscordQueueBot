@@ -231,6 +231,7 @@ function processCommand(msg,mentionList,mentionSize){
                 sentMessage.delete(MSG_TIME_DEL);
             });
             break;
+        case 'g':
         case 'game':
         	if(remaining == 0)
         		bot.channels.get(CHANNEL_ID).send('tara g ' + lineup);
