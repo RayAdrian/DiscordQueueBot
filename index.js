@@ -243,7 +243,7 @@ function processCommand(msg,mentionList,mentionSize){
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
             .setTitle('RaymundBot Help')
-            .addField('Commands', 'Type: \n .cs to join lineup\n .leave to remove self from lineup\n .add to add players to lineup\n .kick to remove players from lineup\n .lineup to see current lineup\n .invite to invite players (wew)\n .game mentions all players in lineup\n .reset to clear lineup\n\n Players in lineup will automatically be notified when lineup is complete\n')
+            .addField('Commands', 'Type: \n .cs to join lineup\n .leave to remove self from lineup\n .add to add players to lineup\n .kick to remove players from lineup\n .lineup to see current lineup\n .invite to invite players (wew)\n .game mentions all players in complete lineup\n .reset to clear lineup\n\n Players in lineup will automatically be notified when lineup is complete\n')
             msg.channel.send(helpEmbed);
             break;
     }
