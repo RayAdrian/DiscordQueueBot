@@ -14,7 +14,7 @@ var full = 0;
 
 bot.on('ready', () => {
     console.log('Bot is online');
-    bot.user.setActivity("CSbot; type .help for info.");
+    bot.user.setActivity("cs ded game | .help");
 });
 
 bot.on('message' ,msg=>{
