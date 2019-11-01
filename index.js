@@ -223,9 +223,13 @@ function processCommand(msg,mentionList,mentionSize){
                 } 
             }
             break;
+        case 'inv':
         case 'invite':
             //msg.channel.send(GAME_TAG + ' +' + remaining);
-            bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining);
+            if(remaining === 0)
+                bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining);  
+            else
+                bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining);
             break;
         case 'reset':
             reset();
