@@ -227,7 +227,9 @@ function processCommand(msg,mentionList,mentionSize){
         case 'invite':
             //msg.channel.send(GAME_TAG + ' +' + remaining);
             if(remaining === 0)
-                bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining);  
+                msg.channel.send('Lineup full.').then(sentMessage => {
+                    sentMessage.delete(MSG_TIME_DEL);
+                });  
             else
                 bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining);
             break;
