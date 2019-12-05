@@ -12,6 +12,8 @@ var players = [];
 var lineup = [];
 var full = 0;
 
+//test gentlebot
+
 bot.on('ready', () => {
     console.log('Bot is online');
     bot.user.setActivity("IM BACK. PEW PEW PEW | .help");
