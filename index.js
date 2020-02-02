@@ -1,22 +1,50 @@
 const Discord = require('discord.js');
 const bot = new Discord.Client();
-const GAME_TAG = '<@&547735369475555329>';  //Main server
+// const GAME_TAG = '<@&547735369475555329>';  //Main server
+
+const R6_TAG = '<@&673399090012225555>';
+const CS_TAG = '<@&673398998996090880>';
+const DOTA_TAG = '<@&673399033771065374>';
+const LOL_TAG = '<@&673398895195193344>';
+
 const RESET = 5;
 const MSG_TIME_DEL = 3000;
 const MSG_TIME_FULL_DEL = 7000;
-const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel 
+const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
 
 const PREFIX = '.';
-var remaining = RESET; 
-var players = [];
-var lineup = [];
-var full = 0;
 
-//test gentlebot
+var remaining = {
+    cs: RESET,
+    lol: RESET,
+    dota: RESET,
+    r6: RESET
+};
+
+var players = {
+    cs: [],
+    lol: [],
+    dota: [],
+    r6: []
+};
+
+var lineup = {
+    cs: [],
+    lol: [],
+    dota: [],
+    r6: []
+};
+
+var full = {
+    cs: false,
+    lol: false,
+    dota: false,
+    r6: false
+}
 
 bot.on('ready', () => {
     console.log('Bot is online');
-    bot.user.setActivity("IM BACK. PEW PEW PEW | .help");
+    bot.user.setActivity("Halo. In development");
 });
 
 bot.on('message' ,msg=>{
@@ -45,6 +73,73 @@ bot.on('message' ,msg=>{
    
 });
 
+function getGameTag(game) {
+    switch(game){
+        case 'cs': 
+            return CS_TAG;
+        case 'dota':
+            return DOTA_TAG;
+        case 'lol':
+            return LOL_TAG;
+        case 'r6':
+            return R6_TAG;
+    }
+}
+
+function addToQueue(msg, game){
+    var sameUser = 0;
+    //check if sender is already in lineup
+    console.log(players);
+    players[game].forEach(function(item, index, array) {
+        if (item === msg.author.toString()){
+            sameUser = 1;
+        }
+    });
+
+    if(sameUser === 1){
+        msg.channel.send('You are already in the lineup').then(sentMessage => {
+            sentMessage.delete(MSG_TIME_DEL);
+        });
+        console.log('User already in lineup');
+    }
+    else{
+        if(!full[game]){      //Do this if not full
+            console.log('User to be added to lineup');
+            //Proceed to this if not in lineup
+            players[game].push(msg.author.toString())
+            lineup[game] = players[game].join();
+            remaining[game] = remaining[game] - 1; 
+        }
+    }
+
+    if(remaining[game] == 0){
+        if(!full[game]){
+            //msg.channel.send('Lineup complete: ' + lineup);
+            bot.channels.get(CHANNEL_ID).send('Lineup complete: ' + lineup);
+            full[game] = true;
+        }
+        else{
+            msg.channel.send('Lineup already full :(. Check again later. A queue feature will be implemented in the future').then(sentMessage => {
+                sentMessage.delete(MSG_TIME_FULL_DEL);
+            });
+        }
+    }
+    else{
+        if(remaining[game] == 4 && !sameUser) {
+            //msg.channel.send(GAME_TAG + ' +' + remaining);
+            const GAME_TAG = getGameTag(game);
+            bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
+        }
+        else{
+            if(sameUser == 0)
+            msg.channel.send('Added you to the lineup').then(sentMessage => {
+                sentMessage.delete(MSG_TIME_DEL);
+            });
+        }
+
+    }
+}
+
 function processCommand(msg,mentionList,mentionSize){
 
     let args  =  msg.content.substring(PREFIX.length).split(' ')
@@ -52,226 +147,82 @@ function processCommand(msg,mentionList,mentionSize){
 
     switch(args[0]){
         case 'cs': 
-            var sameUser = 0;
-            //check if sender is already in lineup
-            players.forEach(function(item, index, array) {
-                if (item === msg.author.toString()){
-                    sameUser = 1;
-                }
-            });
-
-            if(sameUser === 1){
-                msg.channel.send('You are already in the lineup').then(sentMessage => {
-                    sentMessage.delete(MSG_TIME_DEL);
-                });
-                console.log('User already in lineup');
-            }
-            else{
-                if(full == 0){      //Do this if not full
-                    console.log('User to be added to lineup');
-                    //Proceed to this if not in lineup
-                    players.push(msg.author.toString())
-                    lineup = players.join();
-                    remaining = remaining - 1; 
-                    var today = new Date();
-                    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-                    console.log(msg.author.toString() + " invited to play at " + time);
-                }
-            }
-
-            if(remaining == 0){
-                if(full == 0){
-                    //msg.channel.send('Lineup complete: ' + lineup);
-                    bot.channels.get(CHANNEL_ID).send('Lineup complete: ' + lineup);
-                    full = 1;
-                }
-                else{
-                    msg.channel.send('Lineup already full :(. Check again later. A queue feature will be implemented in the future').then(sentMessage => {
-                        sentMessage.delete(MSG_TIME_FULL_DEL);
-                    });
-                }
-            }
-            else{
-                if(remaining == 4)
-                    //msg.channel.send(GAME_TAG + ' +' + remaining);
-                    bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining);
-                else{
-                    if(sameUser == 0)
-                    msg.channel.send('Added you to the lineup').then(sentMessage => {
-                        sentMessage.delete(MSG_TIME_DEL);
-                    });
-                }
-
-            }
-            break;
-        case 'leave':
-            var pos = players.indexOf(msg.author.toString());
-            if(pos < 0){
-                console.log('Not in lineup');
-                msg.channel.send("You're not in current lineup").then(sentMessage => {
-                    sentMessage.delete(MSG_TIME_DEL);
-                });
-            }
-            else{    
-                players.splice(pos, 1);
-                msg.channel.send('Removed you from the lineup').then(sentMessage => {
-                    sentMessage.delete(MSG_TIME_DEL);
-                });
-                console.log('Removed from lineup');
-                lineup = players.join();
-                remaining = remaining + 1;
-                full = 0;
-            }
-            break;
-        case 'lineup':
-             if(players.length == 0){
-                    const embed = new Discord.RichEmbed()
-                    .setTitle('CSGO')
-                    .addField('Current lineup','No players in lineup');
-                    msg.channel.send(embed);
-                }
-                else{
-                    const lineupList = players.join('\n');
-                    const embed = new Discord.RichEmbed()
-                    .setTitle('CSGO')
-                    .addField('Current Lineup', lineupList)
-                    msg.channel.send(embed);
-                }
-            break;
-        case 'add':
-            if(mentionList == null)
-                msg.channel.send('Mention user to add to lineup');
-            else{
-                var sameUser = 0;
-                for(var i = 0; i < mentionSize; i++){
-                    //check if sender is already in lineup
-                    players.forEach(function(item, index, array) {
-                        console.log('Player is '+ mentionList[i]);
-                        if (item === mentionList[i]){
-                            sameUser = 1;
-                        }
-                    });
-                    if(sameUser === 1){
-                        msg.channel.send('User ' + (i+1) + ' already added').then(sentMessage => {
-                            sentMessage.delete(MSG_TIME_DEL);
-                        });
-                        console.log('User already in lineup');
-                    }
-                    else{
-                        if(full == 0){
-                            console.log('User to be added to lineup');
-                            //Proceed to this if not in lineup
-                            players.push(mentionList[i])
-                            lineup = players.join();
-                            remaining = remaining - 1; 
-                            var today = new Date();
-                            var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-                            console.log(msg.author.toString() + " invited to play at " + time);
-                        }
-                    }
-
-                    if(remaining == 0){
-                        if(full == 0){
-                            //msg.channel.send('Lineup complete: ' + lineup);
-                            bot.channels.get(CHANNEL_ID).send('Lineup complete: ' + lineup);
-                            full = 1;
-                            break;
-                        }
-                        else{
-                            msg.channel.send('Lineup already full :(. Check again later. A queue feature will be implemented in the future').then(sentMessage => {
-                                sentMessage.delete(MSG_TIME_FULL_DEL);
-                            });
-                            break;
-                        }
-                    }
-                    else{
-                        if(remaining == 4){
-                            console.log(GAME_TAG + ' +' + remaining);
-                        }
-                        else{
-                            if(sameUser == 0){
-                                msg.channel.send('Added to lineup').then(sentMessage => {
-                                    sentMessage.delete(MSG_TIME_DEL);
-                                });
-                            }
-                        }
-                    }
-                }
-            }   
-            break;
-        case 'kick':
-            if(mentionList == null)
-                msg.channel.send('Mention user to kick from lineup');
-            else{
-                for(var i = 0; i < mentionSize; i++){
-                    var pos = players.indexOf(mentionList[i]);
-                    if(pos < 0){
-                        console.log('Not in lineup');
-                        if(mentionSize > 1)
-                            msg.channel.send("User is not in current lineup");
-                        else
-                            msg.channel.send('User ' + (i+1) + ' is not in current lineup'); 
-                    }
-                    else{    
-                        players.splice(pos, 1);
-                        msg.channel.send('Removed from lineup').then(sentMessage => {
-                            sentMessage.delete(MSG_TIME_DEL);
-                        });
-                        console.log('Removed from lineup');
-                        lineup = players.join();
-                        remaining = remaining + 1;
-                        full = 0;
-                    }  
-                } 
-            }
-            break;
-        case 'inv':
-        case 'invite':
-            //msg.channel.send(GAME_TAG + ' +' + remaining);
-            if(remaining === 0)
-                msg.channel.send('Lineup full.').then(sentMessage => {
-                    sentMessage.delete(MSG_TIME_DEL);
-                });  
-            else
-                bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining);
+        case 'dota':
+        case 'lol':
+        case 'r6':
+            addToQueue(msg, args[0]);
             break;
         case 'reset':
-            reset();
-            msg.channel.send('Lineup cleared').then(sentMessage => {
-                sentMessage.delete(MSG_TIME_DEL);
-            });
+            if(args[1] == undefined) {
+                reset();
+                msg.channel.send('reset');
+            }
+            else {
+                //Typo safe
+                switch(args[1]) {
+                    case 'cs':
+                    case 'lol':
+                    case 'dota':
+                    case 'r6':
+                        msg.channel.send('reset ' + args[1]);
+                        reset(args[1]);
+                        break;
+                    default:
+                        break;
+                        
+                }
+            }
             break;
-        case 'g':
-        case 'game':
-        	if(remaining == 0)
-        		bot.channels.get(CHANNEL_ID).send('tara g ' + lineup);
-        	else{
-        		msg.channel.send(remaining + ' slots remaining. Wait for lineup to be filled').then(sentMessage => {
-                	sentMessage.delete(MSG_TIME_DEL);
-            	});
-        	}
-        	break;
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
-            .setTitle('RaymundBot Help')
-            .addField('Commands', 'Type: \n .cs to join lineup\n .leave to remove self from lineup\n .add to add players to lineup\n .kick to remove players from lineup\n .lineup to see current lineup\n .invite to invite players (wew)\n .game mentions all players in complete lineup\n .reset to clear lineup\n\n Players in lineup will automatically be notified when lineup is complete\n')
+            .setTitle('GentleBot Help')
+            .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6')
+            .addField('Reset', '.reset to clear all lineups\n .reset <game> to clear specific lineup. e.g. .reset dota')
             msg.channel.send(helpEmbed);
             break;
     }
-    console.log('Remaining:' + remaining);
-    console.log('Players: ');
-    players.forEach(function(item, index, array) {
-        console.log(players);
-    });
     
 }
 
-function reset(){
-    remaining = RESET;
-    lineupList = [];
-    lineup = [];
-    players = [];
-    full = 0;
+function reset(game){
+    if(game) {
+        remaining[game] = RESET;
+        lineupList = [];
+        lineup[game] = [];
+        players[game] = [];
+        full[game] = false;
+    }
+    else {
+        remaining = {
+            cs: RESET,
+            lol: RESET,
+            dota: RESET,
+            r6: RESET
+        };
+        lineupList = [];
+        lineup = {
+            cs: [],
+            lol: [],
+            dota: [],
+            r6: []
+        };
+        players = {
+            cs: [],
+            lol: [],
+            dota: [],
+            r6: []
+        };
+        
+        full = {
+            cs: false,
+            lol: false,
+            dota: false,
+            r6: false
+        }
+    }
 }
 
+
+
 bot.login(process.env.BOT_TOKEN);
+
