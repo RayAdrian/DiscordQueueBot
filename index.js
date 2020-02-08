@@ -7,10 +7,13 @@ const CS_TAG = '<@&673398998996090880>';
 const DOTA_TAG = '<@&673399033771065374>';
 const LOL_TAG = '<@&673398895195193344>';
 
+const gameList = ['cs', 'lol', 'dota', 'r6'];
+
 const RESET = 5;
 const MSG_TIME_DEL = 3000;
 const MSG_TIME_FULL_DEL = 7000;
 const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
+// const CHANNEL_ID = '673393759626592273';   //Test server
 
 const PREFIX = '.';
 
@@ -44,7 +47,7 @@ var full = {
 
 bot.on('ready', () => {
     console.log('Bot is online');
-    bot.user.setActivity("Halo. In development");
+    bot.user.setActivity("In development");
 });
 
 bot.on('message' ,msg=>{
@@ -173,12 +176,62 @@ function processCommand(msg,mentionList,mentionSize){
                 }
             }
             break;
+        case 'lineup':
+            if (args[1] === null) {
+                // Mantaro like embed
+            }
+            else {
+                const gameName = args[1];
+                switch(gameName) {
+                    case 'cs':
+                    case 'dota':
+                    case 'lol':
+                    case 'r6':
+                        if(players[gameName].length == 0){
+                            const embed = new Discord.RichEmbed()
+                            .setTitle(`${gameName.toUpperCase()}`)
+                            .addField('Current lineup','No players in lineup');
+                            msg.channel.send(embed);
+                        }
+                        else{
+                            const lineupList = players[gameName].join('\n');
+                            const embed = new Discord.RichEmbed()
+                            .setTitle(`${gameName.toUpperCase()}`)
+                            .addField('Current Lineup', lineupList)
+                            msg.channel.send(embed);
+                        }
+                        break;
+                    case 'all':
+                        gameList.forEach((game, index) => {
+                            if(players[game].length == 0){
+                                const embed = new Discord.RichEmbed()
+                                .setTitle(`${game.toUpperCase()}`)
+                                .addField('Current lineup','No players in lineup');
+                                msg.channel.send(embed);
+                            }
+                            else{
+                                const lineupList = players[game].join('\n');
+                                const embed = new Discord.RichEmbed()
+                                .setTitle(`${game.toUpperCase()}`)
+                                .addField('Current Lineup', lineupList)
+                                msg.channel.send(embed);
+                            }
+                        })
+                    default:
+                        ''
+                        break;
+                }
+            }
+            break;
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
             .setTitle('GentleBot Help')
             .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6')
             .addField('Reset', '.reset to clear all lineups\n .reset <game> to clear specific lineup. e.g. .reset dota')
             msg.channel.send(helpEmbed);
+            break;
+        default:
+            ''
             break;
     }
     
@@ -221,7 +274,6 @@ function reset(game){
         }
     }
 }
-
 
 
 bot.login(process.env.BOT_TOKEN);
