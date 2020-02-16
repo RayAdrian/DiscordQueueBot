@@ -45,6 +45,13 @@ var full = {
     r6: false
 }
 
+var gameTag = {
+    cs: CS_TAG,
+    lol: LOL_TAG,
+    dota: DOTA_TAG,
+    r6: R6_TAG
+}
+
 bot.on('ready', () => {
     console.log('Bot is online');
     bot.user.setActivity("In development");
@@ -120,6 +127,7 @@ function addToQueue(msg, game){
             //msg.channel.send('Lineup complete: ' + lineup);
             bot.channels.get(CHANNEL_ID).send('Lineup complete: ' + lineup);
             full[game] = true;
+            // remove players in other lineups
         }
         else{
             msg.channel.send('Lineup already full :(. Check again later. A queue feature will be implemented in the future').then(sentMessage => {
@@ -141,6 +149,15 @@ function addToQueue(msg, game){
         }
 
     }
+}
+
+function inviteModule(game){
+    if(remaining[game] === 0)
+        msg.channel.send('Lineup full.').then(sentMessage => {
+            sentMessage.delete(MSG_TIME_DEL);
+        });  
+    else
+        bot.channels.get(CHANNEL_ID).send(gameTag[game] + ' +' + remaining[game]);
 }
 
 function processCommand(msg,mentionList,mentionSize){
@@ -175,6 +192,27 @@ function processCommand(msg,mentionList,mentionSize){
                         
                 }
             }
+            break;
+        case 'invite':
+            if(args[1] == undefined){
+                gameList.forEach(game => {
+                   if(players[game].indexOf(msg.author.toString()) !== -1){
+                        inviteModule(game);
+                   } 
+                });
+            }
+            else {
+                switch(args[1]) {
+                    case 'cs':
+                    case 'lol':
+                    case 'dota':
+                    case 'r6':
+                        inviteModule(args[1]);
+                    default:
+                        break;
+                }
+            }
+
             break;
         case 'lineup':
             if (args[1] === null) {
@@ -274,7 +312,6 @@ function reset(game){
         }
     }
 }
-
 
 bot.login(process.env.BOT_TOKEN);
 
