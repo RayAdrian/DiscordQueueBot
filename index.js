@@ -12,8 +12,8 @@ const gameList = ['cs', 'lol', 'dota', 'r6'];
 const RESET = 5;
 const MSG_TIME_DEL = 3000;
 const MSG_TIME_FULL_DEL = 7000;
-// const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
-const CHANNEL_ID = '673393759626592273';   //Test server
+const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
+// const CHANNEL_ID = '673393759626592273';   //Test server
 
 const PREFIX = '.';
 
@@ -354,6 +354,6 @@ function reset(game){
     }
 }
 
-// bot.login(process.env.BOT_TOKEN);
-bot.login('NjUxNzkzOTQwNjg4Nzk3NzIx.XlJ2Rg.2NpZY0zx3nzkBv7biF5Mw7wpwe0');
+bot.login(process.env.BOT_TOKEN);
+
 
