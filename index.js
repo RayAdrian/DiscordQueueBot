@@ -355,3 +355,4 @@ function reset(game){
 }
 
 bot.login(process.env.BOT_TOKEN);
+
