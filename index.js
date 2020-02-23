@@ -160,6 +160,13 @@ function inviteModule(game){
         bot.channels.get(CHANNEL_ID).send(gameTag[game] + ' +' + remaining[game]);
 }
 
+function removeFromLineup(pos, game){
+    players[game].splice(pos, 1);
+    lineup[game] = players[game].join();
+    remaining[game] = remaining[game] + 1;
+    full[game] = false;
+}
+
 function processCommand(msg,mentionList,mentionSize){
 
     let args  =  msg.content.substring(PREFIX.length).split(' ')
@@ -190,6 +197,40 @@ function processCommand(msg,mentionList,mentionSize){
                     default:
                         break;
                         
+                }
+            }
+            break;
+        case 'leave':
+            if(args[1] == undefined) {  //.leave
+                let isPartOfLineup = false;
+                let pos;
+                gameList.forEach(game => {
+                    pos = players[game].indexOf(msg.author.toString());
+                    if(pos > -1){
+                        isPartOfLineup = true;
+                       removeFromLineup(pos, game);
+                    }
+                });
+
+                msg.channel.send(!isPartOfLineup ? 'You are not part of any lineup.' : 'Removed you from the lineups.').then(sentMessage => {
+                    sentMessage.delete(MSG_TIME_DEL);
+                });
+            }
+            else {  //.leave cs
+                if (gameList.indexOf(args[1]) > -1) {
+                    const game = args[1];
+                    pos = players[game].indexOf(msg.author.toString());
+                    if(pos > -1){
+                        removeFromLineup(pos, game);
+                        msg.channel.send('Removed you from the lineup.').then(sentMessage => {
+                            sentMessage.delete(MSG_TIME_DEL);
+                        });
+                    }
+                    else {
+                        msg.channel.send('You are not part of the lineup.').then(sentMessage => {
+                            sentMessage.delete(MSG_TIME_DEL);
+                        });
+                    }
                 }
             }
             break;
@@ -314,4 +355,3 @@ function reset(game){
 }
 
 bot.login(process.env.BOT_TOKEN);
-
