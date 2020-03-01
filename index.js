@@ -125,7 +125,7 @@ function addToQueue(msg, game){
     if(remaining[game] == 0){
         if(!full[game]){
             //msg.channel.send('Lineup complete: ' + lineup);
-            bot.channels.get(CHANNEL_ID).send('Lineup complete: ' + lineup);
+            bot.channels.get(CHANNEL_ID).send(`${game.toUpperCase()} Lineup Complete: ${lineup[game]}`);
             full[game] = true;
             // remove players in other lineups
         }
@@ -182,21 +182,14 @@ function processCommand(msg,mentionList,mentionSize){
         case 'reset':
             if(args[1] == undefined) {
                 reset();
-                msg.channel.send('reset');
+                msg.channel.send('Reset all lineups');
             }
             else {
                 //Typo safe
-                switch(args[1]) {
-                    case 'cs':
-                    case 'lol':
-                    case 'dota':
-                    case 'r6':
-                        msg.channel.send('reset ' + args[1]);
-                        reset(args[1]);
-                        break;
-                    default:
-                        break;
-                        
+                if (gameList.indexOf(args[1]) > -1)
+                {
+                    msg.channel.send('Reset lineup for ' + args[1]);
+                    reset(args[1]);
                 }
             }
             break;
@@ -243,15 +236,7 @@ function processCommand(msg,mentionList,mentionSize){
                 });
             }
             else {
-                switch(args[1]) {
-                    case 'cs':
-                    case 'lol':
-                    case 'dota':
-                    case 'r6':
-                        inviteModule(args[1]);
-                    default:
-                        break;
-                }
+                if (gameList.indexOf(args[1]) > -1) inviteModule(args[1]);
             }
 
             break;
@@ -315,11 +300,112 @@ function processCommand(msg,mentionList,mentionSize){
                 }
             }
             break;
+        case 'add':
+            if (args[1] === undefined) {
+                msg.channel.send('Indicate game to add to.').then(sentMessage => {
+                    sentMessage.delete(MSG_TIME_DEL);
+                });
+            }
+            if(mentionList == null)
+                msg.channel.send('Mention user to add to lineup');
+            else{
+                let sameUser = false;
+                const game = args[1];
+                if (gameList.indexOf(game) < 0) break;
+                for(var i = 0; i < mentionSize; i++){
+                    sameUser = false;
+                    //check if sender is already in lineup
+                    if (players[game].indexOf(mentionList[i]) > -1) sameUser = true;
+                    
+                    if(sameUser){
+                        msg.channel.send('User ' + (i+1) + ' already added').then(sentMessage => {
+                            sentMessage.delete(MSG_TIME_DEL);
+                        });
+                        console.log('User already in lineup');
+                    }
+                    else{
+                        if(!full[game]){
+                            console.log('User to be added to lineup');
+                            //Proceed to this if not in lineup
+                            players[game].push(mentionList[i])
+                            lineup[game] = players[game].join();
+                            remaining[game] = remaining[game] - 1; 
+                        }
+                    }
+
+                    if(remaining[game] == 0){
+                        if(!full[game]){
+                            //msg.channel.send('Lineup complete: ' + lineup);
+                            bot.channels.get(CHANNEL_ID).send(`${game.toUpperCase()} Lineup Complete: ${lineup[game]}`);
+                            full[game] = true;
+                            break;
+                        }
+                        else{
+                            msg.channel.send('Lineup already full :(. Check again later. A queue feature will be implemented in the future').then(sentMessage => {
+                                sentMessage.delete(MSG_TIME_FULL_DEL);
+                            });
+                            break;
+                        }
+                    }
+                    else{
+                        if(remaining[game] == 4){
+                            console.log(gameTag[game] + ' +' + remaining[game]);
+                        }
+                        else{
+                            if(sameUser == 0){
+                                msg.channel.send('Added to lineup').then(sentMessage => {
+                                    sentMessage.delete(MSG_TIME_DEL);
+                                });
+                            }
+                        }
+                    }
+                }
+            }   
+            break;
+        case 'kick':
+            if (args[1] === undefined) {
+                msg.channel.send('Indicate game to kick from.').then(sentMessage => {
+                    sentMessage.delete(MSG_TIME_DEL);
+                });
+            }
+            if(mentionList == null)
+                msg.channel.send('Mention user to kick from lineup');
+            else{
+                const game = args[1];
+                if (gameList.indexOf(game) < 0) break;
+                for(var i = 0; i < mentionSize; i++){
+                    let pos = players[game].indexOf(mentionList[i]);
+                    if(pos < 0){
+                        console.log('Not in lineup');
+                        if(mentionSize > 1)
+                            msg.channel.send("User is not in current lineup");
+                        else
+                            msg.channel.send('User ' + (i+1) + ' is not in current lineup'); 
+                    }
+                    else{    
+                        players[game].splice(pos, 1);
+                        msg.channel.send('Removed from lineup').then(sentMessage => {
+                            sentMessage.delete(MSG_TIME_DEL);
+                        });
+                        console.log('Removed from lineup');
+                        lineup[game] = players[game].join();
+                        remaining[game] = remaining[game] + 1;
+                        full[game] = false;
+                    }  
+                } 
+            }
+            break;
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
             .setTitle('GentleBot Help')
             .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6')
             .addField('Reset', '.reset to clear all lineups\n .reset <game> to clear specific lineup. e.g. .reset dota')
+            .addField('Lineup', '.lineup to see all lineups\n .lineup <game> to see specific lineup. e.g. .lineup dota')
+            .addField('Invite', '.invite to send invite for lineups you are part of.\n .invite <game> to send specific invite. e.g. .invite dota')
+            .addField('Leave', '.leave to leave all lineups.\n .leave <game> to leave specific lineup. e.g. .leave dota')
+            .addField('Game', '.game, .game <game>')
+            .addField('Add', '.add <game> <user> to add user to game')
+            .addField('Kick', '.kick <game> <user> to kick user from game')
             msg.channel.send(helpEmbed);
             break;
         default:
