@@ -256,8 +256,22 @@ function processCommand(msg,mentionList,mentionSize){
 
             break;
         case 'lineup':
-            if (args[1] === null) {
-                // Mantaro like embed
+            if (args[1] === undefined) {
+                gameList.forEach((game, index) => {
+                    if(players[game].length == 0){
+                        const embed = new Discord.RichEmbed()
+                        .setTitle(`${game.toUpperCase()}`)
+                        .addField('Current lineup','No players in lineup');
+                        msg.channel.send(embed);
+                    }
+                    else{
+                        const lineupList = players[game].join('\n');
+                        const embed = new Discord.RichEmbed()
+                        .setTitle(`${game.toUpperCase()}`)
+                        .addField('Current Lineup', lineupList)
+                        msg.channel.send(embed);
+                    }
+                });
             }
             else {
                 const gameName = args[1];
@@ -280,25 +294,24 @@ function processCommand(msg,mentionList,mentionSize){
                             msg.channel.send(embed);
                         }
                         break;
-                    case 'all':
-                        gameList.forEach((game, index) => {
-                            if(players[game].length == 0){
-                                const embed = new Discord.RichEmbed()
-                                .setTitle(`${game.toUpperCase()}`)
-                                .addField('Current lineup','No players in lineup');
-                                msg.channel.send(embed);
-                            }
-                            else{
-                                const lineupList = players[game].join('\n');
-                                const embed = new Discord.RichEmbed()
-                                .setTitle(`${game.toUpperCase()}`)
-                                .addField('Current Lineup', lineupList)
-                                msg.channel.send(embed);
-                            }
-                        })
                     default:
                         ''
                         break;
+                }
+            }
+            break;
+        case 'g':
+        case 'game':
+            if (args[1] !== undefined) {
+                const game = args[1];
+                if (gameList.indexOf(game) > -1) {
+                    if (players[game].indexOf(msg.author.toString()) > -1) {
+                        bot.channels.get(CHANNEL_ID).send('tara g ' + lineup[game]);
+                    } else {
+                        msg.channel.send('You are not part of that lineup').then(sentMessage => {
+                            sentMessage.delete(MSG_TIME_DEL);
+                        });
+                    }
                 }
             }
             break;
