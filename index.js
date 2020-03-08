@@ -6,10 +6,12 @@ const R6_TAG = '<@&673399090012225555>';
 const CS_TAG = '<@&673398998996090880>';
 const DOTA_TAG = '<@&673399033771065374>';
 const LOL_TAG = '<@&673398895195193344>';
+const TOKYO_TAG = '<@&686048644830330921>';
 
-const gameList = ['cs', 'lol', 'dota', 'r6'];
+const gameList = ['cs', 'lol', 'dota', 'r6', 'tokyo'];
 
 const RESET = 5;
+const TOKYO_RESET = 3;
 const MSG_TIME_DEL = 3000;
 const MSG_TIME_FULL_DEL = 7000;
 const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
@@ -21,35 +23,40 @@ var remaining = {
     cs: RESET,
     lol: RESET,
     dota: RESET,
-    r6: RESET
+    r6: RESET,
+    tokyo: TOKYO_RESET
 };
 
 var players = {
     cs: [],
     lol: [],
     dota: [],
-    r6: []
+    r6: [],
+    tokyo: [],
 };
 
 var lineup = {
     cs: [],
     lol: [],
     dota: [],
-    r6: []
+    r6: [],
+    tokyo: []
 };
 
 var full = {
     cs: false,
     lol: false,
     dota: false,
-    r6: false
+    r6: false,
+    tokyo: false
 }
 
 var gameTag = {
     cs: CS_TAG,
     lol: LOL_TAG,
     dota: DOTA_TAG,
-    r6: R6_TAG
+    r6: R6_TAG,
+    toyko: TOKYO_TAG
 }
 
 bot.on('ready', () => {
@@ -93,6 +100,8 @@ function getGameTag(game) {
             return LOL_TAG;
         case 'r6':
             return R6_TAG;
+        case 'tokyo':
+            return TOKYO_TAG;
     }
 }
 
@@ -136,7 +145,7 @@ function addToQueue(msg, game){
         }
     }
     else{
-        if(remaining[game] == 4 && !sameUser) {
+        if(remaining[game] == (game === 'tokyo' ? TOKYO_RESET - 1 : RESET - 1) && !sameUser) {
             //msg.channel.send(GAME_TAG + ' +' + remaining);
             const GAME_TAG = getGameTag(game);
             bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
@@ -177,6 +186,7 @@ function processCommand(msg,mentionList,mentionSize){
         case 'dota':
         case 'lol':
         case 'r6':
+        case 'tokyo':
             addToQueue(msg, args[0]);
             break;
         case 'reset':
@@ -265,6 +275,7 @@ function processCommand(msg,mentionList,mentionSize){
                     case 'dota':
                     case 'lol':
                     case 'r6':
+                    case 'tokyo':
                         if(players[gameName].length == 0){
                             const embed = new Discord.RichEmbed()
                             .setTitle(`${gameName.toUpperCase()}`)
@@ -301,14 +312,18 @@ function processCommand(msg,mentionList,mentionSize){
             }
             break;
         case 'add':
-            if (args[1] === undefined) {
+            if (gameList.indexOf(args[1]) < 0) {
                 msg.channel.send('Indicate game to add to.').then(sentMessage => {
                     sentMessage.delete(MSG_TIME_DEL);
                 });
+                break;
             }
-            if(mentionList == null)
+            if(mentionList == null) {
                 msg.channel.send('Mention user to add to lineup');
+                break;
+            }
             else{
+                console.log('hereee');
                 let sameUser = false;
                 const game = args[1];
                 if (gameList.indexOf(game) < 0) break;
@@ -318,10 +333,11 @@ function processCommand(msg,mentionList,mentionSize){
                     if (players[game].indexOf(mentionList[i]) > -1) sameUser = true;
                     
                     if(sameUser){
-                        msg.channel.send('User ' + (i+1) + ' already added').then(sentMessage => {
+                        msg.channel.send('User already added').then(sentMessage => {
                             sentMessage.delete(MSG_TIME_DEL);
                         });
                         console.log('User already in lineup');
+                        break;
                     }
                     else{
                         if(!full[game]){
@@ -330,6 +346,13 @@ function processCommand(msg,mentionList,mentionSize){
                             players[game].push(mentionList[i])
                             lineup[game] = players[game].join();
                             remaining[game] = remaining[game] - 1; 
+                            msg.channel.send('User added to lineup').then(sentMessage => {
+                                sentMessage.delete(MSG_TIME_DEL);
+                            });
+                            if (remaining[game] ===  (game === 'tokyo' ? TOKYO_RESET - 1 : RESET - 1)) {
+                                const GAME_TAG = getGameTag(game);
+                                bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
+                            }
                         }
                     }
 
@@ -351,25 +374,21 @@ function processCommand(msg,mentionList,mentionSize){
                         if(remaining[game] == 4){
                             console.log(gameTag[game] + ' +' + remaining[game]);
                         }
-                        else{
-                            if(sameUser == 0){
-                                msg.channel.send('Added to lineup').then(sentMessage => {
-                                    sentMessage.delete(MSG_TIME_DEL);
-                                });
-                            }
-                        }
                     }
                 }
             }   
             break;
         case 'kick':
-            if (args[1] === undefined) {
+            if (gameList.indexOf(args[1]) < 0) {
                 msg.channel.send('Indicate game to kick from.').then(sentMessage => {
                     sentMessage.delete(MSG_TIME_DEL);
                 });
+                break;
             }
-            if(mentionList == null)
+            if(mentionList == null) {
                 msg.channel.send('Mention user to kick from lineup');
+                break;
+            }
             else{
                 const game = args[1];
                 if (gameList.indexOf(game) < 0) break;
@@ -417,7 +436,7 @@ function processCommand(msg,mentionList,mentionSize){
 
 function reset(game){
     if(game) {
-        remaining[game] = RESET;
+        remaining[game] = game === 'tokyo' ? TOKYO_RESET : RESET;
         lineupList = [];
         lineup[game] = [];
         players[game] = [];
@@ -428,27 +447,31 @@ function reset(game){
             cs: RESET,
             lol: RESET,
             dota: RESET,
-            r6: RESET
+            r6: RESET,
+            tokyo: TOKYO_RESET
         };
         lineupList = [];
         lineup = {
             cs: [],
             lol: [],
             dota: [],
-            r6: []
+            r6: [],
+            tokyo: []
         };
         players = {
             cs: [],
             lol: [],
             dota: [],
-            r6: []
+            r6: [],
+            tokyo: []
         };
         
         full = {
             cs: false,
             lol: false,
             dota: false,
-            r6: false
+            r6: false,
+            tokyo: false
         }
     }
 }
