@@ -68,7 +68,6 @@ var gameTag = {
 
 bot.on('ready', () => {
     console.log('Bot is online');
-    bot.channels.get(CHANNEL_ID).send('Hello. I\'m Gentlebot. RaymundBot on steroids!!! I\'m still in beta so expect some bugs. When you find one, just inform a Gentlebot dev:\n<@167564154562019328>\n<@467951104487981067>\n<@338325717018345472>\n<@!132785128714928128>\n New features coming up in version 1.0 ^_^. For now, enter .help for more info.');
     bot.user.setActivity("I'm RaymundBot on steroids.");
 });
 
@@ -425,7 +424,7 @@ function processCommand(msg,mentionList,mentionSize){
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
             .setTitle('GentleBot Help')
-            .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6')
+            .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6\n .tokyo')
             .addField('Reset', '.reset to clear all lineups\n .reset <game> to clear specific lineup. e.g. .reset dota')
             .addField('Lineup', '.lineup to see all lineups\n .lineup <game> to see specific lineup. e.g. .lineup dota')
             .addField('Invite', '.invite to send invite for lineups you are part of.\n .invite <game> to send specific invite. e.g. .invite dota')
