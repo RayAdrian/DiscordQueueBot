@@ -18,7 +18,7 @@ const TOKYO_TAG = '<@&683607710834753565>';
 const gameList = ['cs', 'lol', 'dota', 'r6', 'tokyo'];
 
 const RESET = 5;
-const TOKYO_RESET = 3;
+const TOKYO_RESET = 4;
 const MSG_TIME_DEL = 3000;
 const MSG_TIME_FULL_DEL = 7000;
 const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
