@@ -63,7 +63,7 @@ var gameTag = {
     lol: LOL_TAG,
     dota: DOTA_TAG,
     r6: R6_TAG,
-    toyko: TOKYO_TAG
+    tokyo: TOKYO_TAG
 }
 
 bot.on('ready', () => {
