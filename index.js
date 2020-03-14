@@ -2,11 +2,18 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 // const GAME_TAG = '<@&547735369475555329>';  //Main server
 
-const R6_TAG = '<@&673399090012225555>';
-const CS_TAG = '<@&673398998996090880>';
-const DOTA_TAG = '<@&673399033771065374>';
-const LOL_TAG = '<@&673398895195193344>';
-const TOKYO_TAG = '<@&686048644830330921>';
+//Test server
+// const R6_TAG = '<@&673399090012225555>';
+// const CS_TAG = '<@&673398998996090880>';
+// const DOTA_TAG = '<@&673399033771065374>';
+// const LOL_TAG = '<@&673398895195193344>';
+// const TOKYO_TAG = '<@&686048644830330921>';
+
+const R6_TAG = '<@&658823355008286750>';
+const CS_TAG = '<@&547735369475555329>';
+const DOTA_TAG = '<@&547734480031580199>';
+const LOL_TAG = '<@&547734044511567884>';
+const TOKYO_TAG = '<@&683607710834753565>';
 
 const gameList = ['cs', 'lol', 'dota', 'r6', 'tokyo'];
 
@@ -61,7 +68,8 @@ var gameTag = {
 
 bot.on('ready', () => {
     console.log('Bot is online');
-    bot.user.setActivity("In development");
+    bot.channels.get(CHANNEL_ID).send('Hello. I\'m Gentlebot. RaymundBot on steroids!!! I\'m still in beta so expect some bugs. When you find one, just inform a Gentlebot dev:\n<@167564154562019328>\n<@467951104487981067>\n<@338325717018345472>\n<@!132785128714928128>\n New features coming up in version 1.0 ^_^. For now, enter .help for more info.');
+    bot.user.setActivity("I'm RaymundBot on steroids.");
 });
 
 bot.on('message' ,msg=>{
