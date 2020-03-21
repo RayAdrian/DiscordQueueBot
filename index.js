@@ -8,17 +8,20 @@ const bot = new Discord.Client();
 // const DOTA_TAG = '<@&673399033771065374>';
 // const LOL_TAG = '<@&673398895195193344>';
 // const TOKYO_TAG = '<@&686048644830330921>';
+// const CHAMP_TAG = '<@&690766699992973313>';
 
 const R6_TAG = '<@&658823355008286750>';
 const CS_TAG = '<@&547735369475555329>';
 const DOTA_TAG = '<@&547734480031580199>';
 const LOL_TAG = '<@&547734044511567884>';
 const TOKYO_TAG = '<@&683607710834753565>';
+const CHAMP_TAG = '<@&547735357437902849>';
 
-const gameList = ['cs', 'lol', 'dota', 'r6', 'tokyo'];
+const gameList = ['cs', 'lol', 'dota', 'r6', 'tokyo', 'cod'];
 
 const RESET = 5;
 const TOKYO_RESET = 4;
+const CHAMP_RESET = 3;
 const MSG_TIME_DEL = 3000;
 const MSG_TIME_FULL_DEL = 7000;
 const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
@@ -31,7 +34,8 @@ var remaining = {
     lol: RESET,
     dota: RESET,
     r6: RESET,
-    tokyo: TOKYO_RESET
+    tokyo: TOKYO_RESET,
+    cod: CHAMP_RESET
 };
 
 var players = {
@@ -40,6 +44,7 @@ var players = {
     dota: [],
     r6: [],
     tokyo: [],
+    cod: []
 };
 
 var lineup = {
@@ -47,7 +52,8 @@ var lineup = {
     lol: [],
     dota: [],
     r6: [],
-    tokyo: []
+    tokyo: [],
+    cod: []
 };
 
 var full = {
@@ -55,7 +61,8 @@ var full = {
     lol: false,
     dota: false,
     r6: false,
-    tokyo: false
+    tokyo: false,
+    cod: false
 }
 
 var gameTag = {
@@ -63,7 +70,8 @@ var gameTag = {
     lol: LOL_TAG,
     dota: DOTA_TAG,
     r6: R6_TAG,
-    tokyo: TOKYO_TAG
+    tokyo: TOKYO_TAG,
+    cod: CHAMP_TAG
 }
 
 bot.on('ready', () => {
@@ -109,6 +117,8 @@ function getGameTag(game) {
             return R6_TAG;
         case 'tokyo':
             return TOKYO_TAG;
+        case 'cod':
+            return CHAMP_TAG;
     }
 }
 
@@ -152,7 +162,7 @@ function addToQueue(msg, game){
         }
     }
     else{
-        if(remaining[game] == (game === 'tokyo' ? TOKYO_RESET - 1 : RESET - 1) && !sameUser) {
+        if(remaining[game] == (game === 'tokyo' ? TOKYO_RESET - 1 : game === 'cod' ? CHAMP_RESET - 1 : RESET - 1) && !sameUser) {
             //msg.channel.send(GAME_TAG + ' +' + remaining);
             const GAME_TAG = getGameTag(game);
             bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
@@ -194,6 +204,7 @@ function processCommand(msg,mentionList,mentionSize){
         case 'lol':
         case 'r6':
         case 'tokyo':
+        case 'cod':
             addToQueue(msg, args[0]);
             break;
         case 'reset':
@@ -258,49 +269,31 @@ function processCommand(msg,mentionList,mentionSize){
 
             break;
         case 'lineup':
-            if (args[1] === undefined) {
-                gameList.forEach((game, index) => {
-                    if(players[game].length == 0){
+            const gameName = args[1];
+            switch(gameName) {
+                case 'cs':
+                case 'dota':
+                case 'lol':
+                case 'r6':
+                case 'tokyo':
+                case 'cod':
+                    if(players[gameName].length == 0){
                         const embed = new Discord.RichEmbed()
-                        .setTitle(`${game.toUpperCase()}`)
+                        .setTitle(`${gameName.toUpperCase()}`)
                         .addField('Current lineup','No players in lineup');
                         msg.channel.send(embed);
                     }
                     else{
-                        const lineupList = players[game].join('\n');
+                        const lineupList = players[gameName].join('\n');
                         const embed = new Discord.RichEmbed()
-                        .setTitle(`${game.toUpperCase()}`)
+                        .setTitle(`${gameName.toUpperCase()}`)
                         .addField('Current Lineup', lineupList)
                         msg.channel.send(embed);
                     }
-                });
-            }
-            else {
-                const gameName = args[1];
-                switch(gameName) {
-                    case 'cs':
-                    case 'dota':
-                    case 'lol':
-                    case 'r6':
-                    case 'tokyo':
-                        if(players[gameName].length == 0){
-                            const embed = new Discord.RichEmbed()
-                            .setTitle(`${gameName.toUpperCase()}`)
-                            .addField('Current lineup','No players in lineup');
-                            msg.channel.send(embed);
-                        }
-                        else{
-                            const lineupList = players[gameName].join('\n');
-                            const embed = new Discord.RichEmbed()
-                            .setTitle(`${gameName.toUpperCase()}`)
-                            .addField('Current Lineup', lineupList)
-                            msg.channel.send(embed);
-                        }
-                        break;
-                    default:
-                        ''
-                        break;
-                }
+                    break;
+                default:
+                    ''
+                    break;
             }
             break;
         case 'g':
@@ -424,7 +417,7 @@ function processCommand(msg,mentionList,mentionSize){
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
             .setTitle('GentleBot Help')
-            .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6\n .tokyo')
+            .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6\n .tokyo\n .cod')
             .addField('Reset', '.reset to clear all lineups\n .reset <game> to clear specific lineup. e.g. .reset dota')
             .addField('Lineup', '.lineup to see all lineups\n .lineup <game> to see specific lineup. e.g. .lineup dota')
             .addField('Invite', '.invite to send invite for lineups you are part of.\n .invite <game> to send specific invite. e.g. .invite dota')
@@ -443,7 +436,7 @@ function processCommand(msg,mentionList,mentionSize){
 
 function reset(game){
     if(game) {
-        remaining[game] = game === 'tokyo' ? TOKYO_RESET : RESET;
+        remaining[game] = game === 'tokyo' ? TOKYO_RESET : game === 'cod' ? CHAMP_RESET : RESET;
         lineupList = [];
         lineup[game] = [];
         players[game] = [];
@@ -455,7 +448,8 @@ function reset(game){
             lol: RESET,
             dota: RESET,
             r6: RESET,
-            tokyo: TOKYO_RESET
+            tokyo: TOKYO_RESET,
+            cod: CHAMP_RESET
         };
         lineupList = [];
         lineup = {
@@ -463,14 +457,16 @@ function reset(game){
             lol: [],
             dota: [],
             r6: [],
-            tokyo: []
+            tokyo: [],
+            cod: []
         };
         players = {
             cs: [],
             lol: [],
             dota: [],
             r6: [],
-            tokyo: []
+            tokyo: [],
+            cod: []
         };
         
         full = {
@@ -478,7 +474,8 @@ function reset(game){
             lol: false,
             dota: false,
             r6: false,
-            tokyo: false
+            tokyo: false,
+            cod: false
         }
     }
 }
