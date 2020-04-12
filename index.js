@@ -178,12 +178,8 @@ function addToQueue(msg, game){
 }
 
 function inviteModule(game){
-    if(remaining[game] === 0)
-        msg.channel.send('Lineup full.').then(sentMessage => {
-            sentMessage.delete(MSG_TIME_DEL);
-        });  
-    else
-        bot.channels.get(CHANNEL_ID).send(gameTag[game] + ' +' + remaining[game]);
+    if(remaining[game] !== 0)
+        bot.channels.get(CHANNEL_ID).send(gameTag[game] + ' +' + remaining[game]);  
 }
 
 function removeFromLineup(pos, game){
