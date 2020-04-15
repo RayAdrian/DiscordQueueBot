@@ -77,6 +77,10 @@ var gameTag = {
 bot.on('ready', () => {
     console.log('Bot is online');
     bot.user.setActivity("I'm RaymundBot on steroids.");
+    cron.schedule('15 7 * * *', () => {
+        reset();
+        bot.channels.get(CHANNEL_ID).send('Good morning gamers! All lineups are reset.');
+    });
 });
 
 bot.on('message' ,msg=>{
