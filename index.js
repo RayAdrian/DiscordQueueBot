@@ -481,5 +481,4 @@ function reset(game){
     }
 }
 
-// bot.login(process.env.BOT_TOKEN);
-bot.login('NTY4MTE1MDg2NTQ4NDAyMTc4.XpdBFg.5ej5z5UoB6pYg2glD0n2d1heIL8');
+bot.login(process.env.BOT_TOKEN);
