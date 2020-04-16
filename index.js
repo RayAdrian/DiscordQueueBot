@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const cron = require("node-cron");
 const bot = new Discord.Client();
 // const GAME_TAG = '<@&547735369475555329>';  //Main server
 
@@ -77,7 +78,7 @@ var gameTag = {
 bot.on('ready', () => {
     console.log('Bot is online');
     bot.user.setActivity("I'm RaymundBot on steroids.");
-    cron.schedule('15 7 * * *', () => {
+    cron.schedule('58 1 * * *', () => {
         reset();
         bot.channels.get(CHANNEL_ID).send('Good morning gamers! All lineups are reset.');
     });
