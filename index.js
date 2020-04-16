@@ -80,9 +80,11 @@ bot.on('ready', () => {
 
     // Auto reset
     setTimeout(function(){ // in leftToEight() milliseconds run this:
+        reset();
         sendMessage(); // send the message once
         var dayMillseconds = 1000 * 60 * 60 * 24;
         setInterval(function(){ // repeat this every 24 hours
+            reset();
             sendMessage();
         }, dayMillseconds)
     }, leftToEight())
