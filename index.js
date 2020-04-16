@@ -77,7 +77,25 @@ var gameTag = {
 bot.on('ready', () => {
     console.log('Bot is online');
     bot.user.setActivity("I'm RaymundBot on steroids.");
+
+    // Auto reset
+    setTimeout(function(){ // in leftToEight() milliseconds run this:
+        sendMessage(); // send the message once
+        var dayMillseconds = 1000 * 60 * 60 * 24;
+        setInterval(function(){ // repeat this every 24 hours
+            sendMessage();
+        }, dayMillseconds)
+    }, leftToEight())
 });
+
+function leftToEight(){
+    var d = new Date();
+    return (-d + d.setHours(8,0,0,0));
+}
+
+function sendMessage(){
+    bot.channels.get(CHANNEL_ID).send('Good morning gamers! All lineups are reset :D.');
+}
 
 bot.on('message' ,msg=>{
     if (msg.author == bot.user) { // Prevent bot from responding to its own messages
