@@ -79,21 +79,14 @@ bot.on('ready', () => {
     bot.user.setActivity("I'm RaymundBot on steroids.");
 
     // Auto reset
-    setTimeout(function(){ // in leftToEight() milliseconds run this:
+    reset();
+    sendMessage(); // send the message once
+    const dayMillseconds = 1000 * 60 * 60 * 24;
+    setInterval(function(){ // repeat this every 24 hours
         reset();
-        sendMessage(); // send the message once
-        var dayMillseconds = 1000 * 60 * 60 * 24;
-        setInterval(function(){ // repeat this every 24 hours
-            reset();
-            sendMessage();
-        }, dayMillseconds)
-    }, leftToEight())
+        sendMessage();
+    }, dayMillseconds);
 });
-
-function leftToEight(){
-    var d = new Date();
-    return (-d + d.setHours(8,0,0,0));
-}
 
 function sendMessage(){
     bot.channels.get(CHANNEL_ID).send('Good morning gamers! All lineups are reset :D.');
