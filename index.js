@@ -78,9 +78,6 @@ bot.on('ready', () => {
     console.log('Bot is online');
     bot.user.setActivity("I'm RaymundBot on steroids.");
 
-    // Auto reset
-    reset();
-    sendMessage(); // send the message once
     const dayMillseconds = 1000 * 60 * 60 * 24;
     setInterval(function(){ // repeat this every 24 hours
         reset();
