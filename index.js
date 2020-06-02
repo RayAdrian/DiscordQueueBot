@@ -16,8 +16,9 @@ const DOTA_TAG = '<@&547734480031580199>';
 const LOL_TAG = '<@&547734044511567884>';
 const TOKYO_TAG = '<@&683607710834753565>';
 const CHAMP_TAG = '<@&547735357437902849>';
+const VALORANT_TAG = '<@&717329724128624671>';
 
-const gameList = ['cs', 'lol', 'dota', 'r6', 'tokyo', 'cod'];
+const gameList = ['cs', 'lol', 'dota', 'r6', 'tokyo', 'cod', 'valorant'];
 
 const RESET = 5;
 const TOKYO_RESET = 4;
@@ -35,7 +36,8 @@ var remaining = {
     dota: RESET,
     r6: RESET,
     tokyo: TOKYO_RESET,
-    cod: CHAMP_RESET
+    cod: CHAMP_RESET,
+    valorant: RESET
 };
 
 var players = {
@@ -44,7 +46,8 @@ var players = {
     dota: [],
     r6: [],
     tokyo: [],
-    cod: []
+    cod: [],
+    valorant: []
 };
 
 var lineup = {
@@ -53,7 +56,8 @@ var lineup = {
     dota: [],
     r6: [],
     tokyo: [],
-    cod: []
+    cod: [],
+    valorant: []
 };
 
 var full = {
@@ -62,7 +66,8 @@ var full = {
     dota: false,
     r6: false,
     tokyo: false,
-    cod: false
+    cod: false,
+    valorant: false
 }
 
 var gameTag = {
@@ -71,7 +76,8 @@ var gameTag = {
     dota: DOTA_TAG,
     r6: R6_TAG,
     tokyo: TOKYO_TAG,
-    cod: CHAMP_TAG
+    cod: CHAMP_TAG,
+    valorant: VALORANT_TAG
 }
 
 bot.on('ready', () => {
@@ -119,6 +125,8 @@ function getGameTag(game) {
             return TOKYO_TAG;
         case 'cod':
             return CHAMP_TAG;
+        case 'valorant':
+            return VALORANT_TAG;
     }
 }
 
@@ -156,7 +164,7 @@ function addToQueue(msg, game){
             // remove players in other lineups
         }
         else{
-            msg.channel.send('Lineup already full :(. Check again later. A queue feature will be implemented in the future').then(sentMessage => {
+            msg.channel.send('Lineup already full').then(sentMessage => {
                 sentMessage.delete(MSG_TIME_FULL_DEL);
             });
         }
@@ -201,6 +209,7 @@ function processCommand(msg,mentionList,mentionSize){
         case 'r6':
         case 'tokyo':
         case 'cod':
+        case 'valorant':
             addToQueue(msg, args[0]);
             break;
         case 'reset':
@@ -273,6 +282,7 @@ function processCommand(msg,mentionList,mentionSize){
                 case 'r6':
                 case 'tokyo':
                 case 'cod':
+                case 'valorant':
                     if(players[gameName].length == 0){
                         const embed = new Discord.RichEmbed()
                         .setTitle(`${gameName.toUpperCase()}`)
@@ -360,7 +370,7 @@ function processCommand(msg,mentionList,mentionSize){
                             break;
                         }
                         else{
-                            msg.channel.send('Lineup already full :(. Check again later. A queue feature will be implemented in the future').then(sentMessage => {
+                            msg.channel.send('Lineup already full').then(sentMessage => {
                                 sentMessage.delete(MSG_TIME_FULL_DEL);
                             });
                             break;
@@ -413,7 +423,7 @@ function processCommand(msg,mentionList,mentionSize){
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
             .setTitle('GentleBot Help')
-            .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6\n .tokyo\n .cod')
+            .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6\n .tokyo\n .cod\n .valorant\n')
             .addField('Reset', '.reset to clear all lineups\n .reset <game> to clear specific lineup. e.g. .reset dota')
             .addField('Lineup', '.lineup to see all lineups\n .lineup <game> to see specific lineup. e.g. .lineup dota')
             .addField('Invite', '.invite to send invite for lineups you are part of.\n .invite <game> to send specific invite. e.g. .invite dota')
@@ -445,7 +455,8 @@ function reset(game){
             dota: RESET,
             r6: RESET,
             tokyo: TOKYO_RESET,
-            cod: CHAMP_RESET
+            cod: CHAMP_RESET,
+            valorant: RESET
         };
         lineupList = [];
         lineup = {
@@ -454,7 +465,8 @@ function reset(game){
             dota: [],
             r6: [],
             tokyo: [],
-            cod: []
+            cod: [],
+            valorant: []
         };
         players = {
             cs: [],
@@ -462,7 +474,8 @@ function reset(game){
             dota: [],
             r6: [],
             tokyo: [],
-            cod: []
+            cod: [],
+            valorant: []
         };
         
         full = {
@@ -471,7 +484,8 @@ function reset(game){
             dota: false,
             r6: false,
             tokyo: false,
-            cod: false
+            cod: false,
+            valorant: false
         }
     }
 }
