@@ -560,6 +560,5 @@ function reset(game){
     }
 }
 
-// bot.login(process.env.BOT_TOKEN);
-bot.login('NTY4MTE1MDg2NTQ4NDAyMTc4.XLdYZw.9DFqVHYdjfIuFHMsMGRxOQG3k7Q');
+bot.login(process.env.BOT_TOKEN);
 
