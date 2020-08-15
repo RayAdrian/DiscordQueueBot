@@ -1,4 +1,7 @@
 const Discord = require('discord.js');
+const mongoose = require('mongoose');
+const Report = require('./models/report.js');
+
 const bot = new Discord.Client();
 // const GAME_TAG = '<@&547735369475555329>';  //Main server
 
@@ -10,84 +13,101 @@ const bot = new Discord.Client();
 // const TOKYO_TAG = '<@&686048644830330921>';
 // const CHAMP_TAG = '<@&690766699992973313>';
 
-const R6_TAG = '<@&658823355008286750>';
-const CS_TAG = '<@&547735369475555329>';
-const DOTA_TAG = '<@&547734480031580199>';
-const LOL_TAG = '<@&547734044511567884>';
-const TOKYO_TAG = '<@&683607710834753565>';
-const CHAMP_TAG = '<@&547735357437902849>';
-const VALORANT_TAG = '<@&717329724128624671>';
+// const R6_TAG = '<@&658823355008286750>';
+// const CS_TAG = '<@&547735369475555329>';
+// const DOTA_TAG = '<@&547734480031580199>';
+// const LOL_TAG = '<@&547734044511567884>';
+// const TOKYO_TAG = '<@&683607710834753565>';
+// const CHAMP_TAG = '<@&547735357437902849>';
+// const VALORANT_TAG = '<@&717329724128624671>';
 
-const gameList = ['cs', 'lol', 'dota', 'r6', 'tokyo', 'apex', 'valorant'];
 
 const RESET = 5;
 const TOKYO_RESET = 4;
 const CHAMP_RESET = 3;
 const MSG_TIME_DEL = 3000;
 const MSG_TIME_FULL_DEL = 7000;
-const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
-// const CHANNEL_ID = '673393759626592273';   //Test server
+// const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
+const CHANNEL_ID = '673393759626592273';   //Test server
 
 const PREFIX = '.';
 
-var remaining = {
-    cs: RESET,
-    lol: RESET,
-    dota: RESET,
-    r6: RESET,
-    tokyo: TOKYO_RESET,
-    apex: CHAMP_RESET,
-    valorant: RESET
-};
+let data;
 
-var players = {
-    cs: [],
-    lol: [],
-    dota: [],
-    r6: [],
-    tokyo: [],
-    apex: [],
-    valorant: []
-};
+const gameList = [];
 
-var lineup = {
-    cs: [],
-    lol: [],
-    dota: [],
-    r6: [],
-    tokyo: [],
-    apex: [],
-    valorant: []
-};
+let countList = {};
 
-var full = {
-    cs: false,
-    lol: false,
-    dota: false,
-    r6: false,
-    tokyo: false,
-    apex: false,
-    valorant: false
+var remaining = {};
+
+var players = {};
+
+var lineup = {};
+
+var full = {}
+
+var gameTag = {}
+
+async function fetchAll() {
+    const query = Report.find({})
+    query.getFilter();
+    const data = await query.exec();
+    return data;
 }
 
-var gameTag = {
-    cs: CS_TAG,
-    lol: LOL_TAG,
-    dota: DOTA_TAG,
-    r6: R6_TAG,
-    tokyo: TOKYO_TAG,
-    apex: CHAMP_TAG,
-    valorant: VALORANT_TAG
+function initData() {
+    data.forEach(gameObj => {
+        gameList.push(gameObj.game);
+
+        remaining = {
+            ...remaining,
+            [gameObj.game]: gameObj.playerCount
+        };
+
+        countList = {
+            ...remaining
+        };
+
+        players = {
+            ...players,
+            [gameObj.game]: []
+        };
+
+        lineup = {
+            ...players
+        };
+
+        full = {
+            ...full,
+            [gameObj.game]: false
+        }
+
+        gameTag = {
+            ...gameTag,
+            [gameObj.game]: gameObj.gameId
+        }
+    });
+
 }
 
-bot.on('ready', () => {
+async function init() {
+    data = await fetchAll();
+
+    initData();
+}
+
+bot.on('ready', async () => {
     console.log('Bot is online');
     bot.user.setActivity("I'm RaymundBot on steroids.");
 
     // For testing if bot resets
-    bot.fetchUser("167564154562019328",false).then(user => {
-        user.send("Bot reset",) 
-    })
+    // bot.fetchUser("167564154562019328",false).then(user => {
+    //     user.send("Bot reset",) 
+    // })
+
+    await mongoose.connect('mongodb://localhost/Reports');
+
+    init();
 });
 
 bot.on('message' ,msg=>{
@@ -117,22 +137,7 @@ bot.on('message' ,msg=>{
 });
 
 function getGameTag(game) {
-    switch(game){
-        case 'cs': 
-            return CS_TAG;
-        case 'dota':
-            return DOTA_TAG;
-        case 'lol':
-            return LOL_TAG;
-        case 'r6':
-            return R6_TAG;
-        case 'tokyo':
-            return TOKYO_TAG;
-        case 'apex':
-            return CHAMP_TAG;
-        case 'valorant':
-            return VALORANT_TAG;
-    }
+    return gameTag[game];
 }
 
 function addToQueue(msg, game){
@@ -175,7 +180,7 @@ function addToQueue(msg, game){
         }
     }
     else{
-        if(remaining[game] == (game === 'tokyo' ? TOKYO_RESET - 1 : game === 'apex' ? CHAMP_RESET - 1 : RESET - 1) && !sameUser) {
+        if(remaining[game] == (countList[game] - 1) && !sameUser) {
             //msg.channel.send(GAME_TAG + ' +' + remaining);
             const GAME_TAG = getGameTag(game);
             bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
@@ -202,21 +207,87 @@ function removeFromLineup(pos, game){
     full[game] = false;
 }
 
-function processCommand(msg,mentionList,mentionSize){
+function isDigit(str) {
+    return str && !/[^\d]/.test(str);
+}
+
+function addData(name, role, count, msg) {
+    const report = new Report({
+        game: name,
+        gameId: role,
+        playerCount: count
+    });
+    report.save()
+    .then(result => {
+        msg.channel.send('Game added.');
+    })
+    .catch(err => console.log(err));
+}
+
+async function editData(msg, role, count) {
+    const res = await Report.updateOne({ gameId: role }, { playerCount: count })
+    if (res.n) {
+        msg.channel.send('Game edited.');
+    } else {
+        msg.channel.send('An error occured.');
+    }
+}
+
+function removeData(msg, role) {
+    Report.deleteOne({ gameId: role })
+    .then(result => {
+        msg.channel.send('Game deleted.');
+    })
+    .catch(err => console.log(err));
+}
+
+async function hasData(role) {
+    const query = Report.find({ gameId: role })
+    query.getFilter();
+    const data = await query.exec();
+    return data.length;
+}
+
+function hasError(msg, name, role, count, isRemove = false, isEdit = false) {
+    if (!role || role[0] !== '<') {
+        msg.channel.send('Invalid role').then(sentMessage => {
+            sentMessage.delete(MSG_TIME_DEL);
+        });
+        return true;
+    }
+
+    if (!isRemove && !isEdit) {
+        if (!name) {
+            msg.channel.send('Indicate game to add').then(sentMessage => {
+                sentMessage.delete(MSG_TIME_DEL);
+            });
+            return true;
+        }
+
+        if (!count || !isDigit(count)) {
+            msg.channel.send('Invalid game player count.').then(sentMessage => {
+                sentMessage.delete(MSG_TIME_DEL);
+            });
+            return true;
+        }
+    } else if (isEdit) {
+        if (!count || !isDigit(count)) {
+            msg.channel.send('Invalid game player count.').then(sentMessage => {
+                sentMessage.delete(MSG_TIME_DEL);
+            });
+            return true;
+        }
+    }
+
+    return false;
+}
+
+async function processCommand(msg,mentionList,mentionSize){
 
     let args  =  msg.content.substring(PREFIX.length).split(' ')
     args[0] = args[0].toLowerCase();
 
     switch(args[0]){
-        case 'cs': 
-        case 'dota':
-        case 'lol':
-        case 'r6':
-        case 'tokyo':
-        case 'apex':
-        case 'valorant':
-            addToQueue(msg, args[0]);
-            break;
         case 'reset':
             if(args[1] == undefined) {
                 reset();
@@ -308,7 +379,6 @@ function processCommand(msg,mentionList,mentionSize){
             }
             break;
         case 'g':
-        case 'game':
             if (args[1] !== undefined) {
                 const game = args[1];
                 if (gameList.indexOf(game) > -1) {
@@ -425,6 +495,39 @@ function processCommand(msg,mentionList,mentionSize){
                 } 
             }
             break;
+        case 'game':
+            //.game add <command> <role> <count>
+            switch (args[1]) {
+                case 'add':
+                    //Error handling
+                    if (hasError(msg, args[2], args[3], args[4], false)) break;
+                    if (await hasData(args[3]) !== 0) {
+                        msg.channel.send('That role is already added. If you would like to edit, please use the edit command.')
+                        break;
+                    }
+
+                    addData(args[2], args[3], args[4], msg);
+                    break;
+                case 'remove':
+                    if (hasError(msg, '', args[2], '', true)) break;
+                    if (await hasData(args[2]) === 0) {
+                        msg.channel.send('That role does not exist')
+                        break;
+                    }
+
+                    removeData(msg, args[2]);
+                    break;
+                case 'edit':
+                    if (hasError(msg, '', args[2], args[3], false, true)) break;
+                    if (await hasData(args[2]) === 0) {
+                        msg.channel.send('That game does not exist')
+                        break;
+                    }
+                    editData(msg, args[2], args[3]);
+                    break;
+                default: break;
+            }
+            break;
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
             .setTitle('GentleBot Help')
@@ -439,7 +542,7 @@ function processCommand(msg,mentionList,mentionSize){
             msg.channel.send(helpEmbed);
             break;
         default:
-            ''
+            if (gameList.indexOf(args[0])) addToQueue(msg, args[0]);
             break;
     }
     
@@ -448,52 +551,15 @@ function processCommand(msg,mentionList,mentionSize){
 function reset(game){
     if(game) {
         remaining[game] = game === 'tokyo' ? TOKYO_RESET : game === 'apex' ? CHAMP_RESET : RESET;
-        lineupList = [];
         lineup[game] = [];
         players[game] = [];
         full[game] = false;
     }
     else {
-        remaining = {
-            cs: RESET,
-            lol: RESET,
-            dota: RESET,
-            r6: RESET,
-            tokyo: TOKYO_RESET,
-            apex: CHAMP_RESET,
-            valorant: RESET
-        };
-        lineupList = [];
-        lineup = {
-            cs: [],
-            lol: [],
-            dota: [],
-            r6: [],
-            tokyo: [],
-            apex: [],
-            valorant: []
-        };
-        players = {
-            cs: [],
-            lol: [],
-            dota: [],
-            r6: [],
-            tokyo: [],
-            apex: [],
-            valorant: []
-        };
-        
-        full = {
-            cs: false,
-            lol: false,
-            dota: false,
-            r6: false,
-            tokyo: false,
-            apex: false,
-            valorant: false
-        }
+        initData();
     }
 }
 
-bot.login(process.env.BOT_TOKEN);
+// bot.login(process.env.BOT_TOKEN);
+bot.login('NTY4MTE1MDg2NTQ4NDAyMTc4.XLdYZw.9DFqVHYdjfIuFHMsMGRxOQG3k7Q');
 
