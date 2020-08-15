@@ -83,6 +83,11 @@ var gameTag = {
 bot.on('ready', () => {
     console.log('Bot is online');
     bot.user.setActivity("I'm RaymundBot on steroids.");
+
+    // For testing if bot resets
+    bot.fetchUser("167564154562019328",false).then(user => {
+        user.send("Bot reset",) 
+    })
 });
 
 bot.on('message' ,msg=>{
