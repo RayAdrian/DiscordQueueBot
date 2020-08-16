@@ -103,7 +103,7 @@ async function init() {
     initData();
 }
 
-bot.on('ready', async msg => {
+bot.on('ready', async () => {
     console.log('Bot is online');
     bot.user.setActivity("I'm RaymundBot on steroids.");
 
@@ -114,7 +114,7 @@ bot.on('ready', async msg => {
     // await mongoose.connect('mongodb://localhost/Reports');
     await mongoose.connect(process.env.DB_URL);
 
-    msg.channel.send('Good morning gamers. I am now scalable (easily add and remove games). I am currently in beta and may contain bugs.\nPlease tag Chaeryeong if you encounter one')
+    bot.channels.get(CHANNEL_ID).send('Good morning gamers. I am now scalable (easily add and remove games). I am currently in beta and may contain bugs.\nPlease tag Chaeryeong if you encounter one');
 
     init();
 });
