@@ -114,7 +114,8 @@ bot.on('ready', async () => {
     // await mongoose.connect('mongodb://localhost/Reports');
     await mongoose.connect(process.env.DB_URL);
 
-    bot.channels.get(CHANNEL_ID).send('Good morning gamers. I am now scalable (easily add and remove games). I am currently in beta and may contain bugs.\nPlease tag Chaeryeong if you encounter one');
+    // Prod deploy message
+    // bot.channels.get(CHANNEL_ID).send('Good morning gamers. I am now scalable (easily add and remove games). I am currently in beta and may contain bugs.\nPlease tag Chaeryeong if you encounter one');
 
     init();
 });
@@ -639,7 +640,7 @@ async function processCommand(msg,mentionList,mentionSize){
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
             .setTitle('GentleBot Help')
-            .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6\n .tokyo\n .apex\n .valorant\n')
+            .addField('Queueing Commands', 'e.g. .cs')
             .addField('Reset', '.reset to clear all lineups\n .reset <game> to clear specific lineup. e.g. .reset dota')
             .addField('Lineup', '.lineup to see all lineups\n .lineup <game> to see specific lineup. e.g. .lineup dota')
             .addField('Invite', '.invite to send invite for lineups you are part of.\n .invite <game> to send specific invite. e.g. .invite dota')
@@ -647,6 +648,16 @@ async function processCommand(msg,mentionList,mentionSize){
             .addField('Game', '.game, .game <game>')
             .addField('Add', '.add <game> <user> to add user to game')
             .addField('Kick', '.kick <game> <user> to kick user from game')
+            .addField('Game List', '.gamelist to see list of available games')
+            msg.channel.send(helpEmbed);
+            break;
+        case 'gamelist':
+            let temp = '';
+            temp = gameList.join();
+            temp = temp.replace(/,/g, '\n');
+            const helpEmbed = new Discord.RichEmbed()
+            .setTitle('Game list')
+            .addField('Current available games', temp)
             msg.channel.send(helpEmbed);
             break;
         default:
