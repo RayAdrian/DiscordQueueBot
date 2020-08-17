@@ -359,6 +359,13 @@ async function hasData(role) {
     return data.length;
 }
 
+async function hasName(name) {
+    const query = Report.find({ game: name })
+    query.getFilter();
+    const data = await query.exec();
+    return data.length;
+}
+
 function hasError(msg, name, role, count, isRemove = false, isEdit = false) {
     if (!role || role[0] !== '<') {
         msg.channel.send('Invalid role').then(sentMessage => {
@@ -604,37 +611,39 @@ async function processCommand(msg,mentionList,mentionSize){
             }
             break;
         case 'game':
-            if (msg.author.username == adminUser) {
-                switch (args[1]) {
-                    case 'add':
-                        //Error handling
-                        if (hasError(msg, args[2], args[3], args[4], false)) break;
-                        if (await hasData(args[3]) !== 0) {
-                            msg.channel.send('That role is already added. If you would like to edit, please use the edit command.')
-                            break;
-                        }
-    
-                        addData(args[2], args[3], args[4], msg);
+            switch (args[1]) {
+                case 'add':
+                    //Error handling
+                    if (hasError(msg, args[2], args[3], args[4], false)) break;
+                    if (await hasName(args[2]) !== 0) {
+                        msg.channel.send('That name is already in use.');
                         break;
-                    case 'remove':
-                        if (hasError(msg, '', args[2], '', true)) break;
-                        if (await hasData(args[2]) === 0) {
-                            msg.channel.send('That role does not exist')
-                            break;
-                        }
-    
-                        removeData(msg, args[2]);
+                    }
+                    if (await hasData(args[3]) !== 0) {
+                        msg.channel.send('That role is already added. If you would like to edit, please use the edit command.')
                         break;
-                    case 'edit':
-                        if (hasError(msg, '', args[2], args[3], false, true)) break;
-                        if (await hasData(args[2]) === 0) {
-                            msg.channel.send('That game does not exist')
-                            break;
-                        }
-                        editData(msg, args[2], args[3]);
+                    }
+
+                    addData(args[2], args[3], args[4], msg);
+                    break;
+                case 'remove':
+                    if (hasError(msg, '', args[2], '', true)) break;
+                    if (await hasData(args[2]) === 0) {
+                        msg.channel.send('That role does not exist')
                         break;
-                    default: break;
-                }
+                    }
+
+                    removeData(msg, args[2]);
+                    break;
+                case 'edit':
+                    if (hasError(msg, '', args[2], args[3], false, true)) break;
+                    if (await hasData(args[2]) === 0) {
+                        msg.channel.send('That game does not exist')
+                        break;
+                    }
+                    editData(msg, args[2], args[3]);
+                    break;
+                default: break;
             }
             break;
         case 'help':
@@ -642,13 +651,14 @@ async function processCommand(msg,mentionList,mentionSize){
             .setTitle('GentleBot Help')
             .addField('Queueing Commands', 'e.g. .cs')
             .addField('Reset', '.reset to clear all lineups\n .reset <game> to clear specific lineup. e.g. .reset dota')
-            .addField('Lineup', '.lineup to see all lineups\n .lineup <game> to see specific lineup. e.g. .lineup dota')
+            .addField('Lineup', '.lineup <game> to see specific lineup. e.g. .lineup dota')
             .addField('Invite', '.invite to send invite for lineups you are part of.\n .invite <game> to send specific invite. e.g. .invite dota')
             .addField('Leave', '.leave to leave all lineups.\n .leave <game> to leave specific lineup. e.g. .leave dota')
             .addField('Game', '.game, .game <game>')
             .addField('Add', '.add <game> <user> to add user to game')
             .addField('Kick', '.kick <game> <user> to kick user from game')
             .addField('Game List', '.gamelist to see list of available games')
+            .addField('Game adding, editing, removing', '.game add <command> <role> <count>\n.game edit <role> <count>\n.game remove <role>')
             msg.channel.send(helpEmbed);
             break;
         case 'gamelist':
