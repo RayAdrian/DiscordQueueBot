@@ -655,10 +655,10 @@ async function processCommand(msg,mentionList,mentionSize){
             let temp = '';
             temp = gameList.join();
             temp = temp.replace(/,/g, '\n');
-            const helpEmbed = new Discord.RichEmbed()
+            const gameEmbed = new Discord.RichEmbed()
             .setTitle('Game list')
             .addField('Current available games', temp)
-            msg.channel.send(helpEmbed);
+            msg.channel.send(gameEmbed);
             break;
         default:
             if (gameList.indexOf(args[0]) > -1) addToQueue(msg, args[0]);
