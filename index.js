@@ -670,6 +670,10 @@ async function processCommand(msg,mentionList,mentionSize){
             .addField('Current available games', temp)
             msg.channel.send(gameEmbed);
             break;
+        case 'botpic':
+            const image = msg.attachments.first().url;
+            bot.user.setAvatar(image);
+            break;
         default:
             if (gameList.indexOf(args[0]) > -1) addToQueue(msg, args[0]);
             break;
