@@ -58,9 +58,9 @@ async function fetchAll() {
     return data;
 }
 
-function initData() {
+function initData(isReset = false) {
     data.forEach(gameObj => {
-        gameList.push(gameObj.game);
+        if (!isReset) gameList.push(gameObj.game);
 
         remaining = {
             ...remaining,
@@ -689,7 +689,7 @@ function reset(game){
         full[game] = false;
     }
     else {
-        initData();
+        initData(true);
     }
 }
 
