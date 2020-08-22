@@ -1,4 +1,7 @@
 const Discord = require('discord.js');
+const mongoose = require('mongoose');
+const Report = require('./models/report.js');
+
 const bot = new Discord.Client();
 // const GAME_TAG = '<@&547735369475555329>';  //Main server
 
@@ -10,18 +13,17 @@ const bot = new Discord.Client();
 // const TOKYO_TAG = '<@&686048644830330921>';
 // const CHAMP_TAG = '<@&690766699992973313>';
 
-const R6_TAG = '<@&658823355008286750>';
-const CS_TAG = '<@&547735369475555329>';
-const DOTA_TAG = '<@&547734480031580199>';
-const LOL_TAG = '<@&547734044511567884>';
-const TOKYO_TAG = '<@&683607710834753565>';
-const CHAMP_TAG = '<@&547735357437902849>';
-const VALORANT_TAG = '<@&717329724128624671>';
+// const R6_TAG = '<@&658823355008286750>';
+// const CS_TAG = '<@&547735369475555329>';
+// const DOTA_TAG = '<@&547734480031580199>';
+// const LOL_TAG = '<@&547734044511567884>';
+// const TOKYO_TAG = '<@&683607710834753565>';
+// const CHAMP_TAG = '<@&547735357437902849>';
+// const VALORANT_TAG = '<@&717329724128624671>';
 
-const gameList = ['cs', 'lol', 'dota', 'r6', 'tokyo', 'apex', 'valorant'];
 
-const RESET = 5;
-const TOKYO_RESET = 4;
+// const RESET = 5;
+// const TOKYO_RESET = 4;
 const CHAMP_RESET = 3;
 const MSG_TIME_DEL = 3000;
 const MSG_TIME_FULL_DEL = 7000;
@@ -30,59 +32,92 @@ const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
 
 const PREFIX = '.';
 
-var remaining = {
-    cs: RESET,
-    lol: RESET,
-    dota: RESET,
-    r6: RESET,
-    tokyo: TOKYO_RESET,
-    apex: CHAMP_RESET,
-    valorant: RESET
-};
+let data;
+let adminUser;
 
-var players = {
-    cs: [],
-    lol: [],
-    dota: [],
-    r6: [],
-    tokyo: [],
-    apex: [],
-    valorant: []
-};
+let gameList = [];
 
-var lineup = {
-    cs: [],
-    lol: [],
-    dota: [],
-    r6: [],
-    tokyo: [],
-    apex: [],
-    valorant: []
-};
+let countList = {};
 
-var full = {
-    cs: false,
-    lol: false,
-    dota: false,
-    r6: false,
-    tokyo: false,
-    apex: false,
-    valorant: false
+let remaining = {};
+
+let players = {};
+
+let lineup = {};
+
+let full = {}
+
+let gameTag = {}
+
+let gameNameList = {}
+
+async function fetchAll() {
+    const query = Report.find({})
+    query.getFilter();
+    const data = await query.exec();
+    return data;
 }
 
-var gameTag = {
-    cs: CS_TAG,
-    lol: LOL_TAG,
-    dota: DOTA_TAG,
-    r6: R6_TAG,
-    tokyo: TOKYO_TAG,
-    apex: CHAMP_TAG,
-    valorant: VALORANT_TAG
+function initData(isReset = false) {
+    data.forEach(gameObj => {
+        if (!isReset) gameList.push(gameObj.game);
+
+        remaining = {
+            ...remaining,
+            [gameObj.game]: gameObj.playerCount
+        };
+
+        countList = {
+            ...remaining
+        };
+
+        players = {
+            ...players,
+            [gameObj.game]: []
+        };
+
+        lineup = {
+            ...players
+        };
+
+        full = {
+            ...full,
+            [gameObj.game]: false
+        }
+
+        gameTag = {
+            ...gameTag,
+            [gameObj.game]: gameObj.gameId
+        }
+
+        gameNameList = {
+            ...gameNameList,
+            [gameObj.gameId]: gameObj.game
+        }
+    });
+}   
+
+async function init() {
+    data = await fetchAll();
+
+    initData();
 }
 
-bot.on('ready', () => {
+bot.on('ready', async () => {
     console.log('Bot is online');
     bot.user.setActivity("I'm RaymundBot on steroids.");
+
+    bot.fetchUser("167564154562019328",false).then(user => {
+        adminUser = user.username;
+    })
+
+    // await mongoose.connect('mongodb://localhost/Reports');
+    await mongoose.connect(process.env.DB_URL);
+
+    // Prod deploy message
+    // bot.channels.get(CHANNEL_ID).send('Good morning gamers. I am now scalable (easily add and remove games). I am currently in beta and may contain bugs.\nPlease tag Chaeryeong if you encounter one');
+
+    init();
 });
 
 bot.on('message' ,msg=>{
@@ -99,7 +134,7 @@ bot.on('message' ,msg=>{
             //mention = msg.mentions.members.first().toString();
             mentionList = msg.mentions.members.array().toString().split(',');
             mentionSize = msg.mentions.members.size.toString();
-            for(var i = 0; i < mentionSize; i++){
+            for(let i = 0; i < mentionSize; i++){
                 if(mentionList[i].indexOf('!') >= 0){       //
                     mentionList[i] = mentionList[i].slice(0, 2) + mentionList[i].slice(3);
                 }
@@ -112,26 +147,11 @@ bot.on('message' ,msg=>{
 });
 
 function getGameTag(game) {
-    switch(game){
-        case 'cs': 
-            return CS_TAG;
-        case 'dota':
-            return DOTA_TAG;
-        case 'lol':
-            return LOL_TAG;
-        case 'r6':
-            return R6_TAG;
-        case 'tokyo':
-            return TOKYO_TAG;
-        case 'apex':
-            return CHAMP_TAG;
-        case 'valorant':
-            return VALORANT_TAG;
-    }
+    return gameTag[game];
 }
 
 function addToQueue(msg, game){
-    var sameUser = 0;
+    let sameUser = 0;
     //check if sender is already in lineup
     console.log(players);
     players[game].forEach(function(item, index, array) {
@@ -156,7 +176,7 @@ function addToQueue(msg, game){
         }
     }
 
-    if(remaining[game] == 0){
+    if(remaining[game] == 0 && !isInfinite(game)){
         if(!full[game]){
             //msg.channel.send('Lineup complete: ' + lineup);
             bot.channels.get(CHANNEL_ID).send(`${game.toUpperCase()} Lineup Complete: ${lineup[game]}`);
@@ -170,7 +190,19 @@ function addToQueue(msg, game){
         }
     }
     else{
-        if(remaining[game] == (game === 'tokyo' ? TOKYO_RESET - 1 : game === 'apex' ? CHAMP_RESET - 1 : RESET - 1) && !sameUser) {
+        if (isInfinite(game)){
+            if (remaining[game] === -1 && !sameUser) {
+                const GAME_TAG = getGameTag(game);
+                bot.channels.get(CHANNEL_ID).send(GAME_TAG);
+            }
+            else{
+                if(sameUser == 0)
+                msg.channel.send('Added you to the lineup').then(sentMessage => {
+                    sentMessage.delete(MSG_TIME_DEL);
+                });
+            }
+        }
+        else if(remaining[game] == (countList[game] - 1) && !sameUser) {
             //msg.channel.send(GAME_TAG + ' +' + remaining);
             const GAME_TAG = getGameTag(game);
             bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
@@ -186,7 +218,9 @@ function addToQueue(msg, game){
 }
 
 function inviteModule(game){
-    if(remaining[game] !== 0)
+    if (isInfinite(game)) 
+        bot.channels.get(CHANNEL_ID).send(gameTag[game]); 
+    else if(remaining[game] !== 0)
         bot.channels.get(CHANNEL_ID).send(gameTag[game] + ' +' + remaining[game]);  
 }
 
@@ -197,21 +231,185 @@ function removeFromLineup(pos, game){
     full[game] = false;
 }
 
-function processCommand(msg,mentionList,mentionSize){
+function isDigit(str) {
+    return str && !/[^\d]/.test(str);
+}
+
+function addData(name, role, count, msg) {
+    const report = new Report({
+        game: name,
+        gameId: role,
+        playerCount: count
+    });
+    report.save()
+    .then(result => {
+        msg.channel.send('Game added.');
+    })
+    .catch(err => console.log(err));
+    
+    // Update all existing vars
+    data.push({
+        game: name,
+        gameId: role,
+        playerCount: count
+    });
+    gameList.push(name);
+    countList = {
+        ...countList,
+        [name]: count
+    };
+    remaining = {
+        ...remaining,
+        [name]: count
+    };
+    players = {
+        ...players,
+        [name]: []
+    };
+    lineup = {
+        ...players,
+    };
+    full = {
+        ...full,
+        [name]: false
+    };
+    gameTag = {
+        ...gameTag,
+        [name]: role
+    };
+
+    gameNameList = {
+        ...gameNameList,
+        [role]: name
+    };
+}
+
+async function editData(msg, role, count) {
+    const res = await Report.updateOne({ gameId: role }, { playerCount: count })
+    if (res.n) {
+        msg.channel.send('Game edited.');
+    } else {
+        msg.channel.send('An error occured.');
+    }
+
+    // Update all existing vars
+    const name = gameNameList[role];
+    data = data.filter(obj => {
+        return data.gameId !== role
+    });
+
+    data.push({
+        game: name,
+        gameId: role,
+        playerCount: count
+    });
+
+    remaining = {
+        ...remaining,
+        [name]: count
+    };
+    countList = {
+        ...countList,
+        [name]: count
+    };
+    players = {
+        ...players,
+        [name]: []
+    };
+    lineup = {
+        ...players,
+    };
+    full = {
+        ...full,
+        [name]: false
+    };
+    gameTag = {
+        ...gameTag,
+        [name]: role
+    };
+}
+
+async function removeData(msg, role) {
+    Report.deleteOne({ gameId: role })
+    .then(result => {
+        msg.channel.send('Game deleted.');
+    })
+    .catch(err => console.log(err));
+
+    // Update all existing vars
+    data = data.filter(obj => {
+        return data.gameId !== role
+    });
+    const name = gameNameList[role];
+    gameList = gameList.filter((value, index, arr) => value !== name);
+    
+    delete remaining[name];
+    delete countList[name];
+    delete players[name];
+    delete lineup[name];
+    delete full[name];
+    delete gameTag[name];
+    delete gameNameList[role];
+}
+
+async function hasData(role) {
+    const query = Report.find({ gameId: role })
+    query.getFilter();
+    const data = await query.exec();
+    return data.length;
+}
+
+async function hasName(name) {
+    const query = Report.find({ game: name })
+    query.getFilter();
+    const data = await query.exec();
+    return data.length;
+}
+
+function hasError(msg, name, role, count, isRemove = false, isEdit = false) {
+    if (!role || role[0] !== '<') {
+        msg.channel.send('Invalid role').then(sentMessage => {
+            sentMessage.delete(MSG_TIME_DEL);
+        });
+        return true;
+    }
+
+    if (!isRemove && !isEdit) {
+        if (!name) {
+            msg.channel.send('Indicate game to add').then(sentMessage => {
+                sentMessage.delete(MSG_TIME_DEL);
+            });
+            return true;
+        }
+
+        if (!count || !isDigit(count)) {
+            msg.channel.send('Invalid game player count.').then(sentMessage => {
+                sentMessage.delete(MSG_TIME_DEL);
+            });
+            return true;
+        }
+    } else if (isEdit) {
+        if (!count || !isDigit(count)) {
+            msg.channel.send('Invalid game player count.').then(sentMessage => {
+                sentMessage.delete(MSG_TIME_DEL);
+            });
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function isInfinite(game) {
+    return countList[game] == 0 ? true : false;
+}
+
+async function processCommand(msg,mentionList,mentionSize){
 
     let args  =  msg.content.substring(PREFIX.length).split(' ')
     args[0] = args[0].toLowerCase();
 
     switch(args[0]){
-        case 'cs': 
-        case 'dota':
-        case 'lol':
-        case 'r6':
-        case 'tokyo':
-        case 'apex':
-        case 'valorant':
-            addToQueue(msg, args[0]);
-            break;
         case 'reset':
             if(args[1] == undefined) {
                 reset();
@@ -275,35 +473,23 @@ function processCommand(msg,mentionList,mentionSize){
             break;
         case 'lineup':
             const gameName = args[1];
-            switch(gameName) {
-                case 'cs':
-                case 'dota':
-                case 'lol':
-                case 'r6':
-                case 'tokyo':
-                case 'apex':
-                case 'valorant':
-                    if(players[gameName].length == 0){
-                        const embed = new Discord.RichEmbed()
-                        .setTitle(`${gameName.toUpperCase()}`)
-                        .addField('Current lineup','No players in lineup');
-                        msg.channel.send(embed);
-                    }
-                    else{
-                        const lineupList = players[gameName].join('\n');
-                        const embed = new Discord.RichEmbed()
-                        .setTitle(`${gameName.toUpperCase()}`)
-                        .addField('Current Lineup', lineupList)
-                        msg.channel.send(embed);
-                    }
-                    break;
-                default:
-                    ''
-                    break;
+            if (gameList.indexOf(gameName) > -1) {
+                if(players[gameName].length == 0){
+                    const embed = new Discord.RichEmbed()
+                    .setTitle(`${gameName.toUpperCase()}`)
+                    .addField('Current lineup','No players in lineup');
+                    msg.channel.send(embed);
+                }
+                else{
+                    const lineupList = players[gameName].join('\n');
+                    const embed = new Discord.RichEmbed()
+                    .setTitle(`${gameName.toUpperCase()}`)
+                    .addField('Current Lineup', lineupList)
+                    msg.channel.send(embed);
+                }
             }
             break;
         case 'g':
-        case 'game':
             if (args[1] !== undefined) {
                 const game = args[1];
                 if (gameList.indexOf(game) > -1) {
@@ -333,7 +519,7 @@ function processCommand(msg,mentionList,mentionSize){
                 let sameUser = false;
                 const game = args[1];
                 if (gameList.indexOf(game) < 0) break;
-                for(var i = 0; i < mentionSize; i++){
+                for(let i = 0; i < mentionSize; i++){
                     sameUser = false;
                     //check if sender is already in lineup
                     if (players[game].indexOf(mentionList[i]) > -1) sameUser = true;
@@ -355,14 +541,18 @@ function processCommand(msg,mentionList,mentionSize){
                             msg.channel.send('User added to lineup').then(sentMessage => {
                                 sentMessage.delete(MSG_TIME_DEL);
                             });
-                            if (remaining[game] ===  (game === 'tokyo' ? TOKYO_RESET - 1 : RESET - 1)) {
+                            if (remaining[game] === -1 && isInfinite(game)) {
+                                const GAME_TAG = getGameTag(game);
+                                bot.channels.get(CHANNEL_ID).send(GAME_TAG);
+                            }
+                            else if (remaining[game] ===  countList[game] - 1) {
                                 const GAME_TAG = getGameTag(game);
                                 bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
                             }
                         }
                     }
 
-                    if(remaining[game] == 0){
+                    if(remaining[game] == 0 && !isInfinite(game)){
                         if(!full[game]){
                             //msg.channel.send('Lineup complete: ' + lineup);
                             bot.channels.get(CHANNEL_ID).send(`${game.toUpperCase()} Lineup Complete: ${lineup[game]}`);
@@ -398,7 +588,7 @@ function processCommand(msg,mentionList,mentionSize){
             else{
                 const game = args[1];
                 if (gameList.indexOf(game) < 0) break;
-                for(var i = 0; i < mentionSize; i++){
+                for(let i = 0; i < mentionSize; i++){
                     let pos = players[game].indexOf(mentionList[i]);
                     if(pos < 0){
                         console.log('Not in lineup');
@@ -420,21 +610,72 @@ function processCommand(msg,mentionList,mentionSize){
                 } 
             }
             break;
+        case 'game':
+            switch (args[1]) {
+                case 'add':
+                    //Error handling
+                    if (hasError(msg, args[2], args[3], args[4], false)) break;
+                    if (await hasName(args[2]) !== 0) {
+                        msg.channel.send('That name is already in use.');
+                        break;
+                    }
+                    if (await hasData(args[3]) !== 0) {
+                        msg.channel.send('That role is already added. If you would like to edit, please use the edit command.')
+                        break;
+                    }
+
+                    addData(args[2], args[3], args[4], msg);
+                    break;
+                case 'remove':
+                    if (hasError(msg, '', args[2], '', true)) break;
+                    if (await hasData(args[2]) === 0) {
+                        msg.channel.send('That role does not exist')
+                        break;
+                    }
+
+                    removeData(msg, args[2]);
+                    break;
+                case 'edit':
+                    if (hasError(msg, '', args[2], args[3], false, true)) break;
+                    if (await hasData(args[2]) === 0) {
+                        msg.channel.send('That game does not exist')
+                        break;
+                    }
+                    editData(msg, args[2], args[3]);
+                    break;
+                default: break;
+            }
+            break;
         case 'help':
             const helpEmbed = new Discord.RichEmbed()
             .setTitle('GentleBot Help')
-            .addField('Queueing Commands', '.cs\n .dota\n .lol\n .r6\n .tokyo\n .apex\n .valorant\n')
+            .addField('Queueing Commands', 'e.g. .cs')
             .addField('Reset', '.reset to clear all lineups\n .reset <game> to clear specific lineup. e.g. .reset dota')
-            .addField('Lineup', '.lineup to see all lineups\n .lineup <game> to see specific lineup. e.g. .lineup dota')
+            .addField('Lineup', '.lineup <game> to see specific lineup. e.g. .lineup dota')
             .addField('Invite', '.invite to send invite for lineups you are part of.\n .invite <game> to send specific invite. e.g. .invite dota')
             .addField('Leave', '.leave to leave all lineups.\n .leave <game> to leave specific lineup. e.g. .leave dota')
             .addField('Game', '.game, .game <game>')
             .addField('Add', '.add <game> <user> to add user to game')
             .addField('Kick', '.kick <game> <user> to kick user from game')
+            .addField('Game List', '.gamelist to see list of available games')
+            .addField('Game adding, editing, removing', '.game add <command> <role> <count>\n.game edit <role> <count>\n.game remove <role>')
             msg.channel.send(helpEmbed);
             break;
+        case 'gamelist':
+            let temp = '';
+            temp = gameList.join();
+            temp = temp.replace(/,/g, '\n');
+            const gameEmbed = new Discord.RichEmbed()
+            .setTitle('Game list')
+            .addField('Current available games', temp)
+            msg.channel.send(gameEmbed);
+            break;
+        case 'botpic':
+            const image = msg.attachments.first().url;
+            bot.user.setAvatar(image);
+            break;
         default:
-            ''
+            if (gameList.indexOf(args[0]) > -1) addToQueue(msg, args[0]);
             break;
     }
     
@@ -442,51 +683,13 @@ function processCommand(msg,mentionList,mentionSize){
 
 function reset(game){
     if(game) {
-        remaining[game] = game === 'tokyo' ? TOKYO_RESET : game === 'apex' ? CHAMP_RESET : RESET;
-        lineupList = [];
+        remaining[game] = countList[game];
         lineup[game] = [];
         players[game] = [];
         full[game] = false;
     }
     else {
-        remaining = {
-            cs: RESET,
-            lol: RESET,
-            dota: RESET,
-            r6: RESET,
-            tokyo: TOKYO_RESET,
-            apex: CHAMP_RESET,
-            valorant: RESET
-        };
-        lineupList = [];
-        lineup = {
-            cs: [],
-            lol: [],
-            dota: [],
-            r6: [],
-            tokyo: [],
-            apex: [],
-            valorant: []
-        };
-        players = {
-            cs: [],
-            lol: [],
-            dota: [],
-            r6: [],
-            tokyo: [],
-            apex: [],
-            valorant: []
-        };
-        
-        full = {
-            cs: false,
-            lol: false,
-            dota: false,
-            r6: false,
-            tokyo: false,
-            apex: false,
-            valorant: false
-        }
+        initData(true);
     }
 }
 
