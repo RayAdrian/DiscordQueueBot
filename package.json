@@ -9,7 +9,7 @@
   "author": "Raymund",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^11.4.2",
+    "discord.js": "^12.4.1",
     "mongoose": "^5.10.0"
   }
 }
