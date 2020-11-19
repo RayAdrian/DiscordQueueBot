@@ -107,15 +107,15 @@ bot.on('ready', async () => {
     console.log('Bot is online');
     bot.user.setActivity("I'm RaymundBot on steroids.");
 
-    bot.fetchUser("167564154562019328",false).then(user => {
-        adminUser = user.username;
-    })
+    // bot.fetchUser("167564154562019328",false).then(user => {
+    //     adminUser = user.username;
+    // })
 
     // await mongoose.connect('mongodb://localhost/Reports');
     await mongoose.connect(process.env.DB_URL);
 
     // Prod deploy message
-    // bot.channels.get(CHANNEL_ID).send('Good morning gamers. I am now scalable (easily add and remove games). I am currently in beta and may contain bugs.\nPlease tag Chaeryeong if you encounter one');
+    // bot.channels.cache.get(CHANNEL_ID).send('Good morning gamers. I am now scalable (easily add and remove games). I am currently in beta and may contain bugs.\nPlease tag Chaeryeong if you encounter one');
 
     init();
 });
@@ -127,7 +127,7 @@ bot.on('message' ,msg=>{
 
 
     if (msg.content.startsWith(PREFIX)) {
-        mention = msg.mentions.members.first();
+        mention = msg.mentions.members.first()
         if(mention == null)
             processCommand(msg,mention);
         else{
@@ -162,7 +162,7 @@ function addToQueue(msg, game){
 
     if(sameUser === 1){
         msg.channel.send('You are already in the lineup').then(sentMessage => {
-            sentMessage.delete(MSG_TIME_DEL);
+            deleteMessage(sentMessage);
         });
         console.log('User already in lineup');
     }
@@ -179,7 +179,7 @@ function addToQueue(msg, game){
     if(remaining[game] == 0 && !isInfinite(game)){
         if(!full[game]){
             //msg.channel.send('Lineup complete: ' + lineup);
-            bot.channels.get(CHANNEL_ID).send(`${game.toUpperCase()} Lineup Complete: ${lineup[game]}`);
+            bot.channels.cache.get(CHANNEL_ID).send(`${game.toUpperCase()} Lineup Complete: ${lineup[game]}`);
             full[game] = true;
             // remove players in other lineups
         }
@@ -193,24 +193,24 @@ function addToQueue(msg, game){
         if (isInfinite(game)){
             if (remaining[game] === -1 && !sameUser) {
                 const GAME_TAG = getGameTag(game);
-                bot.channels.get(CHANNEL_ID).send(GAME_TAG);
+                bot.channels.cache.get(CHANNEL_ID).send(GAME_TAG);
             }
             else{
                 if(sameUser == 0)
                 msg.channel.send('Added you to the lineup').then(sentMessage => {
-                    sentMessage.delete(MSG_TIME_DEL);
+                    deleteMessage(sentMessage);
                 });
             }
         }
         else if(remaining[game] == (countList[game] - 1) && !sameUser) {
             //msg.channel.send(GAME_TAG + ' +' + remaining);
             const GAME_TAG = getGameTag(game);
-            bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
+            bot.channels.cache.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
         }
         else{
             if(sameUser == 0)
             msg.channel.send('Added you to the lineup').then(sentMessage => {
-                sentMessage.delete(MSG_TIME_DEL);
+                deleteMessage(sentMessage);
             });
         }
 
@@ -219,9 +219,9 @@ function addToQueue(msg, game){
 
 function inviteModule(game){
     if (isInfinite(game)) 
-        bot.channels.get(CHANNEL_ID).send(gameTag[game]); 
+        bot.channels.cache.get(CHANNEL_ID).send(gameTag[game]); 
     else if(remaining[game] !== 0)
-        bot.channels.get(CHANNEL_ID).send(gameTag[game] + ' +' + remaining[game]);  
+        bot.channels.cache.get(CHANNEL_ID).send(gameTag[game] + ' +' + remaining[game]);  
 }
 
 function removeFromLineup(pos, game){
@@ -352,6 +352,10 @@ async function removeData(msg, role) {
     delete gameNameList[role];
 }
 
+function deleteMessage (sentMessage) {
+    sentMessage.delete({ timeout: MSG_TIME_DEL, reason: 'test' });
+}
+
 async function hasData(role) {
     const query = Report.find({ gameId: role })
     query.getFilter();
@@ -369,7 +373,7 @@ async function hasName(name) {
 function hasError(msg, name, role, count, isRemove = false, isEdit = false) {
     if (!role || role[0] !== '<') {
         msg.channel.send('Invalid role').then(sentMessage => {
-            sentMessage.delete(MSG_TIME_DEL);
+            deleteMessage(sentMessage);
         });
         return true;
     }
@@ -377,21 +381,21 @@ function hasError(msg, name, role, count, isRemove = false, isEdit = false) {
     if (!isRemove && !isEdit) {
         if (!name) {
             msg.channel.send('Indicate game to add').then(sentMessage => {
-                sentMessage.delete(MSG_TIME_DEL);
+                deleteMessage(sentMessage);
             });
             return true;
         }
 
         if (!count || !isDigit(count)) {
             msg.channel.send('Invalid game player count.').then(sentMessage => {
-                sentMessage.delete(MSG_TIME_DEL);
+                deleteMessage(sentMessage);
             });
             return true;
         }
     } else if (isEdit) {
         if (!count || !isDigit(count)) {
             msg.channel.send('Invalid game player count.').then(sentMessage => {
-                sentMessage.delete(MSG_TIME_DEL);
+                deleteMessage(sentMessage);
             });
             return true;
         }
@@ -437,7 +441,7 @@ async function processCommand(msg,mentionList,mentionSize){
                 });
 
                 msg.channel.send(!isPartOfLineup ? 'You are not part of any lineup.' : 'Removed you from the lineups.').then(sentMessage => {
-                    sentMessage.delete(MSG_TIME_DEL);
+                    deleteMessage(sentMessage);
                 });
             }
             else {  //.leave cs
@@ -447,12 +451,12 @@ async function processCommand(msg,mentionList,mentionSize){
                     if(pos > -1){
                         removeFromLineup(pos, game);
                         msg.channel.send('Removed you from the lineup.').then(sentMessage => {
-                            sentMessage.delete(MSG_TIME_DEL);
+                            deleteMessage(sentMessage);
                         });
                     }
                     else {
                         msg.channel.send('You are not part of the lineup.').then(sentMessage => {
-                            sentMessage.delete(MSG_TIME_DEL);
+                            deleteMessage(sentMessage);
                         });
                     }
                 }
@@ -475,14 +479,14 @@ async function processCommand(msg,mentionList,mentionSize){
             const gameName = args[1];
             if (gameList.indexOf(gameName) > -1) {
                 if(players[gameName].length == 0){
-                    const embed = new Discord.RichEmbed()
+                    const embed = new Discord.MessageEmbed()
                     .setTitle(`${gameName.toUpperCase()}`)
                     .addField('Current lineup','No players in lineup');
                     msg.channel.send(embed);
                 }
                 else{
                     const lineupList = players[gameName].join('\n');
-                    const embed = new Discord.RichEmbed()
+                    const embed = new Discord.MessageEmbed()
                     .setTitle(`${gameName.toUpperCase()}`)
                     .addField('Current Lineup', lineupList)
                     msg.channel.send(embed);
@@ -494,10 +498,10 @@ async function processCommand(msg,mentionList,mentionSize){
                 const game = args[1];
                 if (gameList.indexOf(game) > -1) {
                     if (players[game].indexOf(msg.author.toString()) > -1) {
-                        bot.channels.get(CHANNEL_ID).send('tara g ' + lineup[game]);
+                        bot.channels.cache.get(CHANNEL_ID).send('tara g ' + lineup[game]);
                     } else {
                         msg.channel.send('You are not part of that lineup').then(sentMessage => {
-                            sentMessage.delete(MSG_TIME_DEL);
+                            deleteMessage(sentMessage);
                         });
                     }
                 }
@@ -506,7 +510,7 @@ async function processCommand(msg,mentionList,mentionSize){
         case 'add':
             if (gameList.indexOf(args[1]) < 0) {
                 msg.channel.send('Indicate game to add to.').then(sentMessage => {
-                    sentMessage.delete(MSG_TIME_DEL);
+                    deleteMessage(sentMessage);
                 });
                 break;
             }
@@ -526,7 +530,7 @@ async function processCommand(msg,mentionList,mentionSize){
                     
                     if(sameUser){
                         msg.channel.send('User already added').then(sentMessage => {
-                            sentMessage.delete(MSG_TIME_DEL);
+                            deleteMessage(sentMessage);
                         });
                         console.log('User already in lineup');
                         break;
@@ -539,15 +543,15 @@ async function processCommand(msg,mentionList,mentionSize){
                             lineup[game] = players[game].join();
                             remaining[game] = remaining[game] - 1; 
                             msg.channel.send('User added to lineup').then(sentMessage => {
-                                sentMessage.delete(MSG_TIME_DEL);
+                                sentMessage.delete({ timeout: MSG_TIME_DEL, reason: 'test' });
                             });
                             if (remaining[game] === -1 && isInfinite(game)) {
                                 const GAME_TAG = getGameTag(game);
-                                bot.channels.get(CHANNEL_ID).send(GAME_TAG);
+                                bot.channels.cache.get(CHANNEL_ID).send(GAME_TAG);
                             }
                             else if (remaining[game] ===  countList[game] - 1) {
                                 const GAME_TAG = getGameTag(game);
-                                bot.channels.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
+                                bot.channels.cache.get(CHANNEL_ID).send(GAME_TAG + ' +' + remaining[game]);
                             }
                         }
                     }
@@ -555,7 +559,7 @@ async function processCommand(msg,mentionList,mentionSize){
                     if(remaining[game] == 0 && !isInfinite(game)){
                         if(!full[game]){
                             //msg.channel.send('Lineup complete: ' + lineup);
-                            bot.channels.get(CHANNEL_ID).send(`${game.toUpperCase()} Lineup Complete: ${lineup[game]}`);
+                            bot.channels.cache.get(CHANNEL_ID).send(`${game.toUpperCase()} Lineup Complete: ${lineup[game]}`);
                             full[game] = true;
                             break;
                         }
@@ -577,7 +581,7 @@ async function processCommand(msg,mentionList,mentionSize){
         case 'kick':
             if (gameList.indexOf(args[1]) < 0) {
                 msg.channel.send('Indicate game to kick from.').then(sentMessage => {
-                    sentMessage.delete(MSG_TIME_DEL);
+                    deleteMessage(sentMessage);
                 });
                 break;
             }
@@ -600,7 +604,7 @@ async function processCommand(msg,mentionList,mentionSize){
                     else{    
                         players[game].splice(pos, 1);
                         msg.channel.send('Removed from lineup').then(sentMessage => {
-                            sentMessage.delete(MSG_TIME_DEL);
+                            deleteMessage(sentMessage);
                         });
                         console.log('Removed from lineup');
                         lineup[game] = players[game].join();
@@ -647,7 +651,7 @@ async function processCommand(msg,mentionList,mentionSize){
             }
             break;
         case 'help':
-            const helpEmbed = new Discord.RichEmbed()
+            const helpEmbed = new Discord.MessageEmbed()
             .setTitle('GentleBot Help')
             .addField('Queueing Commands', 'e.g. .cs')
             .addField('Reset', '.reset to clear all lineups\n .reset <game> to clear specific lineup. e.g. .reset dota')
@@ -665,7 +669,7 @@ async function processCommand(msg,mentionList,mentionSize){
             let temp = '';
             temp = gameList.join();
             temp = temp.replace(/,/g, '\n');
-            const gameEmbed = new Discord.RichEmbed()
+            const gameEmbed = new Discord.MessageEmbed()
             .setTitle('Game list')
             .addField('Current available games', temp)
             msg.channel.send(gameEmbed);
