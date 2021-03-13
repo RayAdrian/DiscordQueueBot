@@ -108,7 +108,7 @@ async function init() {
 bot.on('ready', async () => {
     console.log('Bot is online');
     bot.user.setActivity(".help | Sup gamers");
-    Quotes.create({ message: 'Good morning gamers! All lineups are reset.' })
+    Quote.create({ message: 'Good morning gamers! All lineups are reset.' })
     .then(quote => {
         console.log('uploaded quote')
     })
@@ -127,7 +127,7 @@ bot.on('ready', async () => {
 });
 
 // cron.schedule('0 4 * * *', () => {
-//     Quotes.find({})
+//     Quote.find({})
 //     .then(quote => {
 //         reset();
 //         bot.channels.cache.get(CHANNEL_ID).send('Good morning gamers!');
