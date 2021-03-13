@@ -135,7 +135,7 @@ cron.schedule('0 6 * * *', () => {
     .then(quote => {
         const randInt = getRandomInt(quote.length)
         reset();
-        bot.channels.cache.get(CHANNEL_ID).send(quote[randInt]);
+        bot.channels.cache.get(CHANNEL_ID).send(quote[randInt].message);
     })
 }, {
     scheduled: true,
