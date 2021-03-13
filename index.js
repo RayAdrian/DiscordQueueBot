@@ -1,6 +1,8 @@
 const Discord = require('discord.js');
 const mongoose = require('mongoose');
 const Report = require('./models/report.js');
+const Quote = require('./models/quote.js');
+var cron = require('node-cron');
 
 const bot = new Discord.Client();
 // const GAME_TAG = '<@&547735369475555329>';  //Main server
@@ -105,7 +107,11 @@ async function init() {
 
 bot.on('ready', async () => {
     console.log('Bot is online');
-    bot.user.setActivity("I'm RaymundBot on steroids.");
+    bot.user.setActivity(".help | Sup gamers");
+    Quotes.create({ message: 'Good morning gamers! All lineups are reset.' })
+    .then(quote => {
+        console.log('uploaded quote')
+    })
 
     // bot.fetchUser("167564154562019328",false).then(user => {
     //     adminUser = user.username;
@@ -119,6 +125,17 @@ bot.on('ready', async () => {
 
     init();
 });
+
+// cron.schedule('0 4 * * *', () => {
+//     Quotes.find({})
+//     .then(quote => {
+//         reset();
+//         bot.channels.cache.get(CHANNEL_ID).send('Good morning gamers!');
+//     })
+// }, {
+//     scheduled: true,
+//     timezone: "Asia/Manila"
+// });
 
 bot.on('message' ,msg=>{
     if (msg.author == bot.user) { // Prevent bot from responding to its own messages
