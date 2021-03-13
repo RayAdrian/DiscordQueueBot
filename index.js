@@ -105,13 +105,17 @@ async function init() {
     initData();
 }
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}   
+
 bot.on('ready', async () => {
     console.log('Bot is online');
     bot.user.setActivity(".help | Sup gamers");
-    Quote.create({ message: 'Good morning gamers! All lineups are reset.' })
-    .then(quote => {
-        console.log('uploaded quote')
-    })
+    // Quote.create({ message: 'Good morning gamers! All lineups are reset.' })
+    // .then(quote => {
+    //     console.log('uploaded quote')
+    // })
 
     // bot.fetchUser("167564154562019328",false).then(user => {
     //     adminUser = user.username;
@@ -126,16 +130,17 @@ bot.on('ready', async () => {
     init();
 });
 
-// cron.schedule('0 4 * * *', () => {
-//     Quote.find({})
-//     .then(quote => {
-//         reset();
-//         bot.channels.cache.get(CHANNEL_ID).send('Good morning gamers!');
-//     })
-// }, {
-//     scheduled: true,
-//     timezone: "Asia/Manila"
-// });
+cron.schedule('0 6 * * *', () => {
+    Quote.find({})
+    .then(quote => {
+        const randInt = getRandomInt(quote.length)
+        reset();
+        bot.channels.cache.get(CHANNEL_ID).send(quote[randInt]);
+    })
+}, {
+    scheduled: true,
+    timezone: "Asia/Manila"
+});
 
 bot.on('message' ,msg=>{
     if (msg.author == bot.user) { // Prevent bot from responding to its own messages
