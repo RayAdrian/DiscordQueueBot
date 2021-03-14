@@ -7,26 +7,6 @@ var cron = require('node-cron');
 const bot = new Discord.Client();
 // const GAME_TAG = '<@&547735369475555329>';  //Main server
 
-//Test server
-// const R6_TAG = '<@&673399090012225555>';
-// const CS_TAG = '<@&673398998996090880>';
-// const DOTA_TAG = '<@&673399033771065374>';
-// const LOL_TAG = '<@&673398895195193344>';
-// const TOKYO_TAG = '<@&686048644830330921>';
-// const CHAMP_TAG = '<@&690766699992973313>';
-
-// const R6_TAG = '<@&658823355008286750>';
-// const CS_TAG = '<@&547735369475555329>';
-// const DOTA_TAG = '<@&547734480031580199>';
-// const LOL_TAG = '<@&547734044511567884>';
-// const TOKYO_TAG = '<@&683607710834753565>';
-// const CHAMP_TAG = '<@&547735357437902849>';
-// const VALORANT_TAG = '<@&717329724128624671>';
-
-
-// const RESET = 5;
-// const TOKYO_RESET = 4;
-const CHAMP_RESET = 3;
 const MSG_TIME_DEL = 3000;
 const MSG_TIME_FULL_DEL = 7000;
 const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
@@ -135,7 +115,12 @@ cron.schedule('0 6 * * *', () => {
     .then(quote => {
         const randInt = getRandomInt(quote.length)
         reset();
-        bot.channels.cache.get(CHANNEL_ID).send(quote[randInt]);
+        bot.channels.cache.get(CHANNEL_ID).send(quote[randInt].message);
+        if (quote[randInt].message.includes('://')) {
+            bot.channels.cache.get(CHANNEL_ID).send('All lineups are reset.');
+            Quote.deleteOne({ _id: quote[randInt]._id })
+            .then(quote => console.log('Quote deleted'))
+        }
     })
 }, {
     scheduled: true,
