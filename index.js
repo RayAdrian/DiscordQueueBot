@@ -113,7 +113,7 @@ bot.on('ready', async () => {
 cron.schedule('0 6 * * *', () => {
     Quote.find({})
     .then(quote => {
-        const randInt = getRandomInt(quote.length)
+        const randInt = getRandomInt(quote.length - 1)
         reset();
         bot.channels.cache.get(CHANNEL_ID).send(quote[randInt].message);
         if (quote[randInt].message.includes('://')) {
