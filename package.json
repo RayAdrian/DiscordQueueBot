@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "discord.js": "^12.4.1",
-    "mongoose": "^5.10.0"
+    "mongoose": "^5.10.0",
+    "node-cron": "^3.0.0"
   }
 }
