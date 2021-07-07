@@ -154,10 +154,9 @@ bot.on('message' ,msg=>{
                     mentionList[i] = mentionList[i].slice(0, 2) + mentionList[i].slice(3);
                 }
             }
-            punish();
             processCommand(msg,mentionList,mentionSize);
         }
-
+        punish();
     }
    
 });
