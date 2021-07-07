@@ -91,7 +91,7 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-function punish() {
+function punish(msg) {
     msg.channel.send(PUNISH_TAG).then(sentMessage => {
         deleteMessage(sentMessage, true);
     });
@@ -156,7 +156,7 @@ bot.on('message' ,msg=>{
             }
             processCommand(msg,mentionList,mentionSize);
         }
-        punish();
+        punish(msg);
     }
    
 });
