@@ -704,8 +704,10 @@ async function processCommand(msg,mentionList,mentionSize){
             break;
         case 'supot':
             punish(msg, true)
+            break;
         case 'toggleSupot':
             toggle(msg)
+            break;
         case 'gamelist':
             punish(msg)
             let temp = '';
