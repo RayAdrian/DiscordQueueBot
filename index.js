@@ -7,12 +7,14 @@ var cron = require('node-cron');
 const bot = new Discord.Client();
 // const GAME_TAG = '<@&547735369475555329>';  //Main server
 const PUNISH_TAG = '<@&747740479638208532>';
+const PUNISH_ID = '747740479638208532'
 
 const MSG_TIME_DEL = 3000;
 const PUNISH_TIME_DEL = 500;
 const MSG_TIME_FULL_DEL = 7000;
 const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
 // const CHANNEL_ID = '673393759626592273';   //Test server
+const enablePunish = true
 
 const PREFIX = '.';
 
@@ -91,10 +93,21 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-function punish(msg) {
-    msg.channel.send(PUNISH_TAG).then(sentMessage => {
-        deleteMessage(sentMessage, true);
-    });
+function punish(msg, isCommand = false) {
+    if(!isCommand) {
+        if (enablePunish) {
+            msg.channel.send(PUNISH_TAG).then(sentMessage => {
+                deleteMessage(sentMessage, true);
+            });
+        }
+    }
+    else {
+        msg.channel.send(`hoy ${PUNISH_TAG}`)
+    }
+}
+
+function toggle(msg) {
+    if (msg.member.roles.indexOf(PUNISH_ID) < 0) enablePunish = !enablePunish
 }
 
 bot.on('ready', async () => {
@@ -156,7 +169,6 @@ bot.on('message' ,msg=>{
             }
             processCommand(msg,mentionList,mentionSize);
         }
-        punish(msg);
     }
    
 });
@@ -166,6 +178,7 @@ function getGameTag(game) {
 }
 
 function addToQueue(msg, game){
+    punish(msg)
     let sameUser = 0;
     //check if sender is already in lineup
     console.log(players);
@@ -430,6 +443,7 @@ async function processCommand(msg,mentionList,mentionSize){
 
     switch(args[0]){
         case 'reset':
+            punish(msg)
             if(args[1] == undefined) {
                 reset();
                 msg.channel.send('Reset all lineups');
@@ -444,6 +458,7 @@ async function processCommand(msg,mentionList,mentionSize){
             }
             break;
         case 'leave':
+            punish(msg)
             if(args[1] == undefined) {  //.leave
                 let isPartOfLineup = false;
                 let pos;
@@ -478,6 +493,7 @@ async function processCommand(msg,mentionList,mentionSize){
             }
             break;
         case 'invite':
+            punish(msg)
             if(args[1] == undefined){
                 gameList.forEach(game => {
                    if(players[game].indexOf(msg.author.toString()) !== -1){
@@ -491,6 +507,7 @@ async function processCommand(msg,mentionList,mentionSize){
 
             break;
         case 'lineup':
+            punish(msg)
             const gameName = args[1];
             if (gameList.indexOf(gameName) > -1) {
                 if(players[gameName].length == 0){
@@ -509,6 +526,7 @@ async function processCommand(msg,mentionList,mentionSize){
             }
             break;
         case 'g':
+            punish(msg)
             if (args[1] !== undefined) {
                 const game = args[1];
                 if (gameList.indexOf(game) > -1) {
@@ -523,6 +541,7 @@ async function processCommand(msg,mentionList,mentionSize){
             }
             break;
         case 'add':
+            punish(msg)
             if (gameList.indexOf(args[1]) < 0) {
                 msg.channel.send('Indicate game to add to.').then(sentMessage => {
                     deleteMessage(sentMessage);
@@ -594,6 +613,7 @@ async function processCommand(msg,mentionList,mentionSize){
             }   
             break;
         case 'kick':
+            punish(msg)
             if (gameList.indexOf(args[1]) < 0) {
                 msg.channel.send('Indicate game to kick from.').then(sentMessage => {
                     deleteMessage(sentMessage);
@@ -630,6 +650,7 @@ async function processCommand(msg,mentionList,mentionSize){
             }
             break;
         case 'game':
+            punish(msg)
             switch (args[1]) {
                 case 'add':
                     //Error handling
@@ -666,6 +687,7 @@ async function processCommand(msg,mentionList,mentionSize){
             }
             break;
         case 'help':
+            punish(msg)
             const helpEmbed = new Discord.MessageEmbed()
             .setTitle('GentleBot Help')
             .addField('Queueing Commands', 'e.g. .cs')
@@ -680,7 +702,12 @@ async function processCommand(msg,mentionList,mentionSize){
             .addField('Game adding, editing, removing', '.game add <command> <role> <count>\n.game edit <role> <count>\n.game remove <role>')
             msg.channel.send(helpEmbed);
             break;
+        case 'supot':
+            punish(msg, true)
+        case 'toggleSupot':
+            toggle(msg)
         case 'gamelist':
+            punish(msg)
             let temp = '';
             temp = gameList.join();
             temp = temp.replace(/,/g, '\n');
@@ -690,6 +717,7 @@ async function processCommand(msg,mentionList,mentionSize){
             msg.channel.send(gameEmbed);
             break;
         case 'botpic':
+            punish(msg)
             const image = msg.attachments.first().url;
             bot.user.setAvatar(image);
             break;
