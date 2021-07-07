@@ -6,8 +6,10 @@ var cron = require('node-cron');
 
 const bot = new Discord.Client();
 // const GAME_TAG = '<@&547735369475555329>';  //Main server
+const PUNISH_TAG = '<@&747740479638208532>';
 
 const MSG_TIME_DEL = 3000;
+const PUNISH_TIME_DEL = 500;
 const MSG_TIME_FULL_DEL = 7000;
 const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
 // const CHANNEL_ID = '673393759626592273';   //Test server
@@ -87,7 +89,13 @@ async function init() {
 
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
-}   
+}
+
+function punish() {
+    msg.channel.send(PUNISH_TAG).then(sentMessage => {
+        deleteMessage(sentMessage, true);
+    });
+}
 
 bot.on('ready', async () => {
     console.log('Bot is online');
@@ -146,6 +154,7 @@ bot.on('message' ,msg=>{
                     mentionList[i] = mentionList[i].slice(0, 2) + mentionList[i].slice(3);
                 }
             }
+            punish();
             processCommand(msg,mentionList,mentionSize);
         }
 
@@ -359,8 +368,8 @@ async function removeData(msg, role) {
     delete gameNameList[role];
 }
 
-function deleteMessage (sentMessage) {
-    sentMessage.delete({ timeout: MSG_TIME_DEL, reason: 'test' });
+function deleteMessage (sentMessage, isPunish) {
+    sentMessage.delete({ timeout: !isPunish ? MSG_TIME_DEL : PUNISH_TIME_DEL, reason: 'test' });
 }
 
 async function hasData(role) {
