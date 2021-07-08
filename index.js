@@ -14,7 +14,7 @@ const PUNISH_TIME_DEL = 500;
 const MSG_TIME_FULL_DEL = 7000;
 const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
 // const CHANNEL_ID = '673393759626592273';   //Test server
-const enablePunish = true
+let enablePunish = true
 
 const PREFIX = '.';
 
