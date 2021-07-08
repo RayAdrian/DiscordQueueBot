@@ -107,7 +107,7 @@ function punish(msg, isCommand = false) {
 }
 
 function toggle(msg) {
-    if (msg.member.roles.indexOf(PUNISH_ID) < 0) enablePunish = !enablePunish
+    if (!msg.member.roles.cache.has(PUNISH_ID)) enablePunish = !enablePunish
 }
 
 bot.on('ready', async () => {
@@ -705,7 +705,7 @@ async function processCommand(msg,mentionList,mentionSize){
         case 'supot':
             punish(msg, true)
             break;
-        case 'toggleSupot':
+        case 'toggle':
             toggle(msg)
             break;
         case 'gamelist':
