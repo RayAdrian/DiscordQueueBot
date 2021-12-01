@@ -553,7 +553,6 @@ async function processCommand(msg,mentionList,mentionSize){
                 break;
             }
             else{
-                console.log('hereee');
                 let sameUser = false;
                 const game = args[1];
                 if (gameList.indexOf(game) < 0) break;
