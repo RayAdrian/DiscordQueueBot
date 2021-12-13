@@ -12,8 +12,8 @@ const PUNISH_ID = '747740479638208532'
 const MSG_TIME_DEL = 3000;
 const PUNISH_TIME_DEL = 500;
 const MSG_TIME_FULL_DEL = 7000;
-const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
-// const CHANNEL_ID = '673393759626592273';   //Test server
+// const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
+const CHANNEL_ID = '673393759626592273';   //Test server
 let enablePunish = false
 
 const PREFIX = '.';
@@ -122,8 +122,8 @@ bot.on('ready', async () => {
     //     adminUser = user.username;
     // })
 
-    // await mongoose.connect('mongodb://localhost/Reports');
-    await mongoose.connect(process.env.DB_URL);
+    await mongoose.connect('mongodb://localhost/Reports');
+    // await mongoose.connect(process.env.DB_URL);
 
     // Prod deploy message
     // bot.channels.cache.get(CHANNEL_ID).send('Good morning gamers. I am now scalable (easily add and remove games). I am currently in beta and may contain bugs.\nPlease tag Chaeryeong if you encounter one');
@@ -321,39 +321,39 @@ async function editData(msg, game, count) {
     }
 
     // Update all existing vars
-    const name = gameNameList[role];
+    const role = gameTag[game];
     data = data.filter(obj => {
-        return data.gameId !== role
+        return data.game !== game
     });
 
     data.push({
-        game: name,
+        game,
         gameId: role,
         playerCount: count
     });
 
     remaining = {
         ...remaining,
-        [name]: count
+        [game]: count
     };
     countList = {
         ...countList,
-        [name]: count
+        [game]: count
     };
     players = {
         ...players,
-        [name]: []
+        [game]: []
     };
     lineup = {
         ...players,
     };
     full = {
         ...full,
-        [name]: false
+        [game]: false
     };
     gameTag = {
         ...gameTag,
-        [name]: role
+        [game]: role
     };
 }
 
@@ -366,17 +366,17 @@ async function removeData(msg, game) {
 
     // Update all existing vars
     data = data.filter(obj => {
-        return data.gameId !== role
+        return data.game !== game
     });
-    const name = gameNameList[role];
-    gameList = gameList.filter((value, index, arr) => value !== name);
+    const role = gameTag[game];
+    gameList = gameList.filter((value, index, arr) => value !== game);
     
-    delete remaining[name];
-    delete countList[name];
-    delete players[name];
-    delete lineup[name];
-    delete full[name];
-    delete gameTag[name];
+    delete remaining[game];
+    delete countList[game];
+    delete players[game];
+    delete lineup[game];
+    delete full[game];
+    delete gameTag[game];
     delete gameNameList[role];
 }
 
@@ -392,7 +392,8 @@ async function hasName(name) {
 }
 
 function hasError(msg, name, role, count, isRemove = false, isEdit = false) {
-    if (!role || role[0] !== '<') {
+    console.log('hereee', isRemove, isEdit)
+    if ((!role || role[0] !== '<') && !isRemove && !isEdit) {
         msg.channel.send('Invalid role').then(sentMessage => {
             deleteMessage(sentMessage);
         });
@@ -655,7 +656,7 @@ async function processCommand(msg,mentionList,mentionSize){
                     addData(args[2], args[3], args[4], msg);
                     break;
                 case 'remove':
-                    if (hasError(msg, '', args[2], '', true)) break;
+                    if (hasError(msg, args[2], '', '', true)) break;
                     if (await hasName(args[2]) === 0) {
                         msg.channel.send('That game does not exist')
                         break;
@@ -664,7 +665,7 @@ async function processCommand(msg,mentionList,mentionSize){
                     removeData(msg, args[2]);
                     break;
                 case 'edit':
-                    if (hasError(msg, '', args[2], args[3], false, true)) break;
+                    if (hasError(msg, args[2], '', args[3], false, true)) break;
                     if (await hasName(args[2]) === 0) {
                         msg.channel.send('That game does not exist')
                         break;
@@ -730,5 +731,6 @@ function reset(game){
     }
 }
 
-bot.login(process.env.BOT_TOKEN);
+// bot.login(process.env.BOT_TOKEN);
+bot.login('NTY4MTE1MDg2NTQ4NDAyMTc4.XLdYZw.wUqZaj74_C7YV6M-hGbljVOklnQ')
 
