@@ -122,8 +122,8 @@ bot.on('ready', async () => {
     //     adminUser = user.username;
     // })
 
-    await mongoose.connect('mongodb://localhost/Reports');
-    // await mongoose.connect(process.env.DB_URL);
+    // await mongoose.connect('mongodb://localhost/Reports');
+    await mongoose.connect(process.env.DB_URL);
 
     // Prod deploy message
     // bot.channels.cache.get(CHANNEL_ID).send('Good morning gamers. I am now scalable (easily add and remove games). I am currently in beta and may contain bugs.\nPlease tag Chaeryeong if you encounter one');
