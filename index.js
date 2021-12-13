@@ -12,8 +12,8 @@ const PUNISH_ID = '747740479638208532'
 const MSG_TIME_DEL = 3000;
 const PUNISH_TIME_DEL = 500;
 const MSG_TIME_FULL_DEL = 7000;
-// const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
-const CHANNEL_ID = '673393759626592273';   //Test server
+const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
+// const CHANNEL_ID = '673393759626592273';   //Test server
 let enablePunish = false
 
 const PREFIX = '.';
@@ -731,6 +731,5 @@ function reset(game){
     }
 }
 
-// bot.login(process.env.BOT_TOKEN);
-bot.login('NTY4MTE1MDg2NTQ4NDAyMTc4.XLdYZw.wUqZaj74_C7YV6M-hGbljVOklnQ')
+bot.login(process.env.BOT_TOKEN);
 
