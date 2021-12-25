@@ -312,8 +312,8 @@ function addData(name, role, count, msg) {
     };
 }
 
-async function editData(msg, role, count) {
-    const res = await Report.updateOne({ gameId: role }, { playerCount: count })
+async function editData(msg, game, count) {
+    const res = await Report.updateOne({ game }, { playerCount: count })
     if (res.n) {
         msg.channel.send('Game edited.');
     } else {
@@ -321,44 +321,44 @@ async function editData(msg, role, count) {
     }
 
     // Update all existing vars
-    const name = gameNameList[role];
+    const role = gameTag[game];
     data = data.filter(obj => {
-        return data.gameId !== role
+        return data.game !== game
     });
 
     data.push({
-        game: name,
+        game,
         gameId: role,
         playerCount: count
     });
 
     remaining = {
         ...remaining,
-        [name]: count
+        [game]: count
     };
     countList = {
         ...countList,
-        [name]: count
+        [game]: count
     };
     players = {
         ...players,
-        [name]: []
+        [game]: []
     };
     lineup = {
         ...players,
     };
     full = {
         ...full,
-        [name]: false
+        [game]: false
     };
     gameTag = {
         ...gameTag,
-        [name]: role
+        [game]: role
     };
 }
 
-async function removeData(msg, role) {
-    Report.deleteOne({ gameId: role })
+async function removeData(msg, game) {
+    Report.deleteOne({ game })
     .then(result => {
         msg.channel.send('Game deleted.');
     })
@@ -366,29 +366,22 @@ async function removeData(msg, role) {
 
     // Update all existing vars
     data = data.filter(obj => {
-        return data.gameId !== role
+        return data.game !== game
     });
-    const name = gameNameList[role];
-    gameList = gameList.filter((value, index, arr) => value !== name);
+    const role = gameTag[game];
+    gameList = gameList.filter((value, index, arr) => value !== game);
     
-    delete remaining[name];
-    delete countList[name];
-    delete players[name];
-    delete lineup[name];
-    delete full[name];
-    delete gameTag[name];
+    delete remaining[game];
+    delete countList[game];
+    delete players[game];
+    delete lineup[game];
+    delete full[game];
+    delete gameTag[game];
     delete gameNameList[role];
 }
 
 function deleteMessage (sentMessage, isPunish) {
     sentMessage.delete({ timeout: !isPunish ? MSG_TIME_DEL : PUNISH_TIME_DEL, reason: 'test' });
-}
-
-async function hasData(role) {
-    const query = Report.find({ gameId: role })
-    query.getFilter();
-    const data = await query.exec();
-    return data.length;
 }
 
 async function hasName(name) {
@@ -399,7 +392,8 @@ async function hasName(name) {
 }
 
 function hasError(msg, name, role, count, isRemove = false, isEdit = false) {
-    if (!role || role[0] !== '<') {
+    console.log('hereee', isRemove, isEdit)
+    if ((!role || role[0] !== '<') && !isRemove && !isEdit) {
         msg.channel.send('Invalid role').then(sentMessage => {
             deleteMessage(sentMessage);
         });
@@ -658,25 +652,21 @@ async function processCommand(msg,mentionList,mentionSize){
                         msg.channel.send('That name is already in use.');
                         break;
                     }
-                    if (await hasData(args[3]) !== 0) {
-                        msg.channel.send('That role is already added. If you would like to edit, please use the edit command.')
-                        break;
-                    }
 
                     addData(args[2], args[3], args[4], msg);
                     break;
                 case 'remove':
-                    if (hasError(msg, '', args[2], '', true)) break;
-                    if (await hasData(args[2]) === 0) {
-                        msg.channel.send('That role does not exist')
+                    if (hasError(msg, args[2], '', '', true)) break;
+                    if (await hasName(args[2]) === 0) {
+                        msg.channel.send('That game does not exist')
                         break;
                     }
 
                     removeData(msg, args[2]);
                     break;
                 case 'edit':
-                    if (hasError(msg, '', args[2], args[3], false, true)) break;
-                    if (await hasData(args[2]) === 0) {
+                    if (hasError(msg, args[2], '', args[3], false, true)) break;
+                    if (await hasName(args[2]) === 0) {
                         msg.channel.send('That game does not exist')
                         break;
                     }
@@ -698,7 +688,7 @@ async function processCommand(msg,mentionList,mentionSize){
             .addField('Add', '.add <game> <user> to add user to game')
             .addField('Kick', '.kick <game> <user> to kick user from game')
             .addField('Game List', '.gamelist to see list of available games')
-            .addField('Game adding, editing, removing', '.game add <command> <role> <count>\n.game edit <role> <count>\n.game remove <role>')
+            .addField('Game adding, editing, removing', '.game add <command> <role> <count>\n.game edit <name> <count>\n.game remove <name>')
             msg.channel.send(helpEmbed);
             break;
         case 'supot':
