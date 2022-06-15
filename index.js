@@ -712,6 +712,32 @@ async function processCommand(msg,mentionList,mentionSize){
             const image = msg.attachments.first().url;
             bot.user.setAvatar(image);
             break;
+        case 'work':
+            msg.channel.send('If you have time to work, you have time to play. Did you mean to type .play?');
+            break;
+        case 'lunch':
+            msg.channel.send('Any lunchtime gamers in chat?');
+            break;
+        case 'play':
+            msg.channel.send('YOWN LFG');
+            punish(msg)
+            if(args[1] == undefined){
+                gameList.forEach(game => {
+                   if(players[game].indexOf(msg.author.toString()) !== -1){
+                        inviteModule(game);
+                   } 
+                });
+            }
+            else {
+                if (gameList.indexOf(args[1]) > -1) inviteModule(args[1]);
+            }
+            break;
+        case 'lunch':
+            msg.channel.send('SHEEEEEEEEEEEEEEESH!');
+            break;
+        case 'passion':
+            msg.channel.send('If you passion is the work, you play everyday of your life 100% of the time everytime all the time.');
+            break;
         default:
             if (gameList.indexOf(args[0]) > -1) addToQueue(msg, args[0]);
             break;
