@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const mongoose = require('mongoose');
 const Report = require('./models/report.js');
 const Quote = require('./models/quote.js');
+const User = require('./models/user.js');
 var cron = require('node-cron');
 
 const bot = new Discord.Client();
@@ -13,7 +14,7 @@ const MSG_TIME_DEL = 3000;
 const PUNISH_TIME_DEL = 500;
 const MSG_TIME_FULL_DEL = 7000;
 const CHANNEL_ID = process.env.CHANNEL_ID; //Pro-Gaming Channel
-// const CHANNEL_ID = '673393759626592273';   //Test server
+// const CHANNEL_ID = '1006242505584562326';   //Test server
 let enablePunish = false
 
 const PREFIX = '.';
@@ -113,20 +114,14 @@ function toggle(msg) {
 bot.on('ready', async () => {
     console.log('Bot is online');
     bot.user.setActivity(".help | Sup gamers");
-    // Quote.create({ message: 'Good morning gamers! All lineups are reset.' })
-    // .then(quote => {
-    //     console.log('uploaded quote')
-    // })
-
-    // bot.fetchUser("167564154562019328",false).then(user => {
-    //     adminUser = user.username;
-    // })
 
     // await mongoose.connect('mongodb://localhost/Reports');
     await mongoose.connect(process.env.DB_URL);
 
-    // Prod deploy message
-    // bot.channels.cache.get(CHANNEL_ID).send('Good morning gamers. I am now scalable (easily add and remove games). I am currently in beta and may contain bugs.\nPlease tag Chaeryeong if you encounter one');
+    const date = new Date()
+    if (date.getHours() !== 6 && date.getMinutes() !== 0) {
+        bot.channels.cache.get(CHANNEL_ID).send('GentleBot was reset by Heroku. Please rejoin the lineups');
+    }
 
     init();
 });
@@ -189,7 +184,7 @@ function addToQueue(msg, game){
     });
 
     if(sameUser === 1){
-        msg.channel.send('You are already in the lineup').then(sentMessage => {
+        msg.channel.send(`You are already in the ${game} lineup`).then(sentMessage => {
             deleteMessage(sentMessage);
         });
         console.log('User already in lineup');
@@ -212,7 +207,7 @@ function addToQueue(msg, game){
             // remove players in other lineups
         }
         else{
-            msg.channel.send('Lineup already full').then(sentMessage => {
+            msg.channel.send(`${game} lineup already full`).then(sentMessage => {
                 sentMessage.delete(MSG_TIME_FULL_DEL);
             });
         }
@@ -225,7 +220,7 @@ function addToQueue(msg, game){
             }
             else{
                 if(sameUser == 0)
-                msg.channel.send('Added you to the lineup').then(sentMessage => {
+                msg.channel.send(`Added you to the ${game} lineup`).then(sentMessage => {
                     deleteMessage(sentMessage);
                 });
             }
@@ -237,7 +232,7 @@ function addToQueue(msg, game){
         }
         else{
             if(sameUser == 0)
-            msg.channel.send('Added you to the lineup').then(sentMessage => {
+            msg.channel.send(`Added you to the ${game} lineup`).then(sentMessage => {
                 deleteMessage(sentMessage);
             });
         }
@@ -391,8 +386,70 @@ async function hasName(name) {
     return data.length;
 }
 
+async function checkUserExists(id) {
+    const query = User.find({ id })
+    query.getFilter();
+    const data = await query.exec();
+    return !!data.length;
+}
+
+async function addToUserGames(msg, games) {
+    const userExists = await checkUserExists(msg.author.id)
+    if (userExists) {
+        const query = User.find({ id: msg.author.id })
+        query.getFilter();
+        const data = await query.exec();
+        const currentGames = data[0].games;
+
+        const gamesToSave = games.filter(game => !currentGames.includes(game))
+
+        User.findOneAndUpdate({ "id": msg.author.id }, { "$push": { "games": { "$each": gamesToSave }}})
+        .then(_ => {
+            msg.channel.send('Added to your bookmarked games');
+        })
+        .catch(err => console.log(err));
+    } else {
+        const user = new User({
+            id: msg.author.id,
+            games,
+        });
+        user.save()
+        .then(_ => {
+            msg.channel.send('Saved games updated');
+        })
+        .catch(err => console.log(err));
+    }
+}
+
+async function removeFromUserGames(msg, game) {
+    const userExists = await checkUserExists(msg.author.id)
+
+    if (!userExists) {
+        msg.channel.send('You don\'t have any saved games');
+    } else {
+        const query = User.find({ id: msg.author.id })
+        query.getFilter();
+        const data = await query.exec();
+        const currentGames = data[0].games;
+
+        const gamesToRetain = currentGames.filter(currentGame => currentGame !== game)
+
+        User.findOneAndUpdate({ "id": msg.author.id }, { "games": gamesToRetain })
+        .then(_ => {
+            msg.channel.send(`Removed ${game} from your saved games`);
+        })
+        .catch(err => console.log(err));
+    }
+}
+
+async function fetchUserGames(id) {
+    const query = User.find({ id })
+    query.getFilter();
+    const data = await query.exec();
+    return data[0].games;
+}
+
 function hasError(msg, name, role, count, isRemove = false, isEdit = false) {
-    console.log('hereee', isRemove, isEdit)
     if ((!role || role[0] !== '<') && !isRemove && !isEdit) {
         msg.channel.send('Invalid role').then(sentMessage => {
             deleteMessage(sentMessage);
@@ -434,6 +491,7 @@ async function processCommand(msg,mentionList,mentionSize){
 
     let args  =  msg.content.substring(PREFIX.length).split(' ')
     args[0] = args[0].toLowerCase();
+    let userExists = false;
 
     switch(args[0]){
         case 'reset':
@@ -689,6 +747,7 @@ async function processCommand(msg,mentionList,mentionSize){
             .addField('Kick', '.kick <game> <user> to kick user from game')
             .addField('Game List', '.gamelist to see list of available games')
             .addField('Game adding, editing, removing', '.game add <command> <role> <count>\n.game edit <name> <count>\n.game remove <name>')
+            .addField('Saved Games Feature', '.save <game1> <game2>... to add games to your saved games\n.join to automatically join lineups of saved games\n.savelist to view your currently saved games\n.removesave <game> to remove a saved game')
             msg.channel.send(helpEmbed);
             break;
         case 'supot':
@@ -711,6 +770,51 @@ async function processCommand(msg,mentionList,mentionSize){
             punish(msg)
             const image = msg.attachments.first().url;
             bot.user.setAvatar(image);
+            break;
+        case 'join':
+            userExists = await checkUserExists(msg.author.id);
+            if (!userExists) {
+                msg.channel.send("You don't have any saved games yet. Add games using .bookmark <game1> <game2>...");
+            } else {
+                const games = await fetchUserGames(msg.author.id)
+                games.forEach(game => {
+                    if (gameList.indexOf(game) > -1) {
+                        addToQueue(msg, game)
+                    } 
+                })
+            }
+            break;
+        case 'save':
+            if (args.length >= 2) {
+                args.shift()
+                await addToUserGames(msg, args)
+            } else {
+                msg.channel.send("Indicate game to save.");
+            }
+            break;
+        case 'savelist':
+            userExists = await checkUserExists(msg.author.id);
+            if (!userExists) {
+                msg.channel.send("You don't have any saved games yet. Add games using .bookmark <game1> <game2>...");
+            }
+            const games = await fetchUserGames(msg.author.id) || []
+            const embed = new Discord.MessageEmbed()
+                .setTitle(`Saved Games - ${msg.author.username}`)
+                .addField("Games", games.join("\n"));
+                msg.channel.send(embed);
+            break
+        case 'admin':
+            if (args.length >= 2) {
+                args.shift()
+                bot.channels.cache.get(CHANNEL_ID).send(args.join(" "));
+            }
+            break;
+        case 'removesave':
+            if (args.length >= 2) {
+                await removeFromUserGames(msg, args[1])
+            } else {
+                msg.channel.send("Indicate game to remove.");
+            }
             break;
         default:
             if (gameList.indexOf(args[0]) > -1) addToQueue(msg, args[0]);
