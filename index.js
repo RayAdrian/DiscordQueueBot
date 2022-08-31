@@ -5,6 +5,14 @@ const Quote = require('./models/quote.js');
 const User = require('./models/user.js');
 var cron = require('node-cron');
 
+const express = require('express');
+
+const app = express();
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+  console.log('Hello world listening on port', port);
+});
+
 const bot = new Discord.Client();
 // const GAME_TAG = '<@&547735369475555329>';  //Main server
 const PUNISH_TAG = '<@&747740479638208532>';
