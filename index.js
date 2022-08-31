@@ -185,7 +185,7 @@ function addToQueue(msg, game){
     let sameUser = 0;
     //check if sender is already in lineup
     console.log(players);
-    players[game].forEach(function(item, index, array) {
+    players[game].forEach(function(item) {
         if (item === msg.author.toString()){
             sameUser = 1;
         }
@@ -246,6 +246,59 @@ function addToQueue(msg, game){
         }
 
     }
+}
+
+function addToQueues(msg, games) {
+    const playerResponseMessages = [];
+    const mainChannelMessages = [];
+    const msgAuthor = msg.author.toString();
+
+    games.filter(game => game in gameList).forEach((game) => {
+        const sameUser = msgAuthor in players[game];
+        const gameDisplayName = game.toUpperCase();
+        const gameTag = getGameTag(game);
+
+        if (sameUser) { // already in the lineup
+            playerResponseMessages.push(`You are already in the ${gameDisplayName} lineup`);
+            if (full[game]) {
+                playerResponseMessages.push(`${gameDisplayName} lineup already full`);
+            }
+            console.log(`User ${msgAuthor} already in the ${full[game] && 'full '}${gameDisplayName} lineup`);
+        } else if (!full[game]) { // check if slot in lineup is available
+            // update the lineup
+            console.log(`User ${msgAuthor} to be added to the ${gameDisplayName} lineup`);
+            players[game].push(msgAuthor);
+            lineup[game] = players[game].join();
+            remaining[game] -= 1;
+
+            if (remaining[game] == 0 && !isInfinite(game)) { // if this player completes the lineup
+                if (full[game]) {
+                    playerResponseMessages.push(`${gameDisplayName} lineup already full`);
+                } else {
+                    mainChannelMessages.push(`${gameDisplayName} Lineup Complete: ${lineup[game]}`);
+                    full[game] = true;
+                }
+            } else if (isInfinite(game)) { // if the game lineup is infinite
+                playerResponseMessages.push(`Added you to the ${gameDisplayName} lineup`);
+                if (remaining[game] == -1) { // ping game tag if this player is the first to join
+                    mainChannelMessages.push(gameTag);
+                }
+            } else { // base case
+                playerResponseMessages.push(`Added you to the ${gameDisplayName} lineup`);
+                if (remaining[game] == (countList[game] - 1)) { // ping game tag if this player is the first to join
+                    mainChannelMessages.push(`${gameTag} +${remaining[game]}`);
+                }
+            }
+        }
+    })
+
+    const playerResponseMessage = playerResponseMessages.join('\n');
+    const mainChannelMessage = mainChannelMessages.join('\n');
+
+    msg.channel.send(playerResponseMessage).then(sentMessage => {
+        sentMessage.delete(MSG_TIME_FULL_DEL);
+    });
+    bot.channels.cache.get(CHANNEL_ID).send(mainChannelMessage);
 }
 
 function inviteModule(game){
@@ -785,11 +838,8 @@ async function processCommand(msg,mentionList,mentionSize){
                 msg.channel.send("You don't have any saved games yet. Add games using .bookmark <game1> <game2>...");
             } else {
                 const games = await fetchUserGames(msg.author.id)
-                games.forEach(game => {
-                    if (gameList.indexOf(game) > -1) {
-                        addToQueue(msg, game)
-                    } 
-                })
+                punish(msg);
+                addToQueues(msg, games);
             }
             break;
         case 'save':
