@@ -127,9 +127,9 @@ bot.on('ready', async () => {
     await mongoose.connect(process.env.DB_URL);
 
     const date = new Date()
-    if (date.getHours() !== 6 && date.getMinutes() !== 0) {
-        bot.channels.cache.get(CHANNEL_ID).send('GentleBot was reset by Heroku. Please rejoin the lineups');
-    }
+    // if (date.getHours() !== 6 && date.getMinutes() !== 0) {
+    //     bot.channels.cache.get(CHANNEL_ID).send('GentleBot was reset by Heroku. Please rejoin the lineups');
+    // }
 
     init();
 });
