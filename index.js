@@ -296,6 +296,7 @@ function addToQueues(msg, games) {
     if (playerResponseMessages.length) {
         const playerResponseMessage = playerResponseMessages.join('\n');
         msg.channel.send(playerResponseMessage).then(sentMessage => {
+            console.log('sentMessage', sentMessage);
             sentMessage.delete(MSG_TIME_FULL_DEL);
         });
     }
