@@ -216,7 +216,7 @@ function addToQueue(msg, game){
         }
         else{
             msg.channel.send(`${game} lineup already full`).then(sentMessage => {
-                sentMessage.delete(MSG_TIME_FULL_DEL);
+                deleteMessage(sentMessage);
             });
         }
     }
@@ -296,8 +296,7 @@ function addToQueues(msg, games) {
     if (playerResponseMessages.length) {
         const playerResponseMessage = playerResponseMessages.join('\n');
         msg.channel.send(playerResponseMessage).then(sentMessage => {
-            console.log('sentMessage', sentMessage);
-            sentMessage.delete(MSG_TIME_FULL_DEL);
+            deleteMessage(sentMessage);
         });
     }
     if (mainChannelMessages.length) {
@@ -716,7 +715,7 @@ async function processCommand(msg,mentionList,mentionSize){
                         }
                         else{
                             msg.channel.send('Lineup already full').then(sentMessage => {
-                                sentMessage.delete(MSG_TIME_FULL_DEL);
+                                deleteMessage(sentMessage);
                             });
                             break;
                         }
