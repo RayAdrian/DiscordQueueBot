@@ -260,6 +260,9 @@ function addToQueues(msg, games) {
 
         if (sameUser) { // already in the lineup
             playerResponseMessages.push(`You are already in the ${gameDisplayName} lineup`);
+            if (full[game]) { // if lineup is also full
+                playerResponseMessages.push(`${gameDisplayName} lineup already full`);
+            }
             console.log(`User ${msgAuthor} already in the ${full[game] && 'full '}${gameDisplayName} lineup`);
         } else if (!full[game]) { // check if slot in lineup is available
             // update the lineup
@@ -285,8 +288,7 @@ function addToQueues(msg, games) {
                     mainChannelMessages.push(`${gameTag} +${remaining[game]}`);
                 }
             }
-        }
-        if (full[game]) { // if lineup is full
+        } else { // if user not in lineup and if lineup is also full
             console.log(`${gameDisplayName} lineup already full`);
             playerResponseMessages.push(`${gameDisplayName} lineup already full`);
         }
