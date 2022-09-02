@@ -295,10 +295,14 @@ function addToQueues(msg, games) {
     const playerResponseMessage = playerResponseMessages.join('\n');
     const mainChannelMessage = mainChannelMessages.join('\n');
 
-    msg.channel.send(playerResponseMessage).then(sentMessage => {
-        sentMessage.delete(MSG_TIME_FULL_DEL);
-    });
-    bot.channels.cache.get(CHANNEL_ID).send(mainChannelMessage);
+    if (playerResponseMessage) {
+        msg.channel.send(playerResponseMessage).then(sentMessage => {
+            sentMessage.delete(MSG_TIME_FULL_DEL);
+        });
+    }
+    if (mainChannelMessage) {
+        bot.channels.cache.get(CHANNEL_ID).send(mainChannelMessage);
+    }
 }
 
 function inviteModule(game){
