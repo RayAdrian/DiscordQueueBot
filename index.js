@@ -253,16 +253,13 @@ function addToQueues(msg, games) {
     const mainChannelMessages = [];
     const msgAuthor = msg.author.toString();
 
-    games.filter(game => game in gameList).forEach((game) => {
-        const sameUser = msgAuthor in players[game];
+    games.filter(game => gameList.includes(game)).forEach((game) => {
+        const sameUser = players[game].includes(msgAuthor);
         const gameDisplayName = game.toUpperCase();
         const gameTag = getGameTag(game);
 
         if (sameUser) { // already in the lineup
             playerResponseMessages.push(`You are already in the ${gameDisplayName} lineup`);
-            if (full[game]) {
-                playerResponseMessages.push(`${gameDisplayName} lineup already full`);
-            }
             console.log(`User ${msgAuthor} already in the ${full[game] && 'full '}${gameDisplayName} lineup`);
         } else if (!full[game]) { // check if slot in lineup is available
             // update the lineup
@@ -272,35 +269,38 @@ function addToQueues(msg, games) {
             remaining[game] -= 1;
 
             if (remaining[game] == 0 && !isInfinite(game)) { // if this player completes the lineup
-                if (full[game]) {
-                    playerResponseMessages.push(`${gameDisplayName} lineup already full`);
-                } else {
-                    mainChannelMessages.push(`${gameDisplayName} Lineup Complete: ${lineup[game]}`);
-                    full[game] = true;
-                }
+                console.log(`User ${msgAuthor} completes ${gameDisplayName} lineup`);
+                mainChannelMessages.push(`${gameDisplayName} Lineup Complete: ${lineup[game]}`);
+                full[game] = true;
             } else if (isInfinite(game)) { // if the game lineup is infinite
+                console.log(`User ${msgAuthor} added to limitless ${gameDisplayName} lineup`);
                 playerResponseMessages.push(`Added you to the ${gameDisplayName} lineup`);
                 if (remaining[game] == -1) { // ping game tag if this player is the first to join
                     mainChannelMessages.push(gameTag);
                 }
             } else { // base case
+                console.log(`User ${msgAuthor} added to ${gameDisplayName} lineup`);
                 playerResponseMessages.push(`Added you to the ${gameDisplayName} lineup`);
                 if (remaining[game] == (countList[game] - 1)) { // ping game tag if this player is the first to join
                     mainChannelMessages.push(`${gameTag} +${remaining[game]}`);
                 }
             }
         }
+        if (full[game]) { // if lineup is full
+            console.log(`${gameDisplayName} lineup already full`);
+            playerResponseMessages.push(`${gameDisplayName} lineup already full`);
+        }
     })
 
-    const playerResponseMessage = playerResponseMessages.join('\n');
-    const mainChannelMessage = mainChannelMessages.join('\n');
 
-    if (playerResponseMessage) {
+    if (playerResponseMessages.length) {
+        const playerResponseMessage = playerResponseMessages.join('\n');
         msg.channel.send(playerResponseMessage).then(sentMessage => {
             sentMessage.delete(MSG_TIME_FULL_DEL);
         });
     }
-    if (mainChannelMessage) {
+    if (mainChannelMessages.length) {
+        const mainChannelMessage = mainChannelMessages.join('\n');
         bot.channels.cache.get(CHANNEL_ID).send(mainChannelMessage);
     }
 }
