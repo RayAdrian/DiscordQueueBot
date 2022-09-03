@@ -1,2 +1,2 @@
-export { default as Game } from './game.js';
-export { default as User } from './user.js';
+export { default as Games } from './game.js';
+export { default as Users } from './user.js';
