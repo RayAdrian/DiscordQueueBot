@@ -1,45 +1,43 @@
-import Discord from 'discord.js';
+import { Client } from 'discord.js';
 import express from 'express';
 import mongoose from 'mongoose';
-import cron from 'node-cron';
-
-import { GameCache } from './common/types';
-import { Game, User } from './models';
+import { LocalCache } from './caches';
+import processCommand from './commands';
+import { PREFIX } from './common/constants';
 
 const app = express();
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
-  console.log('Hello world listening on port', port);
+    console.log('Hello world listening on port', port);
 });
 
-const bot = new Discord.Client();
+const bot = new Client();
+const localCache = new LocalCache();
 
-const gameCache = new GameCache();
+/**
+ * Setup and run bot
+ */
+bot.on('ready', () => {
+    console.log('Bot is online');
+    if (bot && bot.user) {
+        bot.user.setActivity(".help | Sup gamers");
+    }
 
-const _init = () => {
-  Game.find({}).exec().then((data) => {
-    data.forEach((game) => {
-      const name = game.name;
-      gameCache.gamesMap[name] = game;
-      gameCache.gameNamesList.push(name);
-      gameCache.lineups[name] = []; // TODO: Init with lineup from db
+    mongoose.connect(process.env.DB_URL || '').then(() => {
+        console.log('Connected to MongoDB');
+        localCache.fetch();
+        console.log('localCache', localCache);
     });
-  });
-};
-
-bot.on('ready', async () => {
-  console.log('Bot is online');
-  if (bot && bot.user) {
-    bot.user.setActivity(".help | Sup gamers");
-  }
-
-  // await mongoose.connect('mongodb://localhost/Reports');
-  await mongoose.connect(process.env.DB_URL || '');
-
-  const date = new Date()
-
-  _init();
-  console.log('gamesMap', gameCache.gamesMap);
-  console.log('gameNamesList', gameCache.gameNamesList);
-  console.log('lineups', gameCache.lineups);
 });
+
+bot.on('message', (msg) => {
+    if (msg.author == bot.user) { // Prevent bot from responding to its own messages
+        return;
+    }
+
+    if (msg.content.startsWith(PREFIX)) {
+        processCommand(localCache, msg);
+    }
+});
+
+bot.login(process.env.BOT_TOKEN);
