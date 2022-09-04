@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import mongoose from 'mongoose';
 
 interface IGame {
   name: string;
@@ -21,10 +21,10 @@ export class Game implements IGame {
   isInfinite = () : boolean => this.limit === 0;
 };
 
-const gameSchema = new Schema<IGame>({
+const gameSchema = new mongoose.Schema<IGame>({
   name: String,
   roleId: String,
   limit: Number,
 });
 
-export default model<IGame>('Game', gameSchema);
+export default mongoose.model<IGame>('Game', gameSchema);

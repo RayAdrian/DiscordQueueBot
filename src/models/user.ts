@@ -1,13 +1,13 @@
-import { Schema, model } from 'mongoose';
+import mongoose from 'mongoose';
 
 interface IUser {
   id: string;
   games: string[];
 };
 
-const userSchema = new Schema<IUser>({
+const userSchema = new mongoose.Schema<IUser>({
   id: String,
   games: [String]
 });
 
-export default model<IUser>('User', userSchema);
+export default mongoose.model<IUser>('User', userSchema);
