@@ -1,9 +1,14 @@
-import { Client } from 'discord.js';
+import { Client, Message, TextChannel } from 'discord.js';
+import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import { LocalCache } from './caches';
-import processCommand from './commands';
-import { PREFIX } from './common/constants';
+import { processCommand } from './commands';
+import { INFO_MSG_TIME_DEL, PREFIX } from './common/constants';
+import { deleteMessage, sendMessage } from './utils';
+
+// For local development
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -21,22 +26,31 @@ bot.on('ready', () => {
     console.log('Bot is online');
     if (bot && bot.user) {
         bot.user.setActivity(".help | Sup gamers");
+        sendMessage(
+            bot.channels.cache.get(process.env.INFO_CHANNEL_ID) as TextChannel,
+            'Bot is online',
+            (sentMessage : Message) => deleteMessage(sentMessage, INFO_MSG_TIME_DEL),
+        );
     }
 
-    mongoose.connect(process.env.DB_URL || '').then(() => {
+    mongoose.connect(process.env.DB_URL).then(() => {
         console.log('Connected to MongoDB');
+        sendMessage(
+            bot.channels.cache.get(process.env.INFO_CHANNEL_ID) as TextChannel,
+            'Connected to MongoDB',
+            (sentMsg : Message) => deleteMessage(sentMsg, INFO_MSG_TIME_DEL),
+        );
         localCache.fetch();
-        console.log('localCache', localCache);
     });
 });
 
-bot.on('message', (msg) => {
-    if (msg.author == bot.user) { // Prevent bot from responding to its own messages
+bot.on('message', (message) => {
+    if (message.author == bot.user) { // Prevent bot from responding to its own messages
         return;
     }
 
-    if (msg.content.startsWith(PREFIX)) {
-        processCommand(localCache, msg);
+    if (message.content.startsWith(PREFIX)) {
+        processCommand(localCache, message);
     }
 });
 
