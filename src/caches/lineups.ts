@@ -14,4 +14,8 @@ export default class LineupsCache {
     reset = () => {
         this.initialize(Object.keys(this.lineups));
     }
+
+    fetch = () : void => {
+        // TODO: Fetch Lineups
+    }
 };

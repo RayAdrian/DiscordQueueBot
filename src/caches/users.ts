@@ -6,4 +6,8 @@ export default class UsersCache {
         this.usersMap = {};
         this.usernames = [];
     }
+
+    fetch = () : void => {
+        // TODO: Fetch Users
+    }
 };

@@ -18,8 +18,8 @@ export default class LocalCache {
      */
     fetch = () => {
         this.gamesCache.fetch();
-        // TODO: Add fetch for lineups
-        // TODO: Add fetch for users
+        this.lineupsCache.fetch();
+        this.usersCache.fetch();
     };
 };
 
