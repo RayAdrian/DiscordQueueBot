@@ -14,7 +14,7 @@ const defaultOnError = (error : any) => {
 export default function sendMessage(
     channel : TextChannel | DMChannel | NewsChannel,
     content : any,
-    onSuccess ?: Function,
+    onSuccess : Function = () => {},
     onError : Function = defaultOnError,
 ) {
     channel.send(content)
