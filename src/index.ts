@@ -24,17 +24,18 @@ const localCache = new LocalCache();
  * Setup and run bot
  */
 bot.on('ready', () => {
+    sendInfoMessage(bot, 'Setting up bot');
     if (bot && bot.user) {
         bot.user.setActivity(".help | Sup gamers");
-        sendInfoMessage(bot, 'Bot is online');
-    }
 
-    mongoose.connect(process.env.DB_URL)
+        mongoose.connect(process.env.DB_URL)
         .then(() => {
             sendInfoMessage(bot, 'Connected to MongoDB');
             localCache.fetch();
+            sendInfoMessage(bot, 'Bot is ready', () => {});
         }) 
         .catch((error : Error) => sendErrorMessage(bot, error));
+    }
 });
 
 if (process.env.ALLOW_LEGACY_MESSAGING) {
