@@ -12,7 +12,7 @@ import sendMessage from "./sendMessage";
 export default function sendErrorMessage(
     bot: Client,
     error : Error,
-    onSuccess ?: Function,
+    onSuccess : Function = () => {},
     onError ?: Function,
 ) {
     console.log('ERROR: ', error);

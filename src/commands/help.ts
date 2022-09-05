@@ -20,5 +20,5 @@ export default function help(message : Message) {
     Object.entries(descriptions).forEach(([command, subCommands]) => {
         helpEmbed.addField(command, subCommands.join('\n'));
     });
-    sendMessage(message.channel, helpEmbed);
+    sendMessage(message.channel, helpEmbed, () => {});
 }
