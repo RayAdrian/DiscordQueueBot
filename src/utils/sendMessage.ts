@@ -1,4 +1,10 @@
-import { DMChannel, NewsChannel, TextChannel } from "discord.js";
+import { DMChannel, Message, NewsChannel, TextChannel } from "discord.js";
+import { MSG_TIME_DEL } from "../common/constants";
+import deleteMessage from "./deleteMessage";
+
+const defaultOnSuccess = (sentMessage : Message) => {
+    deleteMessage(sentMessage, MSG_TIME_DEL);
+}
 
 const defaultOnError = (error : any) => {
     console.log(error);
@@ -14,7 +20,7 @@ const defaultOnError = (error : any) => {
 export default function sendMessage(
     channel : TextChannel | DMChannel | NewsChannel,
     content : any,
-    onSuccess : Function = () => {},
+    onSuccess : Function = defaultOnSuccess,
     onError : Function = defaultOnError,
 ) {
     channel.send(content)
