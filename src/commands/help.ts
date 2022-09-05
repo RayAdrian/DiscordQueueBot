@@ -2,7 +2,10 @@ import { Message, MessageEmbed } from "discord.js";
 import { sendMessage } from '../utils';
 
 const descriptions = {
-    'Game List': ['.gamelist to see the list of all available games'],
+    'Games': [
+        '\`.game list\` see the list of all available games',
+        '\`.game add <command> <role> <count>\` add a game',
+    ],
 };
 
 /**
