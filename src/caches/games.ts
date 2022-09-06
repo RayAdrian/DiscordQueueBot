@@ -44,9 +44,9 @@ export default class GamesCache {
     addGame(
         bot : Client,
         message : Message,
-        name: string,
-        roleId: string,
-        limit: number,
+        name : string,
+        roleId : string,
+        limit : number,
     ) : void {
         const newGame = new Game({
             name, roleId, limit,
@@ -58,5 +58,43 @@ export default class GamesCache {
                 sendMessage(message.channel, 'Game added.');
             })
             .catch(error => sendErrorMessage(bot, error));
+    }
+
+    /**
+     * Function to handle `.game edit <name> <role> <?limit>`
+     * Edit a game's set parameters
+     * @param bot - for sending error messages
+     * @param message - for replying to the original message
+     * @param name - name of the game
+     * @param roleId - role to link to game
+     * @param limit - (optional) number of slots for the game's lineup
+     */
+    editGame(
+        bot : Client,
+        message : Message,
+        name : string,
+        roleId : string,
+        limit ?: string,
+    ) : void {
+        const currentGame = this.gamesMap.get(name);
+        // check if there any changes to be done
+        if (roleId === currentGame.roleId && (!limit || Number(limit) === currentGame.limit)) {
+            sendMessage(message.channel, 'No changes to be done.');
+            return;
+        }
+
+        // apply changes
+        const newGameParams = { roleId };
+        if (limit) {
+            newGameParams['limit'] = Number(limit);
+        }
+        Games.findOneAndUpdate(
+            { name },
+            { $set: newGameParams },
+            { new: true },
+        ).then((editedGame) => {
+            this.gamesMap.set(name, editedGame);
+            sendMessage(message.channel, 'Game edited.');
+        }).catch(error => sendErrorMessage(bot, error));
     }
 };

@@ -47,7 +47,7 @@ function gameAdd(bot : Client, message : Message, cache : LocalCache) {
     cache.gamesCache.addGame(bot, message, gameName, role, Number(limit));
 }
 
-function gameEdit(message : Message, cache : LocalCache) {
+function gameEdit(bot : Client, message : Message, cache : LocalCache) {
     // validation
     const args = message.content.substring(PREFIX.length).split(' ').slice(2);
     const argsCount = args.length;
@@ -74,7 +74,7 @@ function gameEdit(message : Message, cache : LocalCache) {
     if (!isValidRole(role)) {
         errorMessages.push('Invalid role.');
     }
-    if (!isValidLimit(limit)) {
+    if (limit && !isValidLimit(limit)) {
         errorMessages.push('Invalid value for limit. Should be a non-negative integer.');
     }
 
@@ -88,6 +88,7 @@ function gameEdit(message : Message, cache : LocalCache) {
     }
 
     // arguments validated
+    cache.gamesCache.editGame(bot, message, gameName, role, limit);
 }
 
 /**
@@ -180,7 +181,7 @@ export default function game(bot : Client, message : Message, cache : LocalCache
             gameAdd(bot, message, cache);
             break;
         case 'edit':
-            gameEdit(message, cache);
+            gameEdit(bot, message, cache);
             break;
         case 'remove':
             gameRemove(message, cache);
