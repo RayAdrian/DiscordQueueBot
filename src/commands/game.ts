@@ -131,7 +131,14 @@ function gameList(message : Message, cache : LocalCache) {
     sendMessage(message.channel, gameListEmbed, () => {});
 }
 
-function gameRemove(message : Message, cache : LocalCache) {
+/**
+ * Function to handle `.game remove <name>`
+ * Remove a game
+ * @param bot - for sending error messages
+ * @param message - param that contains Channel object to send to
+ * @param cache - param containing list of available games
+ */
+function gameRemove(bot : Client, message : Message, cache : LocalCache) {
     // validation
     const args = message.content.substring(PREFIX.length).split(' ').slice(2);
     const argsCount = args.length;
@@ -139,7 +146,7 @@ function gameRemove(message : Message, cache : LocalCache) {
         sendMessageEmbed(
             message.channel,
             'Unexpected number of arguments',
-            `Expecting 1 argument for \`${PREFIX}game edit\`. Received ${argsCount}.`,
+            `Expecting 1 argument for \`${PREFIX}game remove\`. Received ${argsCount}.`,
         );
         return;
     }
@@ -166,6 +173,7 @@ function gameRemove(message : Message, cache : LocalCache) {
     }
 
     // arguments validated
+    cache.gamesCache.removeGame(bot, message, gameName);
 }
 
 /**
@@ -206,7 +214,7 @@ export default function game(bot : Client, message : Message, cache : LocalCache
             gameEdit(bot, message, cache);
             break;
         case 'remove':
-            gameRemove(message, cache);
+            gameRemove(bot, message, cache);
             break;
     }
 }
