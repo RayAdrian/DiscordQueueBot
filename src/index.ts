@@ -5,8 +5,7 @@ import mongoose from 'mongoose';
 import { LocalCache } from './caches';
 import { processCommand } from './commands';
 import { PREFIX } from './common/constants';
-import sendErrorMessage from './utils/sendErrorMessage';
-import sendInfoMessage from './utils/sendInfoMessage';
+import { sendErrorMessage, sendInfoMessage } from './utils';
 
 // For local development
 dotenv.config();
