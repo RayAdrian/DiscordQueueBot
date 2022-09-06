@@ -27,13 +27,15 @@ bot.on('ready', () => {
     if (bot && bot.user) {
         bot.user.setActivity(".help | Sup gamers");
 
-        mongoose.connect(process.env.DB_URL)
-        .then(() => {
+        mongoose.connect(process.env.DB_URL, {
+            useFindAndModify: false,
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        }).then(() => {
             sendInfoMessage(bot, 'Connected to MongoDB');
             localCache.fetch();
             sendInfoMessage(bot, 'Bot is ready', () => {});
-        }) 
-        .catch((error : Error) => sendErrorMessage(bot, error));
+        }).catch((error : Error) => sendErrorMessage(bot, error));
     }
 });
 
