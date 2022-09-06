@@ -1,9 +1,9 @@
 import { Client, Message, MessageEmbed } from "discord.js";
 import { LocalCache } from "../caches";
 import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from "../common/constants";
-import { isValidCount, isValidRole, sendMessage, sendMessageEmbed } from "../utils";
+import { isValidLimit, isValidRole, sendMessage, sendMessageEmbed } from "../utils";
 
-function gameAdd(message : Message, cache : LocalCache) {
+function gameAdd(bot : Client, message : Message, cache : LocalCache) {
     // validation
     const args = message.content.substring(PREFIX.length).split(' ').slice(2);
     const argsCount = args.length;
@@ -16,7 +16,7 @@ function gameAdd(message : Message, cache : LocalCache) {
         return;
     }
 
-    const [gameName, role, count] = args.map(arg => arg?.toLowerCase());
+    const [gameName, role, limit] = args.map(arg => arg?.toLowerCase());
     const gameNames = cache.gamesCache.getGameNames();
     const errorMessages = [];
 
@@ -30,8 +30,8 @@ function gameAdd(message : Message, cache : LocalCache) {
     if (!isValidRole(role)) {
         errorMessages.push('Invalid role.');
     }
-    if (!isValidCount(count)) {
-        errorMessages.push('Invalid value for count. Should be a non-negative integer.');
+    if (!isValidLimit(limit)) {
+        errorMessages.push('Invalid value for limit. Should be a non-negative integer.');
     }
 
     if (errorMessages.length) {
@@ -44,6 +44,7 @@ function gameAdd(message : Message, cache : LocalCache) {
     }
 
     // arguments validated
+    cache.gamesCache.addGame(bot, message, gameName, role, Number(limit));
 }
 
 function gameEdit(message : Message, cache : LocalCache) {
@@ -59,7 +60,7 @@ function gameEdit(message : Message, cache : LocalCache) {
         return;
     }
  
-    const [gameName, role, count] = args.map(arg => arg?.toLowerCase());
+    const [gameName, role, limit] = args.map(arg => arg?.toLowerCase());
     const gameNames = cache.gamesCache.getGameNames();
     const errorMessages = [];
 
@@ -73,8 +74,8 @@ function gameEdit(message : Message, cache : LocalCache) {
     if (!isValidRole(role)) {
         errorMessages.push('Invalid role.');
     }
-    if (!isValidCount(count)) {
-        errorMessages.push('Invalid value for count. Should be a non-negative integer.');
+    if (!isValidLimit(limit)) {
+        errorMessages.push('Invalid value for limit. Should be a non-negative integer.');
     }
 
     if (errorMessages.length) {
@@ -152,6 +153,13 @@ function gameRemove(message : Message, cache : LocalCache) {
     // arguments validated
 }
 
+/**
+ * Function for the game command and it's subcommands.
+ * Used to add, edit, list, and remove games from the database.
+ * @param bot
+ * @param message
+ * @param cache
+ */
 export default function game(bot : Client, message : Message, cache : LocalCache) {
     const args = message.content.substring(PREFIX.length).split(' ');
     const subCommand = args[1]?.toLowerCase();
@@ -169,7 +177,7 @@ export default function game(bot : Client, message : Message, cache : LocalCache
             gameList(message, cache);
             break;
         case 'add':
-            gameAdd(message, cache);
+            gameAdd(bot, message, cache);
             break;
         case 'edit':
             gameEdit(message, cache);
