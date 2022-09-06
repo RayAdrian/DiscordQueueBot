@@ -1,7 +1,7 @@
 import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches';
 import { PREFIX } from "../common/constants";
-import sendMessageEmbed from '../utils/sendMessageEmbed';
+import { sendMessageEmbed } from '../utils';
 import game from './game';
 import help from './help';
 

@@ -6,7 +6,7 @@ import { MSG_TIME_DEL } from "../common/constants";
  * @param sentMessage - message object to be deleted
  * @param timeout - amount of time before deleting message. MSG_TIME_DEL by default (~3s)
  */
-export default function deleteMessage (
+export default function deleteMessage(
     sentMessage : Message,
     timeout : number = MSG_TIME_DEL,
 ) {
