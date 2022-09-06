@@ -177,7 +177,15 @@ function gameRemove(message : Message, cache : LocalCache) {
  */
 export default function game(bot : Client, message : Message, cache : LocalCache) {
     const args = message.content.substring(PREFIX.length).split(' ');
+    const command = args[0].toLowerCase();
     const subCommand = args[1]?.toLowerCase();
+
+    switch(command) { // allow aliases for certain commands
+        case 'gamelist':
+        case 'games':
+            gameList(message, cache);
+            return;
+    }
     
     if (!subCommand) {
         sendMessageEmbed(

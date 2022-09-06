@@ -20,6 +20,8 @@ export default function processCommand(bot : Client, cache: LocalCache, message 
             help(message);
             break;
         case 'game':
+        case 'games':
+        case 'gamelist':
             game(bot, message, cache);
             break;
         default:
