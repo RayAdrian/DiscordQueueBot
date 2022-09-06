@@ -3,6 +3,13 @@ import { LocalCache } from "../caches";
 import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from "../common/constants";
 import { isValidLimit, isValidRole, sendMessage, sendMessageEmbed } from "../utils";
 
+/**
+ * Function to handle `.game add <name> <role> <limit>`
+ * Add a game
+ * @param bot - for sending error messages
+ * @param message - param that contains Channel object to send to
+ * @param cache - param containing list of available games
+ */
 function gameAdd(bot : Client, message : Message, cache : LocalCache) {
     // validation
     const args = message.content.substring(PREFIX.length).split(' ').slice(2);
@@ -47,6 +54,13 @@ function gameAdd(bot : Client, message : Message, cache : LocalCache) {
     cache.gamesCache.addGame(bot, message, gameName, role, Number(limit));
 }
 
+/**
+ * Function to handle `.game edit <name> <role> <?limit>`
+ * Edit a game's set parameters
+ * @param bot - for sending error messages
+ * @param message - param that contains Channel object to send to
+ * @param cache - param containing list of available games
+ */
 function gameEdit(bot : Client, message : Message, cache : LocalCache) {
     // validation
     const args = message.content.substring(PREFIX.length).split(' ').slice(2);

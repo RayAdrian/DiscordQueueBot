@@ -34,7 +34,7 @@ export default class GamesCache {
 
     /**
      * Function to handle `.game add <name> <role> <limit>`
-     * Add to local games cache and to the database
+     * Add a game to local games cache and to the database
      * @param bot - for sending error messages
      * @param message - for replying to the original message
      * @param name - name of the game
