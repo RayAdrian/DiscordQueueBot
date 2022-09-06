@@ -1,10 +1,14 @@
 import { Message, MessageEmbed } from "discord.js";
+import { PREFIX } from "../common/constants";
 import { sendMessage } from '../utils';
 
 const descriptions = {
     'Games': [
-        '\`.game list\` see the list of all available games',
-        '\`.game add <command> <role> <count>\` add a game',
+        `\`${PREFIX}game list\` see the list of all available games`,
+        `\`${PREFIX}game add <command> <role> <limit>\` add a game`,
+        `\`${PREFIX}game edit <command> <role>\` edit a game's role`,
+        `\`${PREFIX}game edit <command> <role> <limit>\` edit a game's role and limit`,
+        `\`${PREFIX}game remove <command>\` delete a game`,
     ],
 };
 
