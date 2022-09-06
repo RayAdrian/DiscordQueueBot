@@ -1,8 +1,8 @@
 /**
  * Check if count is a non-negative integer
- * @param count
+ * @param limit
  */
-export default function isValidLimit(count : string) : boolean {
-    const numberCount = count ? Number(count) : Number.NaN;
+export default function isValidLimit(limit : string) : boolean {
+    const numberCount = limit ? Number(limit) : Number.NaN;
     return !isNaN(numberCount) && Number.isInteger(numberCount) && numberCount >= 0;
 }
