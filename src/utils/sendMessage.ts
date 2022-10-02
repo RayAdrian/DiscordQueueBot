@@ -7,7 +7,7 @@ const defaultOnSuccess = (sentMessage : Message) => {
 }
 
 const defaultOnError = (error : any) => {
-    console.log(error);
+    console.log('ERROR: ', error);
 };
 
 /**

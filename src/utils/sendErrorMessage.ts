@@ -17,7 +17,7 @@ export default function sendErrorMessage(
 ) {
     console.log('ERROR: ', error);
     if (!ERROR_CHANNEL_ID) {
-        console.log('No error channel id set');
+        console.log('WARNING: No error channel id set');
         return;
     }
     const errorEmbed = new MessageEmbed()

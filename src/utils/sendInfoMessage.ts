@@ -20,7 +20,7 @@ export default function sendInfoMessage(
 ) {
     console.log('INFO: ', info);
     if (!INFO_CHANNEL_ID) {
-        console.log('No info channel id set');
+        console.log('WARNING: No info channel id set');
         return;
     }
     const infoEmbed = new MessageEmbed()
