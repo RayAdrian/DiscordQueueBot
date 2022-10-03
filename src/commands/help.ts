@@ -1,28 +1,52 @@
-import { Message, MessageEmbed } from "discord.js";
-import { PREFIX } from "../common/constants";
+import { Message, MessageEmbed } from 'discord.js';
+import { PREFIX } from '../common/constants';
 import { sendMessage } from '../utils';
+import gameCommands from './game';
+import { CommandInputs } from './processCommand';
 
-const descriptions = {
-    'Games': [
-        `\`${PREFIX}game list\` see the list of all available games`,
-        `\`${PREFIX}game add <command> <role> <limit>\` add a game`,
-        `\`${PREFIX}game edit <command> <role>\` edit a game's role`,
-        `\`${PREFIX}game edit <command> <role> <limit>\` edit a game's role and limit`,
-        `\`${PREFIX}game remove <command>\` delete a game`,
-    ],
+const getDescriptions = (commands) => {
+    const collatedFormats = [];
+    const collatedDescriptions = [];
+    commands
+        .filter(({ formats, descriptions }) => (formats?.length && descriptions?.length))
+        .forEach(({ formats, descriptions }) => {
+            collatedFormats.push(...formats);
+            collatedDescriptions.push(...descriptions);
+        });
+
+    if (collatedFormats.length !== collatedDescriptions.length) {
+        console.log('WARNING: length of collated help formats and descriptions do not match.');
+    }
+    return collatedFormats.map((format, index) => (
+        `\`${PREFIX}${format}\`\n${collatedDescriptions[index]}`
+    ));
+};
+
+const helpDescriptions = {
+    'Games': getDescriptions(gameCommands),
+    'Test': ['\`.help\`\nshow help commands'],
 };
 
 /**
  * Function for the help command
  * Sends list of possible commands each with description/s
- * @param message - param that contains Channel object to send to
+ * @param parameters - contains the necessary parameters for the command
  */
-export default function help(message : Message) {
+function help(commandInputs : CommandInputs) {
+    const { message } : { message : Message } = commandInputs;
+
     const helpEmbed = new MessageEmbed()
         .setTitle('GentleBot Help')
-        .addField('Queueing Commands', 'e.g. .help');
-    Object.entries(descriptions).forEach(([command, subCommands]) => {
-        helpEmbed.addField(command, subCommands.join('\n'));
+        .addField('Queueing Commands', 'e.g. \`.help\`');
+    Object.entries(helpDescriptions).forEach(([category, commands]) => {
+        helpEmbed.addField(category, commands.join('\n\n'), true);
     });
     sendMessage(message.channel, helpEmbed, () => {});
 }
+
+const helpCommands = [{
+    aliases: ['help'],
+    run: help,
+}];
+
+export default helpCommands;

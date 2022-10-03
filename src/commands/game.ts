@@ -1,24 +1,57 @@
-import { Client, Message, MessageEmbed } from "discord.js";
-import { LocalCache } from "../caches";
-import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from "../common/constants";
-import { isValidLimit, isValidRole, sendMessage, sendMessageEmbed } from "../utils";
+import { Client, Message, MessageEmbed } from 'discord.js';
+import { LocalCache } from '../caches';
+import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants';
+import { isValidLimit, isValidRole, sendMessage, sendMessageEmbed } from '../utils';
+import { CommandInputs } from './processCommand';
+
+/**
+ * Function for game list command
+ * Sends list of all available games
+ * @param commandInputs - contains the necessary parameters for the command
+ */
+function gameList(commandInputs : CommandInputs) {
+    const { args, cache, command, message } : {
+        args : Array<string>, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
+    // validation
+    const argsCount = args.length;
+    if (argsCount !== 0) {
+        sendMessageEmbed(
+            message.channel,
+            'Unexpected number of arguments',
+            `Expected 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+        );
+        return;
+    }
+
+    // arguments validated
+    const gameNames = cache.gamesCache.getGameNames();
+    const gameListEmbed = new MessageEmbed()
+        .setTitle('Game List')
+        .addField('Current available games', gameNames.length ? gameNames.join('\n') : 'No games available');
+    sendMessage(message.channel, gameListEmbed, () => {});
+}
 
 /**
  * Function to handle `.game add <name> <role> <limit>`
  * Add a game
- * @param bot - for sending error messages
- * @param message - param that contains Channel object to send to
- * @param cache - param containing list of available games
+ * @param parameters - contains the necessary parameters for the command
  */
-function gameAdd(bot : Client, message : Message, cache : LocalCache) {
+function gameAdd(commandInputs : CommandInputs) {
+    const {
+        args, bot, cache, command, message,
+    } : {
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
     // validation
-    const args = message.content.substring(PREFIX.length).split(' ').slice(2);
     const argsCount = args.length;
     if (argsCount !== 3) {
         sendMessageEmbed(
             message.channel,
             'Unexpected number of arguments',
-            `Expecting 3 arguments for \`${PREFIX}game add\`. Received ${argsCount}.`,
+            `Expecting 3 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
         );
         return;
     }
@@ -57,19 +90,22 @@ function gameAdd(bot : Client, message : Message, cache : LocalCache) {
 /**
  * Function to handle `.game edit <name> <role> <?limit>`
  * Edit a game's set parameters
- * @param bot - for sending error messages
- * @param message - param that contains Channel object to send to
- * @param cache - param containing list of available games
+ * @param parameters - contains the necessary parameters for the command
  */
-function gameEdit(bot : Client, message : Message, cache : LocalCache) {
+function gameEdit(commandInputs : CommandInputs) {
+    const {
+        args, bot, cache, command, message,
+    } : {
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
     // validation
-    const args = message.content.substring(PREFIX.length).split(' ').slice(2);
     const argsCount = args.length;
     if (![2, 3].includes(argsCount)) {
         sendMessageEmbed(
             message.channel,
             'Unexpected number of arguments',
-            `Expecting 2 or 3 arguments for \`${PREFIX}game edit\`. Received ${argsCount}.`,
+            `Expecting 2 or 3 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
         );
         return;
     }
@@ -106,47 +142,24 @@ function gameEdit(bot : Client, message : Message, cache : LocalCache) {
 }
 
 /**
- * Function for game list command
- * Sends list of all available games
- * @param message - param that contains Channel object to send to
- * @param cache - param containing list of available games
- */
-function gameList(message : Message, cache : LocalCache) {
-    // validation
-    const argsCount = message.content.substring(PREFIX.length).split(' ').slice(2).length;
-    if (argsCount !== 0) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expecting no arguments for \`${PREFIX}game list\`. Received ${argsCount}.`,
-        );
-        return;
-    }
-
-    // arguments validated
-    const gameNames = cache.gamesCache.getGameNames();
-    const gameListEmbed = new MessageEmbed()
-        .setTitle('Game List')
-        .addField('Current available games', gameNames.length ? gameNames.join('\n') : 'No games available');
-    sendMessage(message.channel, gameListEmbed, () => {});
-}
-
-/**
  * Function to handle `.game remove <name>`
  * Remove a game
- * @param bot - for sending error messages
- * @param message - param that contains Channel object to send to
- * @param cache - param containing list of available games
+ * @param parameters - contains the necessary parameters for the command
  */
-function gameRemove(bot : Client, message : Message, cache : LocalCache) {
+function gameRemove(commandInputs : CommandInputs) {
+    const {
+        args, bot, cache, command, message,
+    } : {
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
     // validation
-    const args = message.content.substring(PREFIX.length).split(' ').slice(2);
     const argsCount = args.length;
     if (argsCount !== 1) {
         sendMessageEmbed(
             message.channel,
             'Unexpected number of arguments',
-            `Expecting 1 argument for \`${PREFIX}game remove\`. Received ${argsCount}.`,
+            `Expecting 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
         );
         return;
     }
@@ -177,44 +190,63 @@ function gameRemove(bot : Client, message : Message, cache : LocalCache) {
 }
 
 /**
- * Function for the game command and it's subcommands.
- * Used to add, edit, list, and remove games from the database.
- * @param bot
- * @param message
- * @param cache
+ * Inform command as invalid
+ * @param parameters - contains the necessary parameters for the command
  */
-export default function game(bot : Client, message : Message, cache : LocalCache) {
-    const args = message.content.substring(PREFIX.length).split(' ');
-    const command = args[0].toLowerCase();
-    const subCommand = args[1]?.toLowerCase();
+function invalidGameCommand(commandInputs : CommandInputs) {
+    const { args, message } : { args : Array<string>, message : Message } = commandInputs;
 
-    switch(command) { // allow aliases for certain commands
-        case 'gamelist':
-        case 'games':
-            gameList(message, cache);
-            return;
-    }
-    
-    if (!subCommand) {
+    if (args.length === 0) {
         sendMessageEmbed(
             message.channel,
-            'Wrong command',
-            `Missing a subcommand for \`${PREFIX}game\`. Type \`${PREFIX}help\` for more details.`,
+            `Invalid \`${PREFIX}game\` command`,
+            `
+                Command for game lacking.
+                Possible options include \`list\`, \`add\`, \`edit\`, and \`remove\`.
+                ie. \`.game list\`
+            `,
         );
+        return;
     }
-
-    switch(subCommand) {
-        case 'list':
-            gameList(message, cache);
-            break;
-        case 'add':
-            gameAdd(bot, message, cache);
-            break;
-        case 'edit':
-            gameEdit(bot, message, cache);
-            break;
-        case 'remove':
-            gameRemove(bot, message, cache);
-            break;
-    }
+    sendMessageEmbed(
+        message.channel,
+        `Invalid \`${PREFIX}game\` command`,
+        `Command for \`${PREFIX}game\` unrecognized.`,
+    );
 }
+
+/**
+ * Commands for games
+ */
+const gameCommands = [{
+    aliases: ['game list', 'gamelist', 'games'],
+    run: gameList,
+    formats: ['game list'],
+    descriptions: ['see the list of all available games'],
+}, {
+    aliases: ['game add'],
+    run: gameAdd,
+    formats: ['game add <game> <role> <limit>'],
+    descriptions: ['add a game'],
+}, {
+    aliases: ['game edit'],
+    run: gameEdit,
+    formats: [
+        'game edit <game> <role>',
+        'game edit <game> <role> <limit>',
+    ],
+    descriptions: [
+        'edit a game\'s role',
+        'edit a game\'s role and limit',
+    ],
+}, {
+    aliases: ['game remove'],
+    run: gameRemove,
+    formats: ['game remove <game>'],
+    descriptions: ['delete a game'],
+}, {
+    aliases: ['game'],
+    run: invalidGameCommand,
+}];
+
+export default gameCommands;
