@@ -1,10 +1,10 @@
 import { Channel, Message, MessageEmbed, TextChannel } from "discord.js";
-import { MSG_TIME_FULL_DEL } from "../common/constants";
+import { INFO_MSG_TIME_DEL } from "../common/constants";
 import deleteMessage from "./deleteMessage";
 import sendMessage from "./sendMessage";
 
 const defaultOnSuccess = (sentMessage : Message) => {
-    deleteMessage(sentMessage, MSG_TIME_FULL_DEL);
+    deleteMessage(sentMessage, INFO_MSG_TIME_DEL);
 }
 
 /**
@@ -12,7 +12,7 @@ const defaultOnSuccess = (sentMessage : Message) => {
  * @param channel
  * @param title - title for the embedded message
  * @param message - message string to be added to `Message` field
- * @param onSuccess - defaults to deleting the message after `MSG_TIME_FULL_DEL`
+ * @param onSuccess - defaults to deleting the message after `INFO_MSG_TIME_DEL`
  * @param onError
  */
 export default function sendMessageEmbed(
