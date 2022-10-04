@@ -75,7 +75,7 @@ function invalidLineupCommand(commandInputs : CommandInputs) {
  * Commands for lineups
  */
 const lineupCommands = [{
-  aliases: ['lineup list', 'lineups'],
+  aliases: ['lineup list', 'lineup all', 'lineups', 'lineups list', 'lineups all'],
   run: lineupList,
   formats: ['lineup list'],
   descriptions: ['see the list of all game lineups'],
