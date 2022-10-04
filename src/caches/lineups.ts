@@ -5,7 +5,7 @@ export default class LineupsCache {
         this.lineups = new Map<string, Array<Array<string>>>();
     }
 
-    initialize = (gameNames : Array<string>) => {
+    initialize = (gameNames : Array<string>) : void => {
         gameNames.forEach((name) => {
             this.lineups.set(name, []);
         });
@@ -13,11 +13,6 @@ export default class LineupsCache {
 
     fetch = () : void => {
         // TODO: Fetch Lineups
-    }
-
-    resetAllLineups = () => {
-        // TODO: Add role validation and/or a voting check
-        Array(...this.lineups.keys()).forEach((gameName) => this.lineups.set(gameName, []));
     }
 
     /**
@@ -33,5 +28,17 @@ export default class LineupsCache {
             );
         });
         return lineupsCopy;
+    }
+
+    /**
+     * Removes a lineup from the map ie. when a game is deleted.
+     */
+    removeLineup = (name : string) : void => {
+        this.lineups.delete(name);
+    }
+
+    resetAllLineups = () : void => {
+        // TODO: Add role validation and/or a voting check
+        Array(...this.lineups.keys()).forEach((gameName) => this.lineups.set(gameName, []));
     }
 };

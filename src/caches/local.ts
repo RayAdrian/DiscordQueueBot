@@ -26,6 +26,13 @@ export default class LocalCache {
     };
 
     /**
+     * Initialize lineups
+     */
+    initializeLineups = () => {
+        return this.lineupsCache.initialize(this.gamesCache.getGameNames());
+    };
+
+    /**
      * Get a deep copy of the list of game names stored in the games cache.
      * @returns An array of strings with the list of the names of the games
      */
@@ -84,6 +91,7 @@ export default class LocalCache {
         name : string,
     ) : void {
         this.gamesCache.removeGame(bot, message, name);
+        this.lineupsCache.removeLineup(name);
     }
 
     /**
@@ -93,11 +101,4 @@ export default class LocalCache {
     getLineups() : Map<string, Array<Array<string>>> {
         return this.lineupsCache.getLineups();
     }
-
-    /**
-     * Initialize lineups
-     */
-    initializeLineups = () => {
-        return this.lineupsCache.initialize(this.gamesCache.getGameNames());
-    };
 };
