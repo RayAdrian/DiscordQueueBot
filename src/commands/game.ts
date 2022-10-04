@@ -1,7 +1,7 @@
 import { Client, Message, MessageEmbed } from 'discord.js';
 import { LocalCache } from '../caches';
 import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants';
-import { isValidLimit, isValidRole, sendMessage, sendMessageEmbed } from '../utils';
+import { isValidLimit, isValidId, sendMessage, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**
@@ -67,7 +67,7 @@ function gameAdd(commandInputs : CommandInputs) {
     } else if (gameNames.includes(gameName)) {
         errorMessages.push('Invalid new game name. Already exists.');
     }
-    if (!isValidRole(role)) {
+    if (!isValidId(role)) {
         errorMessages.push('Invalid role.');
     }
     if (!isValidLimit(limit)) {
@@ -121,7 +121,7 @@ function gameEdit(commandInputs : CommandInputs) {
     } else if (!gameNames.includes(gameName)) {
         errorMessages.push(`Invalid game name. Does not exist. Perhaps you meant to use \`${PREFIX}game add\`?`);
     }
-    if (!isValidRole(role)) {
+    if (!isValidId(role)) {
         errorMessages.push('Invalid role.');
     }
     if (limit && !isValidLimit(limit)) {
