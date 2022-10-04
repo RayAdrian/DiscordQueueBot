@@ -2,6 +2,7 @@ import { Message, MessageEmbed } from 'discord.js';
 import { PREFIX } from '../common/constants';
 import { sendMessage } from '../utils';
 import gameCommands from './game';
+import lineupCommands from './lineup';
 import { CommandInputs } from './processCommand';
 
 const getDescriptions = (commands) => {
@@ -24,7 +25,7 @@ const getDescriptions = (commands) => {
 
 const helpDescriptions = {
     'Games': getDescriptions(gameCommands),
-    'Test': ['\`.help\`\nshow help commands'],
+    'Lineups': getDescriptions(lineupCommands),
 };
 
 /**
