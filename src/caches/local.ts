@@ -1,4 +1,5 @@
 import { Client, Message } from 'discord.js';
+import { Game } from '../models/game.js';
 import GamesCache from './games.js';
 import LineupsCache from './lineups.js';
 import UsersCache from './users.js';
@@ -17,7 +18,7 @@ export default class LocalCache {
     /**
      * Update local cache with data from the DB
      */
-    fetchAll = () => {
+    fetchAll() : void {
         this.gamesCache.fetch().then(() => {
             this.initializeLineups();
             this.lineupsCache.fetch();
@@ -28,15 +29,23 @@ export default class LocalCache {
     /**
      * Initialize lineups
      */
-    initializeLineups = () => {
+    initializeLineups() : void {
         return this.lineupsCache.initialize(this.gamesCache.getGameNames());
     };
+
+    /**
+     * Get a copy of the data of a game
+     * @param name - name of the game
+     */
+    getGame(name : string) : Game {
+        return this.gamesCache.getGame(name);
+    }
 
     /**
      * Get a deep copy of the list of game names stored in the games cache.
      * @returns An array of strings with the list of the names of the games
      */
-    getGameNames = () : Array<string> => {
+    getGameNames() : Array<string> {
         return this.gamesCache.getGameNames();
     }
 
@@ -49,7 +58,7 @@ export default class LocalCache {
      * @param roleId - role to link to game
      * @param limit - number of slots for the game's lineup
      */
-     addGame(
+    addGame(
         bot : Client,
         message : Message,
         name : string,
@@ -68,7 +77,7 @@ export default class LocalCache {
      * @param roleId - role to link to game
      * @param limit - (optional) number of slots for the game's lineup
      */
-     editGame(
+    editGame(
         bot : Client,
         message : Message,
         name : string,
@@ -85,7 +94,7 @@ export default class LocalCache {
      * @param message - for replying to the original message
      * @param name - name of the game
      */
-     removeGame(
+    removeGame(
         bot : Client,
         message : Message,
         name : string,
@@ -95,10 +104,36 @@ export default class LocalCache {
     }
 
     /**
+     * Get a copy of a specified game's lineup
+     * @param name - name of the lineup to be retrieved
+     * @returns array of user id strings in the lineup
+     */
+    getLineup(name : string) : Array<string> {
+        return this.lineupsCache.getLineup(name);
+    }
+
+    /**
      * Get a deep copy of the list of lineups stored in the lineups cache.
      * @returns List of lineups per game
      */
-    getLineups() : Map<string, Array<Array<string>>> {
+    getLineups() : Map<string, Array<string>> {
         return this.lineupsCache.getLineups();
+    }
+
+    /**
+     * Adds a user to a specified lineup
+     * @param bot - for sending error messages
+     * @param message - for replying to the original message
+     * @param gameName - name of the game of the relevant lineup
+     * @param user - user id to be added to the lineup
+     */
+     addUserToLineup = (
+        bot : Client,
+        message : Message,
+        gameName : string,
+        user : string,
+    ) : void => {
+        const game : Game = this.gamesCache.getGame(gameName);
+        this.lineupsCache.addUserToLineup(bot, message, game, user);
     }
 };

@@ -25,6 +25,15 @@ export default class GamesCache {
     }
 
     /**
+     * Get a copy of the data of a game
+     * @param name - name of the game
+     */
+    getGame(name : string) : Game {
+        const gameData = this.gamesMap.get(name);
+        return JSON.parse(JSON.stringify(gameData)) as Game;
+    }
+
+    /**
      * Get a deep copy of the list of game names stored in the games cache.
      * @returns An array of strings with the list of the names of the games
      */
