@@ -72,9 +72,7 @@ export default class LineupsCache {
 
         if (gameLineup.length < limit) {
             gameLineup.push(user);
-            sendMessage(message.channel, 'User added.');
-        } else {
-            sendMessage(message.channel, `Lineup for \`${name}\` full.`);
+            sendMessage(message.channel, `User added to \`${name}\` lineup.`);
         }
     }
 

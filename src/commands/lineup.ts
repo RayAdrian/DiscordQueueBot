@@ -31,7 +31,7 @@ function lineupList(commandInputs : CommandInputs) {
     const lineupsListEmbed = new MessageEmbed().setTitle('Lineups');
     lineups.forEach((gameLineup, gameName) => {
         const capitalisedGameName = `${gameName[0].toLocaleUpperCase()}${gameName.slice(1)}`;
-        const gameLineupsString = gameLineup.length ? `\`${gameLineup.join(', ')}\`` : '\`No players in lineup\`';
+        const gameLineupsString = gameLineup.length ? `${gameLineup.join(' ')}` : '\`No players in lineup\`';
         lineupsListEmbed.addField(capitalisedGameName, gameLineupsString);
     });
 
