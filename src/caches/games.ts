@@ -1,6 +1,5 @@
 import { Client, Message } from "discord.js";
-import { Games } from "../models";
-import { Game } from "../models/game";
+import { Games, Game } from "../models";
 import { sendErrorMessage, sendMessage } from "../utils";
 
 export default class GamesCache {
