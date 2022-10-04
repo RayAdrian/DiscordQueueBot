@@ -13,23 +13,24 @@ export default class GamesCache {
     }
 
     /**
-     * @returns An array of strings with the list of the names of the games
-     */
-    getGameNames() : Array<string> {
-        return Array(...this.gameNames);
-    }
-
-    /**
      * Fetch games data from the database to save in the local cache
      */
-    fetch() : void {
-        Games.find({}).exec().then((data) => {
+    fetch() : Promise<void> {
+        return Games.find({}).exec().then((data) => {
             data.forEach((game) => {
                 const name = game.name;
                 this.gamesMap.set(name, game);
                 this.gameNames.add(name);
             });
         });
+    }
+
+    /**
+     * Get a deep copy of the list of game names stored in the games cache.
+     * @returns An array of strings with the list of the names of the games
+     */
+    getGameNames() : Array<string> {
+        return Array(...this.gameNames);
     }
 
     /**
