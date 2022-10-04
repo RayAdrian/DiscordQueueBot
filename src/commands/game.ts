@@ -190,7 +190,7 @@ function gameRemove(commandInputs : CommandInputs) {
 }
 
 /**
- * Inform command as invalid
+ * Inform game command as invalid
  * @param parameters - contains the necessary parameters for the command
  */
 function invalidGameCommand(commandInputs : CommandInputs) {
@@ -201,7 +201,7 @@ function invalidGameCommand(commandInputs : CommandInputs) {
             message.channel,
             `Invalid \`${PREFIX}game\` command`,
             `
-                Command for game lacking.
+                Command for \`${PREFIX}game\` lacking.
                 Possible options include \`list\`, \`add\`, \`edit\`, and \`remove\`.
                 ie. \`.game list\`
             `,

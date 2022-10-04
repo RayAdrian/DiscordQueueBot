@@ -46,6 +46,32 @@ import { CommandInputs } from './processCommand';
 }
 
 /**
+ * Inform lineup command as invalid
+ * @param parameters - contains the necessary parameters for the command
+ */
+function invalidLineupCommand(commandInputs : CommandInputs) {
+    const { args, message } : { args : Array<string>, message : Message } = commandInputs;
+
+    if (args.length === 0) {
+        sendMessageEmbed(
+            message.channel,
+            `Invalid \`${PREFIX}lineup\` command`,
+            `
+                Command for \`${PREFIX}lineup\` lacking.
+                Possible options include \`list\`, \`join\`, \`add\`, \`kick\`, \`reset\`, and \`<game name>\`.
+                ie. \`.lineup list\`
+            `,
+        );
+        return;
+  }
+  sendMessageEmbed(
+      message.channel,
+      `Invalid \`${PREFIX}lineup\` command`,
+      `Command for \`${PREFIX}lineup\` unrecognized.`,
+  );
+}
+
+/**
  * Commands for lineups
  */
 const lineupCommands = [{
@@ -55,7 +81,7 @@ const lineupCommands = [{
   descriptions: ['see the list of all game lineups'],
 }, {
   aliases: ['lineup'],
-  // run: invalidLineupCommand,
+  run: invalidLineupCommand,
 }];
 
 export default lineupCommands;
