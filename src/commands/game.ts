@@ -26,7 +26,7 @@ function gameList(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    const gameNames = cache.gamesCache.getGameNames();
+    const gameNames = cache.getGameNames();
     const gameListEmbed = new MessageEmbed()
         .setTitle('Game List')
         .addField('Current available games', gameNames.length ? gameNames.join('\n') : 'No games available');
@@ -57,7 +57,7 @@ function gameAdd(commandInputs : CommandInputs) {
     }
 
     const [gameName, role, limit] = args.map(arg => arg?.toLowerCase());
-    const gameNames = cache.gamesCache.getGameNames();
+    const gameNames = cache.getGameNames();
     const errorMessages = [];
 
     if (!ALPHANUMERIC.test(gameName)) {
@@ -84,7 +84,7 @@ function gameAdd(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.gamesCache.addGame(bot, message, gameName, role, Number(limit));
+    cache.addGame(bot, message, gameName, role, Number(limit));
 }
 
 /**
@@ -111,7 +111,7 @@ function gameEdit(commandInputs : CommandInputs) {
     }
  
     const [gameName, role, limit] = args.map(arg => arg?.toLowerCase());
-    const gameNames = cache.gamesCache.getGameNames();
+    const gameNames = cache.getGameNames();
     const errorMessages = [];
 
     if (!ALPHANUMERIC.test(gameName)) {
@@ -138,7 +138,7 @@ function gameEdit(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.gamesCache.editGame(bot, message, gameName, role, limit);
+    cache.editGame(bot, message, gameName, role, limit);
 }
 
 /**
@@ -165,7 +165,7 @@ function gameRemove(commandInputs : CommandInputs) {
     }
  
     const gameName = args[0].toLowerCase();
-    const gameNames = cache.gamesCache.getGameNames();
+    const gameNames = cache.getGameNames();
     let errorMessage = '';
 
     if (!ALPHANUMERIC.test(gameName)) {
@@ -186,7 +186,7 @@ function gameRemove(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.gamesCache.removeGame(bot, message, gameName);
+    cache.removeGame(bot, message, gameName);
 }
 
 /**
