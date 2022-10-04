@@ -17,6 +17,7 @@ export const PUNISH_TIME_DEL = 500;
 export const RESERVED_KEYWORDS = [
     'add',
     'all',
+    'delete',
     'edit',
     'game',
     'games',

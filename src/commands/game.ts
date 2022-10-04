@@ -240,7 +240,7 @@ const gameCommands = [{
         'edit a game\'s role and limit',
     ],
 }, {
-    aliases: ['game remove'],
+    aliases: ['game remove', 'game delete'],
     run: gameRemove,
     formats: ['game remove <game>'],
     descriptions: ['delete a game'],
