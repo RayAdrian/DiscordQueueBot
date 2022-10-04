@@ -3,6 +3,7 @@ import { LocalCache } from '../caches';
 import { sendMessageEmbed } from '../utils';
 import gameCommands from './game';
 import helpCommands from './help';
+import lineupCommands from './lineup';
 
 /**
  * Class for generalizing inputs to command functions
@@ -32,6 +33,7 @@ export class CommandInputs {
 const commands = [
     ...helpCommands,
     ...gameCommands,
+    ...lineupCommands,
 ];
 
 // No need to check for prefix in command
