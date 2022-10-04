@@ -33,7 +33,7 @@ bot.on('ready', () => {
             useUnifiedTopology: true,
         }).then(() => {
             sendInfoMessage(bot, 'Connected to MongoDB');
-            localCache.fetch();
+            localCache.fetchAll();
             sendInfoMessage(bot, 'Bot is ready', () => {});
         }).catch((error : Error) => sendErrorMessage(bot, error));
     }

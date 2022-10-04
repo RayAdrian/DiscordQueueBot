@@ -16,10 +16,18 @@ export default class LocalCache {
     /**
      * Update local cache with data from the DB
      */
-    fetch = () => {
-        this.gamesCache.fetch();
-        this.lineupsCache.fetch();
-        this.usersCache.fetch();
+    fetchAll = () => {
+        this.gamesCache.fetch().then(() => {
+            this.initializeLineups();
+            this.lineupsCache.fetch();
+            this.usersCache.fetch();
+        });
+    };
+
+    /**
+     * Initialize lineups
+     */
+    initializeLineups = () => {
+        return this.lineupsCache.initialize(this.gamesCache.getGameNames());
     };
 };
-
