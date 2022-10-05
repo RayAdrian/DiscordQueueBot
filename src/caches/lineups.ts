@@ -98,7 +98,14 @@ export default class LineupsCache {
      * Reset all lineups
      */
     resetAllLineups() : void {
-        // TODO: Add role validation and/or a voting check
         this.lineups.forEach((lineup) => lineup.clear());
+    }
+
+    /**
+     * Reset specified lineups
+     * @param names - list of names of game lineups to be reset
+     */
+    resetLineups(names : Array<string>) : void {
+        names.forEach((name) => this.lineups.get(name).clear());
     }
 };

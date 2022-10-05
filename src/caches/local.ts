@@ -152,4 +152,19 @@ export default class LocalCache {
     ) : void => {
         this.lineupsCache.removeUser(bot, message, gameName, user);
     }
+
+    /**
+     * Reset all lineups
+     */
+     resetAllLineups() : void {
+        this.lineupsCache.resetAllLineups();
+    }
+
+    /**
+     * Reset specified lineups
+     * @param names - list of names of game lineups to be reset
+     */
+     resetLineups(names : Array<string>) : void {
+        this.lineupsCache.resetLineups(names);
+    }
 };

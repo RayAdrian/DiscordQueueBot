@@ -211,6 +211,69 @@ function lineupKick(commandInputs : CommandInputs) {
 }
 
 /**
+ * Function to handle `lineup reset` commands
+ * Remove the user from the game's lineup
+ * @param parameters - contains the necessary parameters for the command
+ */
+ function lineupReset(commandInputs : CommandInputs) {
+    const {
+        args, bot, cache, command, message,
+    } : {
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
+    // validation
+    const errorMessages = []; 
+    // TODO: Add sending user role validation
+
+    const gameNames = args.map(arg => arg?.toLowerCase());
+    const storedGameNames = cache.getGameNames();
+
+    const uniqueGameNames = new Set<string>();
+    gameNames.forEach((gameName) => {
+        if (!storedGameNames.includes(gameName)) {
+            errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
+        }
+        uniqueGameNames.add(gameName);
+    })
+
+    if (errorMessages.length) {
+        sendMessageEmbed(
+            message.channel,
+            'Invalid arguments',
+            errorMessages.join('\n'),
+        );
+        return;
+    }
+
+    // arguments validated
+    if (args.length === 0) {
+        cache.resetAllLineups();
+        sendMessageEmbed(
+            message.channel,
+            'Notification',
+            'All lineups have been reset.',
+        );
+    } else if (uniqueGameNames.size > 0) {
+        cache.resetLineups([...uniqueGameNames]);
+        const fieldTitle = 'The following lineups have been reset';
+        sendMessageEmbed(
+            message.channel,
+            'Notification',
+            {
+                [fieldTitle]: [...uniqueGameNames].join('\n'),
+            },
+        );
+    } else {
+        sendMessageEmbed(
+            message.channel,
+            'Notification',
+            'No lineup has been reset.'
+        );
+    }
+}
+
+/**
  * Inform lineup command as invalid
  * @param parameters - contains the necessary parameters for the command
  */
@@ -259,6 +322,15 @@ const lineupCommands = [{
     run: lineupKick,
     formats: ['lineup kick <game>'],
     descriptions: ['remove a user from a game\'s lineup'],
+}, {
+    aliases: ['lineup reset', 'reset'],
+    run: lineupReset,
+    formats: [
+        'lineup reset',
+        'lineup reset <game>',
+        'lineup reset <game1> <game2> ...',
+    ],
+    descriptions: ['reset all lineups', 'reset a lineup', 'reset the specified lineups'],
 }, {
     aliases: ['lineup'],
     run: invalidLineupCommand,
