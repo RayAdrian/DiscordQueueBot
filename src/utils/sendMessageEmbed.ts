@@ -18,12 +18,17 @@ const defaultOnSuccess = (sentMessage : Message) => {
 export default function sendMessageEmbed(
     channel : Channel,
     title : string,
-    message : string,
+    message : string | Object,
     onSuccess : Function = defaultOnSuccess,
     onError ?: Function,
 ) {
-    const messageEmbed = new MessageEmbed()
-        .setTitle(title)
-        .addField('Message', message);
+    const messageEmbed = new MessageEmbed().setTitle(title)
+    if (typeof message === 'string') {
+        messageEmbed.addField('Message', message);
+    } else {
+        Object.entries(message).forEach(([title, contents]) => {
+            messageEmbed.addField(title, contents);
+        })
+    }
     sendMessage(channel as TextChannel, messageEmbed, onSuccess, onError);
 }
