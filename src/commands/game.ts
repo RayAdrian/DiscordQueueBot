@@ -1,7 +1,7 @@
-import { Client, Message, MessageEmbed } from 'discord.js';
+import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches';
 import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants';
-import { isValidLimit, isValidRole, sendMessage, sendMessageEmbed } from '../utils';
+import { isValidLimit, isValidRole, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**
@@ -27,10 +27,14 @@ function gameList(commandInputs : CommandInputs) {
 
     // arguments validated
     const gameNames = cache.getGameNames();
-    const gameListEmbed = new MessageEmbed()
-        .setTitle('Game List')
-        .addField('Current available games', gameNames.length ? gameNames.join('\n') : 'No games available');
-    sendMessage(message.channel, gameListEmbed, () => {});
+    const title = 'Current available games';
+    const content = gameNames.length ? gameNames.join('\n') : 'No games available';
+    sendMessageEmbed(
+        message.channel,
+        'Game List',
+        { [title] : content },
+        () => {},
+    );
 }
 
 /**
