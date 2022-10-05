@@ -3,8 +3,8 @@ import { Games, Game } from "../models";
 import { sendErrorMessage, sendMessage } from "../utils";
 
 export default class GamesCache {
-    gamesMap: Map<string, Game>;
-    gameNames: Set<string>;
+    private gamesMap: Map<string, Game>;
+    private gameNames: Set<string>;
 
     constructor() {
         this.gamesMap = new Map<string, Game>();

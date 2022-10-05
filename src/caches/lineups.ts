@@ -3,7 +3,7 @@ import { Game } from '../models';
 import { sendMessage } from '../utils';
 
 export default class LineupsCache {
-    lineups: Map<string, Set<string>>;
+    private lineups: Map<string, Set<string>>;
 
     constructor() {
         this.lineups = new Map<string, Set<string>>();
