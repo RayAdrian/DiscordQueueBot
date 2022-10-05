@@ -27,12 +27,12 @@ function gameList(commandInputs : CommandInputs) {
 
     // arguments validated
     const gameNames = cache.getGameNames();
-    const title = 'Current available games';
+    const fieldTitle = 'Current available games';
     const content = gameNames.length ? gameNames.join('\n') : 'No games available';
     sendMessageEmbed(
         message.channel,
         'Game List',
-        { [title] : content },
+        { [fieldTitle] : content },
         () => {},
     );
 }
