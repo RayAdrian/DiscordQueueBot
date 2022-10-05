@@ -3,10 +3,10 @@ import { Game } from '../models';
 import { sendMessage } from '../utils';
 
 export default class LineupsCache {
-    lineups: Map<string, Array<string>>;
+    lineups: Map<string, Set<string>>;
 
     constructor() {
-        this.lineups = new Map<string, Array<string>>();
+        this.lineups = new Map<string, Set<string>>();
     }
 
     /**
@@ -15,7 +15,7 @@ export default class LineupsCache {
      */
     initialize(gameNames : Array<string>) : void {
         gameNames.forEach((name) => {
-            this.lineups.set(name, []);
+            this.lineups.set(name, new Set());
         });
     }
 
@@ -31,7 +31,7 @@ export default class LineupsCache {
      * @param name - name of the lineup to be retrieved
      */
     getLineup(name : string) : Array<string> {
-        return this.lineups.get(name).slice();
+        return Array(...this.lineups.get(name));
     }
 
     /**
@@ -48,8 +48,8 @@ export default class LineupsCache {
      */
     getLineups() : Map<string, Array<string>> {
         const lineupsCopy = new Map<string, Array<string>>();
-        this.lineups.forEach((gameLineup, gameName) => {
-            lineupsCopy.set(gameName, gameLineup.slice());
+        this.lineups.forEach((lineup, gameName) => {
+            lineupsCopy.set(gameName, Array(...lineup));
         });
         return lineupsCopy;
     }
@@ -61,19 +61,37 @@ export default class LineupsCache {
      * @param game - game data of the relevant lineup
      * @param user - user id to be added to the lineup
      */
-    addUserToLineup(
+    addUser(
         bot : Client,
         message : Message,
         game : Game,
         user : string,
     ) : void {
         const { name, limit } : { name : string, limit : number } = game;
-        const gameLineup = this.lineups.get(name);
+        const lineup = this.lineups.get(name);
 
-        if (gameLineup.length < limit) {
-            gameLineup.push(user);
+        if (lineup.size < limit) {
+            lineup.add(user);
             sendMessage(message.channel, `User added to \`${name}\` lineup.`);
         }
+    }
+
+    /**
+     * Removes a user from a specified lineup
+     * @param bot - for sending error messages
+     * @param message - for replying to the original message
+     * @param name - name of the game of the relevant lineup
+     * @param user - user id to be added to the lineup
+     */
+     removeUser(
+        bot : Client,
+        message : Message,
+        name : string,
+        user : string,
+    ) : void {
+        const lineup = this.lineups.get(name);
+        lineup.delete(user);
+        sendMessage(message.channel, `User removed from \`${name}\` lineup.`);
     }
 
     /**
@@ -81,6 +99,6 @@ export default class LineupsCache {
      */
     resetAllLineups() : void {
         // TODO: Add role validation and/or a voting check
-        Array(...this.lineups.keys()).forEach((gameName) => this.lineups.set(gameName, []));
+        this.lineups.forEach((lineup) => lineup.clear());
     }
 };

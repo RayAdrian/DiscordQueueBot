@@ -105,7 +105,7 @@ function lineupAdd(commandInputs : CommandInputs) {
  * Add the user that sent the message to the game's lineup
  * @param parameters - contains the necessary parameters for the command
  */
- function lineupJoin(commandInputs : CommandInputs) {
+function lineupJoin(commandInputs : CommandInputs) {
     const {
         args, bot, cache, command, message,
     } : {
@@ -156,6 +156,61 @@ function lineupAdd(commandInputs : CommandInputs) {
 }
 
 /**
+ * Function to handle `.lineup kick <game> <user id>`
+ * Remove the user from the game's lineup
+ * @param parameters - contains the necessary parameters for the command
+ */
+function lineupKick(commandInputs : CommandInputs) {
+    const {
+        args, bot, cache, command, message,
+    } : {
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
+    // validation
+    const argsCount = args.length;
+    if (argsCount !== 2) {
+        sendMessageEmbed(
+            message.channel,
+            'Unexpected number of arguments',
+            `Expecting 2 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+        );
+        return;
+    }
+
+    const [gameName, user] = args.map(arg => arg?.toLowerCase());
+    const gameNames = cache.getGameNames();
+    const errorMessages = [];
+
+    if (!ALPHANUMERIC.test(gameName)) {
+        errorMessages.push('Invalid game name. Should only consist of alphanumeric characters.');
+    } else if (!gameNames.includes(gameName)) {
+        errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
+    }
+    if (!isValidUser(user)) {
+        errorMessages.push('Invalid user.');
+    }
+    // TODO: Add sending user role validation
+
+    const lineup = cache.getLineup(gameName);
+    if (!lineup.includes(user)) {
+        errorMessages.push(`User not in the \`${gameName}\` lineup.`);
+    }
+
+    if (errorMessages.length) {
+        sendMessageEmbed(
+            message.channel,
+            'Invalid arguments',
+            errorMessages.join('\n'),
+        );
+        return;
+    }
+
+    // arguments validated
+    cache.removeUserFromLineup(bot, message, gameName, user);
+}
+
+/**
  * Inform lineup command as invalid
  * @param parameters - contains the necessary parameters for the command
  */
@@ -190,7 +245,7 @@ const lineupCommands = [{
     formats: ['lineup list'],
     descriptions: ['see the list of all game lineups'],
 }, {
-    aliases: ['lineup add'],
+    aliases: ['lineup add', 'add'],
     run: lineupAdd,
     formats: ['lineup add <game> <user id>'],
     descriptions: ['add a user to a game\'s lineup'],
@@ -199,6 +254,11 @@ const lineupCommands = [{
     run: lineupJoin,
     formats: ['lineup join <game>'],
     descriptions: ['add the user that sent the message to a game\'s lineup'],
+}, {
+    aliases: ['lineup kick', 'kick'],
+    run: lineupKick,
+    formats: ['lineup kick <game>'],
+    descriptions: ['remove a user from a game\'s lineup'],
 }, {
     aliases: ['lineup'],
     run: invalidLineupCommand,

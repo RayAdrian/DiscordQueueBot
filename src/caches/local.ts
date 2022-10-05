@@ -134,6 +134,22 @@ export default class LocalCache {
         user : string,
     ) : void => {
         const game : Game = this.gamesCache.getGame(gameName);
-        this.lineupsCache.addUserToLineup(bot, message, game, user);
+        this.lineupsCache.addUser(bot, message, game, user);
+    }
+
+    /**
+     * Removes a user from a specified lineup
+     * @param bot - for sending error messages
+     * @param message - for replying to the original message
+     * @param gameName - name of the game of the relevant lineup
+     * @param user - user id to be added to the lineup
+     */
+     removeUserFromLineup = (
+        bot : Client,
+        message : Message,
+        gameName : string,
+        user : string,
+    ) : void => {
+        this.lineupsCache.removeUser(bot, message, gameName, user);
     }
 };
