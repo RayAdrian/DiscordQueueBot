@@ -1,5 +1,4 @@
 import { Client, Message } from 'discord.js';
-import { Game } from '../models';
 import { sendMessage } from '../utils';
 
 export default class LineupsCache {
@@ -70,25 +69,22 @@ export default class LineupsCache {
     }
 
     /**
-     * Adds a user to a specified lineup
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
-     * @param game - game data of the relevant lineup
+     * Adds user/s to a specified lineup
+     * @param name - game name of the specified lineup
+     * @param users - user ids to be added to the lineup
+     */
+    addUsersToLineup = (name : string, users : Array<string>) : void => {
+        const lineup = this.lineups.get(name);
+        users.forEach((user) => lineup.add(user));
+    }
+
+    /**
+     * Adds a user to specified lineups
+     * @param names - game names of the specified lineups
      * @param user - user id to be added to the lineup
      */
-    addUser(
-        bot : Client,
-        message : Message,
-        game : Game,
-        user : string,
-    ) : void {
-        const { name, limit } : { name : string, limit : number } = game;
-        const lineup = this.lineups.get(name);
-
-        if (lineup.size < limit) {
-            lineup.add(user);
-            sendMessage(message.channel, `User added to \`${name}\` lineup.`);
-        }
+    joinLineups = (names : Array<string>, user : string) : void => {
+        names.forEach((name) => this.lineups.get(name).add(user));
     }
 
     /**

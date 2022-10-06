@@ -130,20 +130,21 @@ export default class LocalCache {
     }
 
     /**
-     * Adds a user to a specified lineup
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
+     * Adds user/s to a specified lineup
      * @param gameName - name of the game of the relevant lineup
+     * @param users - user ids to be added to the lineup
+     */
+    addUsersToLineup = (gameName : string, users : Array<string>) : void => {
+        this.lineupsCache.addUsersToLineup(gameName, users);
+    }
+
+    /**
+     * Adds a user to specified lineups
+     * @param names - game names of the specified lineups
      * @param user - user id to be added to the lineup
      */
-     addUserToLineup = (
-        bot : Client,
-        message : Message,
-        gameName : string,
-        user : string,
-    ) : void => {
-        const game : Game = this.gamesCache.getGame(gameName);
-        this.lineupsCache.addUser(bot, message, game, user);
+    joinLineups = (names : Array<string>, user : string) : void => {
+        this.lineupsCache.joinLineups(names, user);
     }
 
     /**
