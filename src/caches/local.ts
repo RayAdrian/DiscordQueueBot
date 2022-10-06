@@ -113,11 +113,20 @@ export default class LocalCache {
     }
 
     /**
-     * Get a deep copy of the list of lineups stored in the lineups cache.
+     * Get a deep copy of the list of lineups
      * @returns List of lineups per game
      */
     getLineups() : Map<string, Array<string>> {
         return this.lineupsCache.getLineups();
+    }
+
+    /**
+     * Get a specific list of lineups
+     * @param names - list of names of game lineups to fetch
+     * @returns List of lineups per game
+     */
+    getFilteredLineups(names : Array<string>) : Map<string, Array<string>> {
+        return this.lineupsCache.getFilteredLineups(names);
     }
 
     /**

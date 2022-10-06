@@ -6,40 +6,62 @@ import { deleteMessage, isValidUser, sendMessage, sendMessageEmbed } from '../ut
 import { CommandInputs } from './processCommand';
 
 /**
- * Function for lineup list command
+ * Function for lineup list commands
  * Sends list of all lineups
  * @param commandInputs - contains the necessary parameters for the command
  */
 function lineupList(commandInputs : CommandInputs) {
-    const { args, cache, command, message } : {
-        args : Array<string>, cache : LocalCache, command : string, message : Message,
+    const { args, cache, message } : {
+        args : Array<string>, cache : LocalCache, message : Message,
     } = commandInputs;
 
-    // validation
-    const argsCount = args.length;
-    if (argsCount !== 0) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expected 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
-        return;
+    const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
+
+    // check if lineup list has specified games
+    if (
+        gameNames.length === 0
+        || (gameNames.length === 1 && gameNames[0] === 'all')
+    ) { // list all lineups
+        const lineups = cache.getLineups();
+        const content = {};
+        lineups.forEach((gameLineup, gameName) => {
+            const capitalisedGameName = `${gameName[0].toLocaleUpperCase()}${gameName.slice(1)}`;
+            const gameLineupsString = gameLineup.length ? `${gameLineup.join(' ')}` : '\`No players in lineup\`';
+            content[capitalisedGameName] = gameLineupsString;
+        })
+        sendMessageEmbed(message.channel, 'Lineups', content);
+    } else if (gameNames.length > 0) { // list specified lineups
+        // validation
+        const errorMessages = []; 
+        const storedGameNames = cache.getGameNames();
+        const uniqueGameNames = new Set<string>(...gameNames);
+
+        gameNames.forEach((gameName) => {
+            if (!storedGameNames.includes(gameName)) {
+                errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
+            }
+            uniqueGameNames.add(gameName);
+        })
+
+        if (errorMessages.length) {
+            sendMessageEmbed(
+                message.channel,
+                'Invalid arguments',
+                errorMessages.join('\n'),
+            );
+            return;
+        }
+    
+        // arguments validated
+        const lineups = cache.getFilteredLineups(Array(...uniqueGameNames));
+        const content = {};
+        lineups.forEach((gameLineup, gameName) => {
+            const capitalisedGameName = `${gameName[0].toLocaleUpperCase()}${gameName.slice(1)}`;
+            const gameLineupsString = gameLineup.length ? `${gameLineup.join(' ')}` : '\`No players in lineup\`';
+            content[capitalisedGameName] = gameLineupsString;
+        })
+        sendMessageEmbed(message.channel, 'Lineups', content);
     }
-
-    // arguments validated
-    const lineups = cache.getLineups();
-    const lineupsListEmbed = new MessageEmbed().setTitle('Lineups');
-    lineups.forEach((gameLineup, gameName) => {
-        const capitalisedGameName = `${gameName[0].toLocaleUpperCase()}${gameName.slice(1)}`;
-        const gameLineupsString = gameLineup.length ? `${gameLineup.join(' ')}` : '\`No players in lineup\`';
-        lineupsListEmbed.addField(capitalisedGameName, gameLineupsString);
-    });
-
-    sendMessage(
-        message.channel,
-        lineupsListEmbed,
-        (sentMessage : Message) => deleteMessage(sentMessage, INFO_MSG_TIME_DEL),
-    );
 }
 
 /**
@@ -303,10 +325,10 @@ function invalidLineupCommand(commandInputs : CommandInputs) {
  * Commands for lineups
  */
 const lineupCommands = [{
-    aliases: ['lineup list', 'lineup all', 'lineups', 'lineups list', 'lineups all'],
+    aliases: ['lineup list', 'lineup', 'lineups list', 'lineups'],
     run: lineupList,
-    formats: ['lineup list'],
-    descriptions: ['see the list of all game lineups'],
+    formats: ['lineup list', 'lineup list <game1> <game2> ...',],
+    descriptions: ['see the list of all game lineups', 'see the list of specified game lineups'],
 }, {
     aliases: ['lineup add', 'add'],
     run: lineupAdd,
@@ -325,12 +347,8 @@ const lineupCommands = [{
 }, {
     aliases: ['lineup reset', 'reset'],
     run: lineupReset,
-    formats: [
-        'lineup reset',
-        'lineup reset <game>',
-        'lineup reset <game1> <game2> ...',
-    ],
-    descriptions: ['reset all lineups', 'reset a lineup', 'reset the specified lineups'],
+    formats: ['lineup reset', 'lineup reset <game1> <game2> ...'],
+    descriptions: ['reset all lineups', 'reset the specified lineups'],
 }, {
     aliases: ['lineup'],
     run: invalidLineupCommand,

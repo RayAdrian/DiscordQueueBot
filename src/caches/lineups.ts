@@ -35,14 +35,6 @@ export default class LineupsCache {
     }
 
     /**
-     * Removes a lineup from the map ie. when a game is deleted.
-     * @param name - name of the lineup to be deleted
-     */
-    removeLineup(name : string) : void {
-        this.lineups.delete(name);
-    }
-
-    /**
      * Get a deep copy of the list of lineups stored in the lineups cache.
      * @returns List of lineups per game
      */
@@ -52,6 +44,29 @@ export default class LineupsCache {
             lineupsCopy.set(gameName, Array(...lineup));
         });
         return lineupsCopy;
+    }
+
+    /**
+     * Get a specific list of lineups
+     * @param names - list of names of game lineups to fetch
+     * @returns List of lineups per game
+     */
+    getFilteredLineups(names : Array<string>) : Map<string, Array<string>> {
+        const filteredLineups = new Map<string, Array<string>>();
+        this.lineups.forEach((lineup, gameName) => {
+            if (names.includes(gameName)) {
+                filteredLineups.set(gameName, Array(...lineup));
+            }
+        })
+        return filteredLineups;
+    }
+
+    /**
+     * Removes a lineup from the map ie. when a game is deleted.
+     * @param name - name of the lineup to be deleted
+     */
+    removeLineup(name : string) : void {
+        this.lineups.delete(name);
     }
 
     /**
