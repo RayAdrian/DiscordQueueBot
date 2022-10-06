@@ -238,10 +238,8 @@ function lineupKick(commandInputs : CommandInputs) {
  * @param parameters - contains the necessary parameters for the command
  */
  function lineupReset(commandInputs : CommandInputs) {
-    const {
-        args, bot, cache, command, message,
-    } : {
-        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+    const { args, cache, message } : {
+        args : Array<string>, cache : LocalCache, message : Message,
     } = commandInputs;
 
     // validation
