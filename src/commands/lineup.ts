@@ -28,7 +28,7 @@ function lineupList(commandInputs : CommandInputs) {
             const capitalisedGameName = `${gameName[0].toLocaleUpperCase()}${gameName.slice(1)}`;
             const gameLineupsString = gameLineup.length ? `${gameLineup.join(' ')}` : '\`No players in lineup\`';
             content[capitalisedGameName] = gameLineupsString;
-        })
+        }) 
         sendMessageEmbed(message.channel, 'Lineups', content);
     } else if (gameNames.length > 0) { // list specified lineups
         // validation
@@ -296,32 +296,6 @@ function lineupKick(commandInputs : CommandInputs) {
 }
 
 /**
- * Inform lineup command as invalid
- * @param parameters - contains the necessary parameters for the command
- */
-function invalidLineupCommand(commandInputs : CommandInputs) {
-    const { args, message } : { args : Array<string>, message : Message } = commandInputs;
-
-    if (args.length === 0) {
-        sendMessageEmbed(
-            message.channel,
-            `Invalid \`${PREFIX}lineup\` command`,
-            `
-                Command for \`${PREFIX}lineup\` lacking.
-                Possible options include \`list\`, \`join\`, \`add\`, \`kick\`, \`reset\`, and \`<game name>\`.
-                ie. \`.lineup list\`
-            `,
-        );
-        return;
-  }
-  sendMessageEmbed(
-      message.channel,
-      `Invalid \`${PREFIX}lineup\` command`,
-      `Command for \`${PREFIX}lineup\` unrecognized.`,
-  );
-}
-
-/**
  * Commands for lineups
  */
 const lineupCommands = [{
@@ -349,9 +323,6 @@ const lineupCommands = [{
     run: lineupReset,
     formats: ['lineup reset', 'lineup reset <game1> <game2> ...'],
     descriptions: ['reset all lineups', 'reset the specified lineups'],
-}, {
-    aliases: ['lineup'],
-    run: invalidLineupCommand,
 }];
 
 export default lineupCommands;
