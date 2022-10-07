@@ -105,11 +105,11 @@ export default class LocalCache {
 
     /**
      * Get a copy of a specified game's lineup
-     * @param name - name of the lineup to be retrieved
+     * @param gameName - name of the lineup to be retrieved
      * @returns array of user id strings in the lineup
      */
-    getLineup(name : string) : Array<string> {
-        return this.lineupsCache.getLineup(name);
+    getLineup(gameName : string) : Array<string> {
+        return this.lineupsCache.getLineup(gameName);
     }
 
     /**
@@ -122,11 +122,11 @@ export default class LocalCache {
 
     /**
      * Get a specific list of lineups
-     * @param names - list of names of game lineups to fetch
+     * @param gameNames - list of names of game lineups to fetch
      * @returns List of lineups per game
      */
-    getFilteredLineups(names : Array<string>) : Map<string, Array<string>> {
-        return this.lineupsCache.getFilteredLineups(names);
+    getFilteredLineups(gameNames : Array<string>) : Map<string, Array<string>> {
+        return this.lineupsCache.getFilteredLineups(gameNames);
     }
 
     /**
@@ -135,32 +135,25 @@ export default class LocalCache {
      * @param users - user ids to be added to the lineup
      */
     addUsersToLineup = (gameName : string, users : Array<string>) : void => {
-        this.lineupsCache.addUsersToLineup(gameName, users);
+        this.lineupsCache.addUsers(gameName, users);
     }
 
     /**
      * Adds a user to specified lineups
-     * @param names - game names of the specified lineups
+     * @param gameNames - game names of the specified lineups
      * @param user - user id to be added to the lineup
      */
-    joinLineups = (names : Array<string>, user : string) : void => {
-        this.lineupsCache.joinLineups(names, user);
+    joinLineups = (gameNames : Array<string>, user : string) : void => {
+        this.lineupsCache.joinLineups(gameNames, user);
     }
 
     /**
-     * Removes a user from a specified lineup
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
-     * @param gameName - name of the game of the relevant lineup
-     * @param user - user id to be added to the lineup
+     * Removes user/s from a specified lineup
+     * @param gameName - game name of the specified lineup
+     * @param users - user ids to be removed from the lineup
      */
-     removeUserFromLineup = (
-        bot : Client,
-        message : Message,
-        gameName : string,
-        user : string,
-    ) : void => {
-        this.lineupsCache.removeUser(bot, message, gameName, user);
+    removeUsersFromLineup(gameName : string, users : Array<string>) : void {
+        this.lineupsCache.removeUsers(gameName, users);
     }
 
     /**
@@ -172,9 +165,9 @@ export default class LocalCache {
 
     /**
      * Reset specified lineups
-     * @param names - list of names of game lineups to be reset
+     * @param gameNames - list of names of game lineups to be reset
      */
-     resetLineups(names : Array<string>) : void {
-        this.lineupsCache.resetLineups(names);
+     resetLineups(gameNames : Array<string>) : void {
+        this.lineupsCache.resetLineups(gameNames);
     }
 };

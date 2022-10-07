@@ -87,7 +87,7 @@ function lineupAdd(commandInputs : CommandInputs) {
         return;
     }
 
-    const [gameName, ...users] = args.map(arg => arg?.toLowerCase());
+    const [gameName, ...users] = args.map(arg => arg?.trim()?.toLowerCase());
     const storedGameNames = cache.getGameNames();
     const errorMessages = [];
 
@@ -115,9 +115,9 @@ function lineupAdd(commandInputs : CommandInputs) {
     const { isInfinite, limit } = cache.getGame(gameName);
     const lineup = cache.getLineup(gameName);
     
-    const invalidUsers = users.filter((user) => lineup.includes(user));
-    const validUsers = users.filter((user) => !lineup.includes(user));
-    let excludedUsers = [];
+    const invalidUsers = users.filter((user) => lineup.includes(user)); // already in lineup
+    const validUsers = users.filter((user) => !lineup.includes(user)); // not in lineup
+    let excludedUsers = []; // cannot be added due to full lineup
 
     if (!isInfinite) {
         if (lineup.length >= limit) { // no more open slots
@@ -244,23 +244,23 @@ function lineupJoin(commandInputs : CommandInputs) {
  */
 function lineupKick(commandInputs : CommandInputs) {
     const {
-        args, bot, cache, command, message,
+        args, cache, command, message,
     } : {
-        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, cache : LocalCache, command : string, message : Message,
     } = commandInputs;
 
     // validation
     const argsCount = args.length;
-    if (argsCount !== 2) {
+    if (argsCount < 2) {
         sendMessageEmbed(
             message.channel,
             'Unexpected number of arguments',
-            `Expecting 2 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            `Expecting at least 2 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
         );
         return;
     }
 
-    const [gameName, user] = args.map(arg => arg?.toLowerCase());
+    const [gameName, ...users] = args.map(arg => arg?.trim()?.toLowerCase());
     const storedGameNames = cache.getGameNames();
     const errorMessages = [];
 
@@ -269,15 +269,10 @@ function lineupKick(commandInputs : CommandInputs) {
     } else if (!storedGameNames.includes(gameName)) {
         errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
     }
-    if (!isValidUser(user)) {
-        errorMessages.push('Invalid user.');
-    }
+    users
+        .filter((user) => !isValidUser(user))
+        .forEach((user) => errorMessages.push(`Invalid user \`${user}\`.`));
     // TODO: Add sending user role validation
-
-    const lineup = cache.getLineup(gameName);
-    if (!lineup.includes(user)) {
-        errorMessages.push(`User not in the \`${gameName}\` lineup.`);
-    }
 
     if (errorMessages.length) {
         sendMessageEmbed(
@@ -288,8 +283,25 @@ function lineupKick(commandInputs : CommandInputs) {
         return;
     }
 
-    // arguments validated
-    cache.removeUserFromLineup(bot, message, gameName, user);
+    // non-blocking validation
+    const content = {};
+    const lineup = cache.getLineup(gameName);
+    
+    const invalidUsers = users.filter((user) => !lineup.includes(user)); // not in lineup
+    const validUsers = users.filter((user) => lineup.includes(user)); // already in lineup
+
+    if (invalidUsers.length) {
+        content['Following users not in the lineup'] = invalidUsers.join(' ');
+    }
+
+    if (validUsers.length) {
+        cache.removeUsersFromLineup(gameName, validUsers);
+        content['Successfully kicked the following users'] = validUsers.join(' ');
+    } else {
+        content['No users kicked'] = 'No valid users';
+    }
+
+    sendMessageEmbed(message.channel, 'Lineups Kick', content);
 }
 
 /**
@@ -306,7 +318,7 @@ function lineupKick(commandInputs : CommandInputs) {
     const errorMessages = []; 
     // TODO: Add sending user role validation
 
-    const gameNames = args.map(arg => arg?.toLowerCase());
+    const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
     const storedGameNames = cache.getGameNames();
 
     const uniqueGameNames = new Set<string>();

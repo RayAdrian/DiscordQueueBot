@@ -73,7 +73,7 @@ export default class LineupsCache {
      * @param name - game name of the specified lineup
      * @param users - user ids to be added to the lineup
      */
-    addUsersToLineup = (name : string, users : Array<string>) : void => {
+    addUsers = (name : string, users : Array<string>) : void => {
         const lineup = this.lineups.get(name);
         users.forEach((user) => lineup.add(user));
     }
@@ -88,21 +88,13 @@ export default class LineupsCache {
     }
 
     /**
-     * Removes a user from a specified lineup
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
-     * @param name - name of the game of the relevant lineup
-     * @param user - user id to be added to the lineup
+     * Removes user/s from a specified lineup
+     * @param name - game name of the specified lineup
+     * @param users - user ids to be removed from the lineup
      */
-     removeUser(
-        bot : Client,
-        message : Message,
-        name : string,
-        user : string,
-    ) : void {
+    removeUsers(name : string, users : Array<string>) : void {
         const lineup = this.lineups.get(name);
-        lineup.delete(user);
-        sendMessage(message.channel, `User removed from \`${name}\` lineup.`);
+        users.forEach((user) => lineup.delete(user));;
     }
 
     /**
