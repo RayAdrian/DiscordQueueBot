@@ -1,5 +1,6 @@
 import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches';
+import { PREFIX } from '../common/constants';
 import { sendMessageEmbed } from '../utils';
 import gameCommands from './game';
 import helpCommands from './help';
@@ -37,7 +38,7 @@ const commands = [
 ];
 
 // No need to check for prefix in command
-const getCommandRegExp = (command : string) : RegExp => new RegExp(`(${command})\\b(.*)`, 'gi');
+const getCommandRegExp = (command : string) : RegExp => new RegExp(`^${PREFIX}(${command})\\b(.*)`, 'gi');
 
 /**
  * Process the command sent by the user (contained in msg param)
