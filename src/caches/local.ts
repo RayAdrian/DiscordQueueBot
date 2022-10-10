@@ -45,8 +45,8 @@ export default class LocalCache {
      * Get the role associated to a game
      * @param name - name of the game
      */
-    getRole(name : string) : Game {
-        return this.gamesCache.getGame(name);
+    getRole(name : string) : string {
+        return this.gamesCache.getGame(name).roleId;
     }
 
     /**
