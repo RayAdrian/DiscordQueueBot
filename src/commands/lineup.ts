@@ -1,8 +1,8 @@
 
-import { Client, Message, MessageEmbed } from "discord.js";
+import { Message } from "discord.js";
 import { LocalCache } from "../caches";
-import { ALPHANUMERIC, INFO_MSG_TIME_DEL, PREFIX } from "../common/constants";
-import { deleteMessage, isValidUser, sendMessage, sendMessageEmbed } from '../utils';
+import { ALPHANUMERIC, PREFIX } from "../common/constants";
+import { isValidUser, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**
@@ -112,25 +112,23 @@ function lineupAdd(commandInputs : CommandInputs) {
 
     // non-blocking validation
     const content = {};
-    const { isInfinite, limit } = cache.getGame(gameName);
     const lineup = cache.getLineup(gameName);
     
     const invalidUsers = users.filter((user) => lineup.includes(user)); // already in lineup
     const validUsers = users.filter((user) => !lineup.includes(user)); // not in lineup
     let excludedUsers = []; // cannot be added due to full lineup
+    
+    const remainingSlotCount = cache.getLineupOpenings(gameName);
 
-    if (!isInfinite) {
-        if (lineup.length >= limit) { // no more open slots
-            content['Information message'] = `Lineup for \`${gameName}\` already full.`;
-            validUsers.splice(0); // no need to display the excluded users for this case
-        } else if ((lineup.length + validUsers.length) > limit) { // can't add all users
-            const remainingSlotCount = limit - lineup.length;
-            content['Information message'] = `
-                Cannot add all the users to the \`${gameName}\` lineup.
-                Adding only the first ${remainingSlotCount} users.
-            `;
-            excludedUsers = validUsers.splice(remainingSlotCount);
-        }
+    if (cache.isLineupFull(gameName)) { // no more open slots
+        content['Information message'] = `Lineup for \`${gameName}\` already full.`;
+        validUsers.splice(0); // no need to display the excluded users for this case
+    } else if (validUsers.length > remainingSlotCount) { // can't add all users
+        content['Information message'] = `
+            Cannot add all the users to the \`${gameName}\` lineup.
+            Adding only the first ${remainingSlotCount} users.
+        `;
+        excludedUsers = validUsers.splice(remainingSlotCount);
     }
 
     if (invalidUsers.length) {
@@ -179,7 +177,7 @@ function lineupJoin(commandInputs : CommandInputs) {
     const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
     const storedGameNames = cache.getGameNames();
 
-    if (gameNames[0] !== 'all') { // validate game names
+    if (!(gameNames.length === 1 && gameNames[0] === 'all')) { // validate game names
         gameNames.forEach((gameName) => {
             if (!ALPHANUMERIC.test(gameName)) {
                 errorMessages.push('Invalid game name. Should only consist of alphanumeric characters.');
@@ -199,7 +197,6 @@ function lineupJoin(commandInputs : CommandInputs) {
     }
 
     // non-blocking game args validation
-    const content = {};
     const uniqueGameNames = Array(...new Set(gameNames));
     const user = `<@${message.author.id}>`;
 
@@ -219,6 +216,8 @@ function lineupJoin(commandInputs : CommandInputs) {
     });
 
     // info messages and actual cache operations
+    const content = {};
+
     if (fullGameNames.length) {
         content['Following lineups are already full'] = `\`${fullGameNames.join(' ')}\``;
     }
@@ -309,7 +308,7 @@ function lineupKick(commandInputs : CommandInputs) {
  * Remove the user from the game's lineup
  * @param parameters - contains the necessary parameters for the command
  */
- function lineupReset(commandInputs : CommandInputs) {
+function lineupReset(commandInputs : CommandInputs) {
     const { args, cache, message } : {
         args : Array<string>, cache : LocalCache, message : Message,
     } = commandInputs;
@@ -366,28 +365,108 @@ function lineupKick(commandInputs : CommandInputs) {
 }
 
 /**
+ * 
+ */
+function lineupInvite(commandInputs : CommandInputs) {
+    const {
+        args, cache, command, message,
+    } : {
+        args : Array<string>, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
+    const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
+    let userLineups = [];
+    const isSpecifiedInvite = gameNames.length > 0;
+
+    // blocking game args validation
+    const errorMessages = [];
+
+    if (isSpecifiedInvite) { // invite specified games
+        // validate game names
+        const storedGameNames = cache.getGameNames();
+        gameNames.forEach((gameName) => {
+            if (!ALPHANUMERIC.test(gameName)) {
+                errorMessages.push('Invalid game name. Should only consist of alphanumeric characters.');
+            } else if (!storedGameNames.includes(gameName)) {
+                errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
+            }
+        });
+    } else { // invite all games user is in
+        const user = `<@${message.author.id}>`;
+        userLineups = cache.getUserLineups(user);
+        if (userLineups.length === 0) {
+            errorMessages.push('User not in any lineup.')
+        }
+    }
+
+    if (errorMessages.length) {
+        sendMessageEmbed(
+            message.channel,
+            'Invalid arguments',
+            errorMessages.join('\n'),
+        );
+        return;
+    }
+
+    // non-blocking game args validation
+    const uniqueGameNames = Array(...new Set(gameNames));
+
+    const fullGameNames = [];
+    const validGameNames = [];
+
+    (isSpecifiedInvite ? uniqueGameNames : userLineups).forEach((gameName) => {
+        (cache.isLineupFull(gameName) ? fullGameNames : validGameNames).push(gameName);
+    });
+
+    // info messages and actual cache operations
+    const content = {};
+
+    if (fullGameNames.length) {
+        content['Following lineups are already full'] = `\`${fullGameNames.join(' ')}\``;
+    }
+
+    if (validGameNames.length) {
+        content['Invite Lineups'] = `
+            ${validGameNames.map((gameName) => {
+                const role = cache.getRole(gameName);
+                const slots = cache.getLineupOpenings(gameName);
+                return `${role} +${slots}`;
+            }).join('\n')}
+        `;
+    }
+
+    sendMessageEmbed(message.channel, 'Lineups Invite', content);
+}
+
+
+/**
  * Commands for lineups
  */
 const lineupCommands = [{
-    aliases: ['lineup add', 'add'],
+    aliases: ['lineup add', 'add', 'lineups add'],
     run: lineupAdd,
     formats: ['lineup add <game> <user id>'],
     descriptions: ['add a user to a game\'s lineup'],
 }, {
-    aliases: ['lineup join', 'join'],
+    aliases: ['lineup join', 'join', 'lineups join'],
     run: lineupJoin,
     formats: ['lineup join <game>'],
     descriptions: ['add the user that sent the message to a game\'s lineup'],
 }, {
-    aliases: ['lineup kick', 'kick'],
+    aliases: ['lineup kick', 'kick', 'lineups kick'],
     run: lineupKick,
     formats: ['lineup kick <game>'],
     descriptions: ['remove a user from a game\'s lineup'],
 }, {
-    aliases: ['lineup reset', 'reset'],
+    aliases: ['lineup reset', 'reset', 'lineups reset'],
     run: lineupReset,
     formats: ['lineup reset', 'lineup reset <game1> <game2> ...'],
     descriptions: ['reset all lineups', 'reset the specified lineups'],
+}, {
+    aliases: ['lineup invite', 'invite', 'lineups invite'],
+    run: lineupInvite,
+    formats: ['lineup invite', 'lineup invite <game1> <game2> ...'],
+    descriptions: ['invite all lineups user is in', 'invite the specified lineups'],
 }, {
     aliases: ['lineup list', 'lineup', 'lineups list', 'lineups'],
     run: lineupList,
