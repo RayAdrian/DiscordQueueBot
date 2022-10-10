@@ -142,7 +142,7 @@ export default class LocalCache {
      * @param user
      */
     getUserLineups(user : string) : Array<string> { 
-        return this.getUserLineups(user);
+        return this.lineupsCache.getUserLineups(user);
     }
 
     /**
