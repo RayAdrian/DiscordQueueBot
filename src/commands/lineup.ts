@@ -6,7 +6,7 @@ import { isValidUser, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**
- * Function for lineup list commands
+ * Function for `lineup list`  / `lineup list <game/s>` commands
  * Sends list of all lineups
  * @param commandInputs - contains the necessary parameters for the command
  */
@@ -65,9 +65,9 @@ function lineupList(commandInputs : CommandInputs) {
 }
 
 /**
- * Function to handle `.lineup add <game> <user id/s>`
+ * Function to handle `lineup add <game> <user id/s>`
  * Add the user to the game's lineup
- * @param parameters - contains the necessary parameters for the command
+ * @param commandInputs - contains the necessary parameters for the command
  */
 function lineupAdd(commandInputs : CommandInputs) {
     const {
@@ -150,9 +150,9 @@ function lineupAdd(commandInputs : CommandInputs) {
 }
 
 /**
- * Function to handle `.lineup join <game/s>`
+ * Function to handle `lineup join <game/s>`
  * Add the user that sent the message to the game's lineup
- * @param parameters - contains the necessary parameters for the command
+ * @param commandInputs - contains the necessary parameters for the command
  */
 function lineupJoin(commandInputs : CommandInputs) {
     const {
@@ -237,9 +237,9 @@ function lineupJoin(commandInputs : CommandInputs) {
 }
 
 /**
- * Function to handle `.lineup kick <game> <user id>`
+ * Function to handle `lineup kick <game> <user id>`
  * Remove the user from the game's lineup
- * @param parameters - contains the necessary parameters for the command
+ * @param commandInputs - contains the necessary parameters for the command
  */
 function lineupKick(commandInputs : CommandInputs) {
     const {
@@ -283,11 +283,11 @@ function lineupKick(commandInputs : CommandInputs) {
     }
 
     // non-blocking validation
-    const content = {};
     const lineup = cache.getLineup(gameName);
-    
     const invalidUsers = users.filter((user) => !lineup.includes(user)); // not in lineup
     const validUsers = users.filter((user) => lineup.includes(user)); // already in lineup
+
+    const content = {};
 
     if (invalidUsers.length) {
         content['Following users not in the lineup'] = invalidUsers.join(' ');
@@ -304,9 +304,9 @@ function lineupKick(commandInputs : CommandInputs) {
 }
 
 /**
- * Function to handle `lineup reset` commands
+ * Function to handle `lineup reset` / `lineup reset <game/s>` commands
  * Remove the user from the game's lineup
- * @param parameters - contains the necessary parameters for the command
+ * @param commandInputs - contains the necessary parameters for the command
  */
 function lineupReset(commandInputs : CommandInputs) {
     const { args, cache, message } : {
@@ -365,13 +365,15 @@ function lineupReset(commandInputs : CommandInputs) {
 }
 
 /**
- * 
+ * Function to handle `lineup invite` / `lineup invite <game/s>` commands
+ * Send invites for lineups depending on command args (or lack thereof)
+ * @param commandInputs - contains the necessary parameters for the command
  */
 function lineupInvite(commandInputs : CommandInputs) {
     const {
-        args, cache, command, message,
+        args, cache, message,
     } : {
-        args : Array<string>, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, cache : LocalCache, message : Message,
     } = commandInputs;
 
     const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
