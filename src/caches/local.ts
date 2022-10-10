@@ -42,6 +42,14 @@ export default class LocalCache {
     }
 
     /**
+     * Get the role associated to a game
+     * @param name - name of the game
+     */
+    getRole(name : string) : Game {
+        return this.gamesCache.getGame(name);
+    }
+
+    /**
      * Get a deep copy of the list of game names stored in the games cache.
      * @returns An array of strings with the list of the names of the games
      */
@@ -130,6 +138,14 @@ export default class LocalCache {
     }
 
     /**
+     * Get the lineups a user is part in
+     * @param user
+     */
+    getUserLineups(user : string) : Array<string> { 
+        return this.getUserLineups(user);
+    }
+
+    /**
      * Adds user/s to a specified lineup
      * @param gameName - name of the game of the relevant lineup
      * @param users - user ids to be added to the lineup
@@ -159,7 +175,7 @@ export default class LocalCache {
     /**
      * Reset all lineups
      */
-     resetAllLineups() : void {
+    resetAllLineups() : void {
         this.lineupsCache.resetAllLineups();
     }
 
@@ -167,7 +183,39 @@ export default class LocalCache {
      * Reset specified lineups
      * @param gameNames - list of names of game lineups to be reset
      */
-     resetLineups(gameNames : Array<string>) : void {
+    resetLineups(gameNames : Array<string>) : void {
         this.lineupsCache.resetLineups(gameNames);
+    }
+
+    /**
+     * Check if lineup is full
+     * @param gameName - name of game lineup to check
+     * @returns boolean whether lineup is full
+     */
+    isLineupFull(gameName : string) : boolean {
+        const { isInfinite, limit } = this.getGame(gameName);
+        if (isInfinite) {
+            return false;
+        }
+
+        const lineup = this.getLineup(gameName);
+        if (lineup.length < limit) {
+            return false;
+        }
+        return true;
+    };
+
+    /**
+     * Check how many slots are available in a lineup
+     * @param gameName - name of game lineup to check
+     */
+    getLineupOpenings(gameName : string) : number {
+        const { isInfinite, limit } = this.getGame(gameName);
+        if (isInfinite) {
+            return Infinity;
+        }
+
+        const lineup = this.getLineup(gameName);
+        return limit - lineup.length;
     }
 };

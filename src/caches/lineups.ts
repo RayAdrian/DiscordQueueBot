@@ -61,6 +61,20 @@ export default class LineupsCache {
     }
 
     /**
+     * Get the lineups a user is part in
+     * @param user
+     */
+     getUserLineups(user : string) : Array<string> {
+        const userLineups = [];
+        this.lineups.forEach((gameLineup, gameName) => {
+            if (gameLineup.has(user)) {
+                userLineups.push(gameName);
+            }
+        })
+        return userLineups;
+    }
+
+    /**
      * Removes a lineup from the map ie. when a game is deleted.
      * @param name - name of the lineup to be deleted
      */
@@ -94,7 +108,7 @@ export default class LineupsCache {
      */
     removeUsers(name : string, users : Array<string>) : void {
         const lineup = this.lineups.get(name);
-        users.forEach((user) => lineup.delete(user));;
+        users.forEach((user) => lineup.delete(user));
     }
 
     /**
