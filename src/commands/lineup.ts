@@ -396,6 +396,8 @@ function lineupLeave(commandInputs : CommandInputs) {
     if (validGameNames.length) {
         cache.leaveLineups(validGameNames, user);
         content['User succesfully removed from the following lineups'] = `\`${validGameNames.join(' ')}\``;
+    } else {
+        content['User not removed from any lineup'] = 'No valid lineup';
     }
 
     sendMessageEmbed(message.channel, 'Lineups Leave', content);
