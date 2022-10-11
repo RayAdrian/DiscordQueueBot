@@ -421,7 +421,7 @@ function lineupInvite(commandInputs : CommandInputs) {
         });
     } else { // invite all games user is in
         const user = `<@${message.author.id}>`;
-        userLineups = cache.getUserLineups(user);
+        userLineups = [...cache.getUserLineups(user).keys()];
         if (userLineups.length === 0) {
             errorMessages.push('User not in any lineup.')
         }

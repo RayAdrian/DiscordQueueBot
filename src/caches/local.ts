@@ -152,7 +152,7 @@ export default class LocalCache {
      * Get the lineups a user is part in
      * @param user
      */
-    getUserLineups(user : string) : Array<string> { 
+    getUserLineups(user : string) : Map<string, Array<string>> { 
         return this.lineupsCache.getUserLineups(user);
     }
 

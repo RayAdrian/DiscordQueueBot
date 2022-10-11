@@ -64,11 +64,11 @@ export default class LineupsCache {
      * Get the lineups a user is part in
      * @param user
      */
-     getUserLineups(user : string) : Array<string> {
-        const userLineups = [];
-        this.lineups.forEach((gameLineup, gameName) => {
-            if (gameLineup.has(user)) {
-                userLineups.push(gameName);
+     getUserLineups(user : string) : Map<string, Array<string>> {
+        const userLineups = new Map<string, Array<string>>();
+        this.lineups.forEach((lineup, gameName) => {
+            if (lineup.has(user)) {
+                userLineups.set(gameName, Array(...lineup));
             }
         })
         return userLineups;
