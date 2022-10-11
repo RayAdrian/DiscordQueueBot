@@ -595,7 +595,7 @@ function lineupInvite(commandInputs : CommandInputs) {
     if (validGameNames.length) {
         const validLineups = cache.getFilteredLineups(validGameNames);
         validLineups.forEach((lineup, gameName) => {
-            content[`${READY_MESSAGE} ${gameName.toLocaleUpperCase()}`] = lineup.join(' ');
+            content[`${READY_MESSAGE} \`${gameName}\``] = lineup.join(' ');
         });
     } else {
         content['No games ready'] = 'No valid lineup';
