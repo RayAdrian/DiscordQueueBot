@@ -166,9 +166,9 @@ export default class LocalCache {
     }
 
     /**
-     * Adds a user to specified lineups
+     * Adds a user to the specified lineups
      * @param gameNames - game names of the specified lineups
-     * @param user - user id to be added to the lineup
+     * @param user - user id to be added to the lineups
      */
     joinLineups = (gameNames : Array<string>, user : string) : void => {
         this.lineupsCache.joinLineups(gameNames, user);
@@ -181,6 +181,15 @@ export default class LocalCache {
      */
     removeUsersFromLineup(gameName : string, users : Array<string>) : void {
         this.lineupsCache.removeUsers(gameName, users);
+    }
+
+    /**
+     * Removes a user from the specified lineups
+     * @param gameNames - game names of the specified lineups
+     * @param user - user id to be removed from the lineups
+     */
+    leaveLineups = (gameNames : Array<string>, user : string) : void => {
+        this.lineupsCache.leaveLineups(gameNames, user);
     }
 
     /**

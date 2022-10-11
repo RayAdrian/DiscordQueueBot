@@ -224,9 +224,10 @@ function lineupJoin(commandInputs : CommandInputs) {
     const uniqueGameNames = Array(...new Set(gameNames));
     const user = `<@${message.author.id}>`;
 
-    const fullGameNames = [];
-    const invalidGameNames = [];
-    const validGameNames = [];
+    const fullGameNames = []; // full lineups
+    const invalidGameNames = []; // lineups user is already in
+    const validGameNames = []; // lineups user can join
+
     (gameNames[0] === 'all' ? storedGameNames : uniqueGameNames).forEach((gameName) => {
         const { isInfinite, limit } = cache.getGame(gameName);
         const lineup = cache.getLineup(gameName);
@@ -327,6 +328,77 @@ function lineupKick(commandInputs : CommandInputs) {
     }
 
     sendMessageEmbed(message.channel, 'Lineups Kick', content);
+}
+
+/**
+ * Function to handle `lineup leave` / `lineup leave <game/s>` commands
+ * Remove the user either from all their lineups, or from specified lineups
+ * @param commandInputs - contains the necessary parameters for the command
+ */
+function lineupLeave(commandInputs : CommandInputs) {
+    const {
+        args, cache, message,
+    } : {
+        args : Array<string>, cache : LocalCache, message : Message,
+    } = commandInputs;
+
+    const user = `<@${message.author.id}>`;
+    let userLineups = [...cache.getUserLineups(user).keys()];
+    const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
+    const isSpecifiedLeave = gameNames.length > 0;
+
+    // blocking game args validation
+    const errorMessages = [];
+
+    if (isSpecifiedLeave) { // leave specified games
+        // validate game names
+        const storedGameNames = cache.getGameNames();
+        gameNames.forEach((gameName) => {
+            if (!ALPHANUMERIC.test(gameName)) {
+                errorMessages.push('Invalid game name. Should only consist of alphanumeric characters.');
+            } else if (!storedGameNames.includes(gameName)) {
+                errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
+            }
+        });
+    } else { // leave all games user is in
+        if (userLineups.length === 0) {
+            errorMessages.push('User already not in any lineup.')
+        }
+    }
+
+    if (errorMessages.length) {
+        sendMessageEmbed(
+            message.channel,
+            'Invalid arguments',
+            errorMessages.join('\n'),
+        );
+        return;
+    }
+
+    // non-blocking game args validation
+    const invalidGameNames = []; // lineups user is not in
+    const validGameNames = isSpecifiedLeave ? [] : userLineups; // lineups user is in
+
+    if (isSpecifiedLeave) {
+        const uniqueGameNames = Array(...new Set(gameNames));
+        uniqueGameNames.forEach((gameName) => {
+            (userLineups.includes(gameName) ? validGameNames : invalidGameNames).push(gameName);
+        });
+    }
+
+    // info messages and actual cache operations
+    const content = {};
+
+    if (invalidGameNames.length) {
+        content['User not in the following lineups'] = `\`${invalidGameNames.join(' ')}\``;
+    }
+
+    if (validGameNames.length) {
+        cache.leaveLineups(validGameNames, user);
+        content['User succesfully removed from the following lineups'] = `\`${validGameNames.join(' ')}\``;
+    }
+
+    sendMessageEmbed(message.channel, 'Lineups Leave', content);
 }
 
 /**
@@ -439,8 +511,8 @@ function lineupInvite(commandInputs : CommandInputs) {
     // non-blocking game args validation
     const uniqueGameNames = Array(...new Set(gameNames));
 
-    const fullGameNames = [];
-    const validGameNames = [];
+    const fullGameNames = []; // full lineups
+    const validGameNames = []; // games that have available slots for invites
 
     (isSpecifiedInvite ? uniqueGameNames : userLineups).forEach((gameName) => {
         (cache.isLineupFull(gameName) ? fullGameNames : validGameNames).push(gameName);
@@ -486,6 +558,11 @@ const lineupCommands = [{
     formats: ['lineup kick <game>'],
     descriptions: ['remove a user from a game\'s lineup'],
 }, {
+    aliases: ['lineup leave', 'leave', 'lineups leave'],
+    run: lineupLeave,
+    formats: ['lineup leave', 'lineup leave <game1> <game2> ...'],
+    descriptions: ['leave all lineups user is in', 'leave the specified lineups'],
+},  {
     aliases: ['lineup reset', 'reset', 'lineups reset'],
     run: lineupReset,
     formats: ['lineup reset', 'lineup reset <game1> <game2> ...'],

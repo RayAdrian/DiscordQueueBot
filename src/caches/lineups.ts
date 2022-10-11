@@ -112,6 +112,15 @@ export default class LineupsCache {
     }
 
     /**
+     * Removes a user from the specified lineups
+     * @param gameNames - game names of the specified lineups
+     * @param user - user id to be removed from the lineups
+     */
+    leaveLineups = (names : Array<string>, user : string) : void => {
+        names.forEach((name) => this.lineups.get(name).delete(user));
+    }
+
+    /**
      * Reset all lineups
      */
     resetAllLineups() : void {
