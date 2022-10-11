@@ -650,4 +650,10 @@ const lineupCommands = [{
     descriptions: ['see the list of all game lineups', 'see the list of specified game lineups'],
 }];
 
+export const specialJoinCommand = {
+    run: lineupJoin,
+    formats: ['<game>'],
+    descriptions: ['join the specified lineup'],
+};
+
 export default lineupCommands;
