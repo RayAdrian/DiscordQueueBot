@@ -131,10 +131,21 @@ export default class LocalCache {
     /**
      * Get a specific list of lineups
      * @param gameNames - list of names of game lineups to fetch
+     * @param fullOnly - optional param to only fetch full lineups
      * @returns List of lineups per game
      */
-    getFilteredLineups(gameNames : Array<string>) : Map<string, Array<string>> {
-        return this.lineupsCache.getFilteredLineups(gameNames);
+    getFilteredLineups(
+        gameNames : Array<string>, fullOnly : boolean = false,
+    ) : Map<string, Array<string>> {
+        const lineups = this.lineupsCache.getFilteredLineups(gameNames);
+        if (fullOnly) {
+            lineups.forEach((_, gameName) => {
+                if (!this.isLineupFull(gameName)) {
+                    lineups.delete(gameName);
+                }
+            });
+        }
+        return lineups;
     }
 
     /**

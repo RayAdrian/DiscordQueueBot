@@ -6,6 +6,28 @@ import { isValidUser, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**
+ * Worker function to check for complete lineups
+ * @param commandInputs - contains cache to fetch lineups
+ * @param gameNames - list of games to check
+ * @param content - 
+ */
+function completeLineupWorker(
+    commandInputs : CommandInputs, gameNames : Array<string>, content : Object,
+) {
+    const { cache } : { cache : LocalCache } = commandInputs;
+    const completedLineupsStrings = [];
+
+    cache.getFilteredLineups(gameNames, true).forEach((completedLineup, completedGameName) => {
+        completedLineupsStrings.push(`
+            ${completedGameName.toUpperCase()} Lineup Complete: ${completedLineup.join(' ')}
+        `);
+    });
+    if (completedLineupsStrings.length > 0) {
+        content['Completed lineups'] = completedLineupsStrings.join('\n');
+    }
+}
+
+/**
  * Function for `lineup list`  / `lineup list <game/s>` commands
  * Sends list of all lineups
  * @param commandInputs - contains the necessary parameters for the command
@@ -138,6 +160,8 @@ function lineupAdd(commandInputs : CommandInputs) {
     if (validUsers.length) {
         cache.addUsersToLineup(gameName, validUsers);
         content['Successfully added the following users'] = validUsers.join(' ');
+
+        completeLineupWorker(commandInputs, [gameName], content);
     } else {
         content['No users added'] = 'No valid users';
     }
@@ -229,6 +253,8 @@ function lineupJoin(commandInputs : CommandInputs) {
     if (validGameNames.length) {
         cache.joinLineups(validGameNames, user);
         content['Successfully added the user to the following lineups'] = `\`${validGameNames.join(' ')}\``;
+
+        completeLineupWorker(commandInputs, validGameNames, content);
     } else {
         content['User not added to any lineup'] = 'No valid lineup';
     }

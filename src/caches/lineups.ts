@@ -47,13 +47,13 @@ export default class LineupsCache {
 
     /**
      * Get a specific list of lineups
-     * @param names - list of names of game lineups to fetch
+     * @param gameNames - list of names of game lineups to fetch
      * @returns List of lineups per game
      */
-    getFilteredLineups(names : Array<string>) : Map<string, Array<string>> {
+    getFilteredLineups(gameNames : Array<string>) : Map<string, Array<string>> {
         const filteredLineups = new Map<string, Array<string>>();
         this.lineups.forEach((lineup, gameName) => {
-            if (names.includes(gameName)) {
+            if (gameNames.includes(gameName)) {
                 filteredLineups.set(gameName, Array(...lineup));
             }
         })
