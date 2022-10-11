@@ -1,7 +1,7 @@
 
 import { Message } from "discord.js";
 import { LocalCache } from "../caches";
-import { ALPHANUMERIC, PREFIX } from "../common/constants";
+import { ALPHANUMERIC, PREFIX, READY_MESSAGE } from "../common/constants";
 import { isValidUser, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
@@ -19,7 +19,7 @@ function completeLineupWorker(
 
     cache.getFilteredLineups(gameNames, true).forEach((completedLineup, completedGameName) => {
         completedLineupsStrings.push(`
-            ${completedGameName.toUpperCase()} Lineup Complete: ${completedLineup.join(' ')}
+            ${completedGameName.toLocaleUpperCase()} Lineup Complete: ${completedLineup.join(' ')}
         `);
     });
     if (completedLineupsStrings.length > 0) {
@@ -477,8 +477,8 @@ function lineupInvite(commandInputs : CommandInputs) {
     } = commandInputs;
 
     const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
-    let userLineups = [];
     const isSpecifiedInvite = gameNames.length > 0;
+    let userLineups = [];
 
     // blocking game args validation
     const errorMessages = [];
@@ -540,6 +540,70 @@ function lineupInvite(commandInputs : CommandInputs) {
     sendMessageEmbed(message.channel, 'Lineups Invite', content);
 }
 
+/**
+ * Function to handle `lineup ready` / `lineup ready <game/s>` commands
+ * Notify people in lineups that it is ready
+ * @param commandInputs - contains the necessary parameters for the command
+ */
+ function lineupReady(commandInputs : CommandInputs) {
+    const {
+        args, cache, message,
+    } : {
+        args : Array<string>, cache : LocalCache, message : Message,
+    } = commandInputs;
+
+    let userLineups = [];
+    const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
+    const isSpecifiedReady = gameNames.length > 0;
+
+    // blocking game args validation
+    const errorMessages = [];
+
+    if (isSpecifiedReady) { // leave specified games
+        // validate game names
+        const storedGameNames = cache.getGameNames();
+        gameNames.forEach((gameName) => {
+            if (!ALPHANUMERIC.test(gameName)) {
+                errorMessages.push('Invalid game name. Should only consist of alphanumeric characters.');
+            } else if (!storedGameNames.includes(gameName)) {
+                errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
+            }
+        });
+    } else { // leave all games user is in
+        const user = `<@${message.author.id}>`;
+        userLineups = [...cache.getUserLineups(user).keys()];
+        if (userLineups.length === 0) {
+            errorMessages.push('User not in any lineup.')
+        }
+    }
+
+    if (errorMessages.length) {
+        sendMessageEmbed(
+            message.channel,
+            'Invalid arguments',
+            errorMessages.join('\n'),
+        );
+        return;
+    }
+
+    // info messages and actual cache operations
+    const uniqueGameNames = Array(...new Set(gameNames));
+    const validGameNames = isSpecifiedReady ? uniqueGameNames : userLineups;
+
+    const content = {};
+
+    if (validGameNames.length) {
+        const validLineups = cache.getFilteredLineups(validGameNames);
+        validLineups.forEach((lineup, gameName) => {
+            content[`${READY_MESSAGE} ${gameName.toLocaleUpperCase()}`] = lineup.join(' ');
+        });
+    } else {
+        content['No games ready'] = 'No valid lineup';
+    }
+
+    sendMessageEmbed(message.channel, 'Lineup Ready', content);
+}
+
 
 /**
  * Commands for lineups
@@ -574,6 +638,11 @@ const lineupCommands = [{
     run: lineupInvite,
     formats: ['lineup invite', 'lineup invite <game1> <game2> ...'],
     descriptions: ['invite all lineups user is in', 'invite the specified lineups'],
+}, {
+    aliases: ['lineups ready', 'ready', 'lineup g', 'g'],
+    run: lineupReady,
+    formats: ['lineup ready', 'lineup ready <game1> <game2> ...'],
+    descriptions: ['notify users in lineups user is in', 'invite the specified lineups'],
 }, {
     aliases: ['lineup list', 'lineup', 'lineups list', 'lineups'],
     run: lineupList,
