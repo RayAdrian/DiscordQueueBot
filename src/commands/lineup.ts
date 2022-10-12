@@ -2,7 +2,7 @@
 import { Message } from "discord.js";
 import { LocalCache } from "../caches";
 import { ALPHANUMERIC, PREFIX, READY_MESSAGE } from "../common/constants";
-import { isValidUser, sendMessageEmbed } from '../utils';
+import { isValidUser, sendMessage, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**
@@ -521,23 +521,23 @@ function lineupInvite(commandInputs : CommandInputs) {
     });
 
     // info messages and actual cache operations
-    const content = {};
-
     if (fullGameNames.length) {
+        const content = {};
         content['Following lineups are already full'] = `\`${fullGameNames.join(' ')}\``;
+        sendMessageEmbed(message.channel, 'Lineup Invites Info', content);
     }
 
     if (validGameNames.length) {
-        content['Invite Lineups'] = `
+        const inviteMessage = `
             ${validGameNames.map((gameName) => {
                 const role = cache.getRole(gameName);
                 const slots = cache.getLineupOpenings(gameName);
                 return `${role} +${slots}`;
             }).join('\n')}
-        `;
+        `;  
+        sendMessage(message.channel, inviteMessage);
     }
 
-    sendMessageEmbed(message.channel, 'Lineups Invite', content);
 }
 
 /**
