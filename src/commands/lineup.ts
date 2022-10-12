@@ -19,7 +19,7 @@ function completeLineupWorker(
 
     cache.getFilteredLineups(gameNames, true).forEach((completedLineup, completedGameName) => {
         completedLineupsStrings.push(`
-            ${completedGameName.toLocaleUpperCase()} Lineup Complete: ${completedLineup.join(' ')}
+            \`${completedGameName.toLocaleUpperCase()}\` Lineup Complete: ${completedLineup.join(' ')}
         `);
     });
     if (completedLineupsStrings.length > 0) {
@@ -47,7 +47,7 @@ function lineupList(commandInputs : CommandInputs) {
         const lineups = cache.getLineups();
         const content = {};
         lineups.forEach((gameLineup, gameName) => {
-            const capitalisedGameName = `${gameName[0].toLocaleUpperCase()}${gameName.slice(1)}`;
+            const capitalisedGameName = `${gameName.toLocaleUpperCase()}`;
             const gameLineupsString = gameLineup.length ? `${gameLineup.join(' ')}` : '\`No players in lineup\`';
             content[capitalisedGameName] = gameLineupsString;
         }) 
@@ -78,7 +78,7 @@ function lineupList(commandInputs : CommandInputs) {
         const lineups = cache.getFilteredLineups(Array(...uniqueGameNames));
         const content = {};
         lineups.forEach((gameLineup, gameName) => {
-            const capitalisedGameName = `${gameName[0].toLocaleUpperCase()}${gameName.slice(1)}`;
+            const capitalisedGameName = `${gameName.toLocaleUpperCase()}`;
             const gameLineupsString = gameLineup.length ? `${gameLineup.join(' ')}` : '\`No players in lineup\`';
             content[capitalisedGameName] = gameLineupsString;
         })
@@ -532,7 +532,7 @@ function lineupInvite(commandInputs : CommandInputs) {
             ${validGameNames.map((gameName) => {
                 const role = cache.getRole(gameName);
                 const slots = cache.getLineupOpenings(gameName);
-                return `${role} +${slots}`;
+                return `\`${gameName.toLocaleUpperCase()}\` ${role} +${slots}`;
             }).join('\n')}
         `;  
         sendMessage(message.channel, inviteMessage);
@@ -594,7 +594,7 @@ function lineupInvite(commandInputs : CommandInputs) {
         const readyMessages = [];
         const validLineups = cache.getFilteredLineups(validGameNames);
         validLineups.forEach((lineup, gameName) => {
-            readyMessages.push(`${READY_MESSAGE} \`${gameName}\` ${lineup.join(' ')}`);
+            readyMessages.push(`${READY_MESSAGE} \`${gameName.toLocaleUpperCase()}\` ${lineup.join(' ')}`);
         });
         sendMessage(message.channel, readyMessages.join('\n'));
     } else {
