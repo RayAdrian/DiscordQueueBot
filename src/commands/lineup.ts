@@ -590,18 +590,16 @@ function lineupInvite(commandInputs : CommandInputs) {
     const uniqueGameNames = Array(...new Set(gameNames));
     const validGameNames = isSpecifiedReady ? uniqueGameNames : userLineups;
 
-    const content = {};
-
     if (validGameNames.length) {
+        const readyMessages = [];
         const validLineups = cache.getFilteredLineups(validGameNames);
         validLineups.forEach((lineup, gameName) => {
-            content[`${READY_MESSAGE} \`${gameName}\``] = lineup.join(' ');
+            readyMessages.push(`${READY_MESSAGE} \`${gameName}\` ${lineup.join(' ')}`);
         });
+        sendMessage(message.channel, readyMessages.join('\n'));
     } else {
-        content['No games ready'] = 'No valid lineup';
+        sendMessage(message.channel, 'No lineups ready');
     }
-
-    sendMessageEmbed(message.channel, 'Lineup Ready', content);
 }
 
 
