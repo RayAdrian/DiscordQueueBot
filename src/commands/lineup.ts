@@ -14,7 +14,7 @@ import { CommandInputs } from './processCommand';
 function completeLineupWorker(
     commandInputs : CommandInputs, gameNames : Array<string>, content : Object,
 ) {
-    const { cache } : { cache : LocalCache } = commandInputs;
+    const { cache, message } : { cache : LocalCache, message : Message } = commandInputs;
     const completedLineupsStrings = [];
 
     cache.getFilteredLineups(gameNames, true).forEach((completedLineup, completedGameName) => {
@@ -23,7 +23,7 @@ function completeLineupWorker(
         `);
     });
     if (completedLineupsStrings.length > 0) {
-        content['Completed lineups'] = completedLineupsStrings.join('\n');
+        sendMessage(message.channel, completedLineupsStrings.join('\n'));
     }
 }
 
