@@ -1,11 +1,10 @@
-import { Client, Message } from 'discord.js';
-import { sendMessage } from '../utils';
+import { Lineup } from '../models';
 
 export default class LineupsCache {
-    private lineups: Map<string, Set<string>>;
+    private lineups: Map<string, Lineup>;
 
     constructor() {
-        this.lineups = new Map<string, Set<string>>();
+        this.lineups = new Map<string, Lineup>();
     }
 
     /**
@@ -14,7 +13,7 @@ export default class LineupsCache {
      */
     initialize(gameNames : Array<string>) : void {
         gameNames.forEach((name) => {
-            this.lineups.set(name, new Set());
+            this.lineups.set(name, new Lineup(name, []));
         });
     }
 
@@ -26,35 +25,35 @@ export default class LineupsCache {
     }
 
     /**
-     * Get a copy of a specified game's lineup
+     * Get the specified game's Lineup
      * @param name - name of the lineup to be retrieved
      */
-    getLineup(name : string) : Array<string> {
-        return Array(...this.lineups.get(name));
+    getLineup(name : string) : Lineup {
+        return this.lineups.get(name);
     }
 
     /**
-     * Get a deep copy of the list of lineups stored in the lineups cache.
+     * Get list of all the Lineup
      * @returns List of lineups per game
      */
-    getLineups() : Map<string, Array<string>> {
-        const lineupsCopy = new Map<string, Array<string>>();
-        this.lineups.forEach((lineup, gameName) => {
-            lineupsCopy.set(gameName, Array(...lineup));
+    getLineups() : Array<Lineup> {
+        const lineupsCopy = new Array<Lineup>();
+        this.lineups.forEach((lineup) => {
+            lineupsCopy.push(lineup);
         });
         return lineupsCopy;
     }
 
     /**
-     * Get a specific list of lineups
+     * Get a specific list of Lineups
      * @param gameNames - list of names of game lineups to fetch
      * @returns List of lineups per game
      */
-    getFilteredLineups(gameNames : Array<string>) : Map<string, Array<string>> {
-        const filteredLineups = new Map<string, Array<string>>();
+    getFilteredLineups(gameNames : Array<string>) : Array<Lineup> {
+        const filteredLineups = new Array<Lineup>();
         this.lineups.forEach((lineup, gameName) => {
             if (gameNames.includes(gameName)) {
-                filteredLineups.set(gameName, Array(...lineup));
+                filteredLineups.push(lineup);
             }
         })
         return filteredLineups;
@@ -64,11 +63,11 @@ export default class LineupsCache {
      * Get the lineups a user is part in
      * @param user
      */
-     getUserLineups(user : string) : Map<string, Array<string>> {
-        const userLineups = new Map<string, Array<string>>();
-        this.lineups.forEach((lineup, gameName) => {
-            if (lineup.has(user)) {
-                userLineups.set(gameName, Array(...lineup));
+     getUserLineups(user : string) : Array<Lineup> {
+        const userLineups = new Array<Lineup>();
+        this.lineups.forEach((lineup) => {
+            if (lineup.hasUser(user)) {
+                userLineups.push(lineup);
             }
         })
         return userLineups;
@@ -88,8 +87,7 @@ export default class LineupsCache {
      * @param users - user ids to be added to the lineup
      */
     addUsers = (name : string, users : Array<string>) : void => {
-        const lineup = this.lineups.get(name);
-        users.forEach((user) => lineup.add(user));
+        this.lineups.get(name).addUsers(users);
     }
 
     /**
@@ -98,7 +96,7 @@ export default class LineupsCache {
      * @param user - user id to be added to the lineup
      */
     joinLineups = (names : Array<string>, user : string) : void => {
-        names.forEach((name) => this.lineups.get(name).add(user));
+        names.forEach((name) => this.lineups.get(name).addUser(user));
     }
 
     /**
@@ -107,8 +105,7 @@ export default class LineupsCache {
      * @param users - user ids to be removed from the lineup
      */
     removeUsers(name : string, users : Array<string>) : void {
-        const lineup = this.lineups.get(name);
-        users.forEach((user) => lineup.delete(user));
+        const lineup = this.lineups.get(name).deleteUsers(users);
     }
 
     /**
@@ -117,7 +114,7 @@ export default class LineupsCache {
      * @param user - user id to be removed from the lineups
      */
     leaveLineups = (names : Array<string>, user : string) : void => {
-        names.forEach((name) => this.lineups.get(name).delete(user));
+        names.forEach((name) => this.lineups.get(name).deleteUser(user));
     }
 
     /**

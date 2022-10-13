@@ -12,14 +12,15 @@ import { CommandInputs } from './processCommand';
  * @param content - 
  */
 function completeLineupWorker(
-    commandInputs : CommandInputs, gameNames : Array<string>, content : Object,
+    commandInputs : CommandInputs, gameNames : Array<string>,
 ) {
     const { cache, message } : { cache : LocalCache, message : Message } = commandInputs;
     const completedLineupsStrings = [];
+    const fullLineups = cache.getFilteredLineups(gameNames, true);
 
-    cache.getFilteredLineups(gameNames, true).forEach((completedLineup, completedGameName) => {
+    fullLineups.forEach((lineup) => {
         completedLineupsStrings.push(`
-            \`${completedGameName.toLocaleUpperCase()}\` Lineup Complete: ${completedLineup.join(' ')}
+            \`${lineup.getGameName().toLocaleUpperCase()}\` Lineup Complete: ${lineup.getUsers().join(' ')}
         `);
     });
     if (completedLineupsStrings.length > 0) {
@@ -46,9 +47,9 @@ function lineupList(commandInputs : CommandInputs) {
     ) { // list all lineups
         const lineups = cache.getLineups();
         const content = {};
-        lineups.forEach((gameLineup, gameName) => {
-            const capitalisedGameName = `${gameName.toLocaleUpperCase()}`;
-            const gameLineupsString = gameLineup.length ? `${gameLineup.join(' ')}` : '\`No players in lineup\`';
+        lineups.forEach((lineup) => {
+            const capitalisedGameName = lineup.getGameName().toLocaleUpperCase();
+            const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join(' ')}` : '\`No players in lineup\`';
             content[capitalisedGameName] = gameLineupsString;
         }) 
         sendMessageEmbed(message.channel, 'Lineups', content);
@@ -56,13 +57,11 @@ function lineupList(commandInputs : CommandInputs) {
         // validation
         const errorMessages = []; 
         const storedGameNames = cache.getGameNames();
-        const uniqueGameNames = new Set<string>(...gameNames);
 
         gameNames.forEach((gameName) => {
             if (!storedGameNames.includes(gameName)) {
                 errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
             }
-            uniqueGameNames.add(gameName);
         })
 
         if (errorMessages.length) {
@@ -75,13 +74,14 @@ function lineupList(commandInputs : CommandInputs) {
         }
     
         // arguments validated
-        const lineups = cache.getFilteredLineups(Array(...uniqueGameNames));
+        const uniqueGameNames = Array(...new Set(gameNames));
+        const lineups = cache.getFilteredLineups(uniqueGameNames);
         const content = {};
-        lineups.forEach((gameLineup, gameName) => {
-            const capitalisedGameName = `${gameName.toLocaleUpperCase()}`;
-            const gameLineupsString = gameLineup.length ? `${gameLineup.join(' ')}` : '\`No players in lineup\`';
+        lineups.forEach((lineup) => {
+            const capitalisedGameName = lineup.getGameName().toLocaleUpperCase();
+            const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join(' ')}` : '\`No players in lineup\`';
             content[capitalisedGameName] = gameLineupsString;
-        })
+        }) 
         sendMessageEmbed(message.channel, 'Lineups', content);
     }
 }
@@ -117,6 +117,8 @@ function lineupAdd(commandInputs : CommandInputs) {
         errorMessages.push('Invalid game name. Should only consist of alphanumeric characters.');
     } else if (!storedGameNames.includes(gameName)) {
         errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
+    } else if (cache.isLineupFull(gameName)) {
+        errorMessages.push(`Lineup for \`${gameName}\` already full.`);
     }
     users
         .filter((user) => !isValidUser(user))
@@ -133,19 +135,19 @@ function lineupAdd(commandInputs : CommandInputs) {
     }
 
     // non-blocking validation
-    const content = {};
     const lineup = cache.getLineup(gameName);
-    
-    const invalidUsers = users.filter((user) => lineup.includes(user)); // already in lineup
-    const validUsers = users.filter((user) => !lineup.includes(user)); // not in lineup
-    let excludedUsers = []; // cannot be added due to full lineup
-    
     const remainingSlotCount = cache.getLineupOpenings(gameName);
 
-    if (cache.isLineupFull(gameName)) { // no more open slots
-        content['Information message'] = `Lineup for \`${gameName}\` already full.`;
-        validUsers.splice(0); // no need to display the excluded users for this case
-    } else if (validUsers.length > remainingSlotCount) { // can't add all users
+    const invalidUsers = []; // already in lineup
+    const validUsers = []; // not in lineup
+    let excludedUsers = []; // cannot be added due to full lineup
+
+    users.forEach((user) => (!lineup.hasUser(user) ? validUsers : invalidUsers).push(user));
+
+    // info messages and actual cache operations
+    const content = {};
+
+    if (validUsers.length > remainingSlotCount) { // can't add all users
         content['Information message'] = `
             Cannot add all the users to the \`${gameName}\` lineup.
             Adding only the first ${remainingSlotCount} users.
@@ -161,7 +163,7 @@ function lineupAdd(commandInputs : CommandInputs) {
         cache.addUsersToLineup(gameName, validUsers);
         content['Successfully added the following users'] = validUsers.join(' ');
 
-        completeLineupWorker(commandInputs, [gameName], content);
+        completeLineupWorker(commandInputs, [gameName]);
     } else {
         content['No users added'] = 'No valid users';
     }
@@ -229,11 +231,9 @@ function lineupJoin(commandInputs : CommandInputs) {
     const validGameNames = []; // lineups user can join
 
     (gameNames[0] === 'all' ? storedGameNames : uniqueGameNames).forEach((gameName) => {
-        const { isInfinite, limit } = cache.getGame(gameName);
-        const lineup = cache.getLineup(gameName);
-        if (lineup.includes(user)) {
+        if (cache.lineupHasUser(gameName, user)) {
             invalidGameNames.push(gameName);
-        } else if (!isInfinite && lineup.length >= limit) {
+        } else if (cache.isLineupFull(gameName)) {
             fullGameNames.push(gameName);
         } else {
             validGameNames.push(gameName);
@@ -255,7 +255,7 @@ function lineupJoin(commandInputs : CommandInputs) {
         cache.joinLineups(validGameNames, user);
         content['Successfully added the user to the following lineups'] = `\`${validGameNames.join(' ')}\``;
 
-        completeLineupWorker(commandInputs, validGameNames, content);
+        completeLineupWorker(commandInputs, validGameNames);
     } else {
         content['User not added to any lineup'] = 'No valid lineup';
     }
@@ -311,9 +311,12 @@ function lineupKick(commandInputs : CommandInputs) {
 
     // non-blocking validation
     const lineup = cache.getLineup(gameName);
-    const invalidUsers = users.filter((user) => !lineup.includes(user)); // not in lineup
-    const validUsers = users.filter((user) => lineup.includes(user)); // already in lineup
+    const invalidUsers = []; // already in lineup
+    const validUsers = []; // not in lineup
 
+    users.forEach((user) => (lineup.hasUser(user) ? validUsers : invalidUsers).push(user));
+
+    // info messages and actual cache operations
     const content = {};
 
     if (invalidUsers.length) {
@@ -343,7 +346,7 @@ function lineupLeave(commandInputs : CommandInputs) {
     } = commandInputs;
 
     const user = `<@${message.author.id}>`;
-    let userLineups = [...cache.getUserLineups(user).keys()];
+    const userLineupNames = cache.getUserLineups(user).map((lineup) => lineup.getGameName());
     const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
     const isSpecifiedLeave = gameNames.length > 0;
 
@@ -361,7 +364,7 @@ function lineupLeave(commandInputs : CommandInputs) {
             }
         });
     } else { // leave all games user is in
-        if (userLineups.length === 0) {
+        if (userLineupNames.length === 0) {
             errorMessages.push('User already not in any lineup.')
         }
     }
@@ -377,12 +380,12 @@ function lineupLeave(commandInputs : CommandInputs) {
 
     // non-blocking game args validation
     const invalidGameNames = []; // lineups user is not in
-    const validGameNames = isSpecifiedLeave ? [] : userLineups; // lineups user is in
+    const validGameNames = isSpecifiedLeave ? [] : userLineupNames; // lineups user is in
 
     if (isSpecifiedLeave) {
         const uniqueGameNames = Array(...new Set(gameNames));
         uniqueGameNames.forEach((gameName) => {
-            (userLineups.includes(gameName) ? validGameNames : invalidGameNames).push(gameName);
+            (userLineupNames.includes(gameName) ? validGameNames : invalidGameNames).push(gameName);
         });
     }
 
@@ -420,12 +423,10 @@ function lineupReset(commandInputs : CommandInputs) {
     const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
     const storedGameNames = cache.getGameNames();
 
-    const uniqueGameNames = new Set<string>();
     gameNames.forEach((gameName) => {
         if (!storedGameNames.includes(gameName)) {
             errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
         }
-        uniqueGameNames.add(gameName);
     })
 
     if (errorMessages.length) {
@@ -438,21 +439,23 @@ function lineupReset(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    if (args.length === 0) {
+    const uniqueGameNames = Array(...new Set(gameNames));
+
+    if (uniqueGameNames.length === 0) {
         cache.resetAllLineups();
         sendMessageEmbed(
             message.channel,
             'Notification',
             'All lineups have been reset.',
         );
-    } else if (uniqueGameNames.size > 0) {
-        cache.resetLineups([...uniqueGameNames]);
+    } else if (uniqueGameNames.length > 0) {
+        cache.resetLineups(uniqueGameNames);
         const fieldTitle = 'The following lineups have been reset';
         sendMessageEmbed(
             message.channel,
             'Notification',
             {
-                [fieldTitle]: [...uniqueGameNames].join('\n'),
+                [fieldTitle]: uniqueGameNames.join('\n'),
             },
         );
     } else {
@@ -478,7 +481,7 @@ function lineupInvite(commandInputs : CommandInputs) {
 
     const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
     const isSpecifiedInvite = gameNames.length > 0;
-    let userLineups = [];
+    let userLineupNames = [];
 
     // blocking game args validation
     const errorMessages = [];
@@ -495,8 +498,8 @@ function lineupInvite(commandInputs : CommandInputs) {
         });
     } else { // invite all games user is in
         const user = `<@${message.author.id}>`;
-        userLineups = [...cache.getUserLineups(user).keys()];
-        if (userLineups.length === 0) {
+        userLineupNames = cache.getUserLineups(user).map((lineup) => lineup.getGameName());
+        if (userLineupNames.length === 0) {
             errorMessages.push('User not in any lineup.')
         }
     }
@@ -516,7 +519,7 @@ function lineupInvite(commandInputs : CommandInputs) {
     const fullGameNames = []; // full lineups
     const validGameNames = []; // games that have available slots for invites
 
-    (isSpecifiedInvite ? uniqueGameNames : userLineups).forEach((gameName) => {
+    (isSpecifiedInvite ? uniqueGameNames : userLineupNames).forEach((gameName) => {
         (cache.isLineupFull(gameName) ? fullGameNames : validGameNames).push(gameName);
     });
 
@@ -552,9 +555,9 @@ function lineupInvite(commandInputs : CommandInputs) {
         args : Array<string>, cache : LocalCache, message : Message,
     } = commandInputs;
 
-    let userLineups = [];
     const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
     const isSpecifiedReady = gameNames.length > 0;
+    let userLineupNames = [];
 
     // blocking game args validation
     const errorMessages = [];
@@ -571,8 +574,8 @@ function lineupInvite(commandInputs : CommandInputs) {
         });
     } else { // leave all games user is in
         const user = `<@${message.author.id}>`;
-        userLineups = [...cache.getUserLineups(user).keys()];
-        if (userLineups.length === 0) {
+        userLineupNames = cache.getUserLineups(user).map((lineup) => lineup.getGameName());;
+        if (userLineupNames.length === 0) {
             errorMessages.push('User not in any lineup.')
         }
     }
@@ -588,13 +591,13 @@ function lineupInvite(commandInputs : CommandInputs) {
 
     // info messages and actual cache operations
     const uniqueGameNames = Array(...new Set(gameNames));
-    const validGameNames = isSpecifiedReady ? uniqueGameNames : userLineups;
+    const validGameNames = isSpecifiedReady ? uniqueGameNames : userLineupNames;
 
     if (validGameNames.length) {
         const readyMessages = [];
         const validLineups = cache.getFilteredLineups(validGameNames);
-        validLineups.forEach((lineup, gameName) => {
-            readyMessages.push(`${READY_MESSAGE} \`${gameName.toLocaleUpperCase()}\` ${lineup.join(' ')}`);
+        validLineups.forEach((lineup) => {
+            readyMessages.push(`${READY_MESSAGE} \`${lineup.getGameName().toLocaleUpperCase()}\` ${lineup.getUsers().join(' ')}`);
         });
         sendMessage(message.channel, readyMessages.join('\n'));
     } else {

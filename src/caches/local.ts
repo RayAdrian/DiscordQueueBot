@@ -1,5 +1,6 @@
 import { Client, Message } from 'discord.js';
 import { Game } from '../models/game.js';
+import { Lineup } from '../models/lineup.js';
 import GamesCache from './games.js';
 import LineupsCache from './lineups.js';
 import UsersCache from './users.js';
@@ -116,7 +117,7 @@ export default class LocalCache {
      * @param gameName - name of the lineup to be retrieved
      * @returns array of user id strings in the lineup
      */
-    getLineup(gameName : string) : Array<string> {
+    getLineup(gameName : string) : Lineup {
         return this.lineupsCache.getLineup(gameName);
     }
 
@@ -124,7 +125,7 @@ export default class LocalCache {
      * Get a deep copy of the list of lineups
      * @returns List of lineups per game
      */
-    getLineups() : Map<string, Array<string>> {
+    getLineups() : Array<Lineup> {
         return this.lineupsCache.getLineups();
     }
 
@@ -136,14 +137,10 @@ export default class LocalCache {
      */
     getFilteredLineups(
         gameNames : Array<string>, fullOnly : boolean = false,
-    ) : Map<string, Array<string>> {
+    ) : Array<Lineup> {
         const lineups = this.lineupsCache.getFilteredLineups(gameNames);
         if (fullOnly) {
-            lineups.forEach((_, gameName) => {
-                if (!this.isLineupFull(gameName)) {
-                    lineups.delete(gameName);
-                }
-            });
+            return lineups.filter((lineup) => this.isLineupFull(lineup.getGameName()));
         }
         return lineups;
     }
@@ -152,7 +149,7 @@ export default class LocalCache {
      * Get the lineups a user is part in
      * @param user
      */
-    getUserLineups(user : string) : Map<string, Array<string>> { 
+    getUserLineups(user : string) : Array<Lineup> { 
         return this.lineupsCache.getUserLineups(user);
     }
 
@@ -218,8 +215,8 @@ export default class LocalCache {
             return false;
         }
 
-        const lineup = this.getLineup(gameName);
-        if (lineup.length < limit) {
+        const userCount = this.getLineup(gameName).getUserCount();
+        if (userCount < limit) {
             return false;
         }
         return true;
@@ -235,7 +232,11 @@ export default class LocalCache {
             return Infinity;
         }
 
-        const lineup = this.getLineup(gameName);
-        return limit - lineup.length;
+        const userCount = this.getLineup(gameName).getUserCount();
+        return limit - userCount;
+    }
+
+    lineupHasUser(gameName, user) : boolean {
+        return this.getLineup(gameName).hasUser(user);
     }
 };
