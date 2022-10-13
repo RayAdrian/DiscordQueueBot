@@ -38,7 +38,11 @@ function help(commandInputs : CommandInputs) {
 
     const helpEmbed = new MessageEmbed()
         .setTitle('GentleBot Help')
-        .addField('Queueing Commands', 'e.g. \`.help\`');
+        .addField('Queueing Commands', 'e.g. \`.help\`')
+        .addField('Aliases', `
+            Commands for lineups usually have aliases, where the word \`${PREFIX}lineup\` is not included.
+            ie. \`${PREFIX}lineup add\` = \`${PREFIX}add\`
+        `);
     Object.entries(helpDescriptions).forEach(([category, commands]) => {
         helpEmbed.addField(category, commands.join('\n\n'), true);
     });
