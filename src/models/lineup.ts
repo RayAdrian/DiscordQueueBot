@@ -46,19 +46,17 @@ export class Lineup {
     }
 };
 
-
 interface ILineup {
-    game: mongoose.Types.ObjectId;
-    lineup: Array<string>;
+    gameName: string;
+    users: Array<string>;
 };
 
 const lineupSchema = new mongoose.Schema<ILineup>({
     game: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Game',
+        type: String,
         required: true,
     },
-    lineup: {
+    users: {
         type: Array<String>,
         required: true,
     },
