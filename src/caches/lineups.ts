@@ -1,4 +1,4 @@
-import { Lineup } from '../models';
+import { Lineup, Lineups } from '../models';
 
 export default class LineupsCache {
     private lineups: Map<string, Lineup>;
@@ -21,7 +21,24 @@ export default class LineupsCache {
      * Fetch lineups data from the database to save in the local cache
      */
     fetch() : void {
-        // TODO: Fetch Lineups
+        Lineups.find({}).exec().then((data) => {
+            const invalidLineups = [];
+            data.forEach((lineup) => {
+                const gameName = lineup.gameName;
+                if (this.lineups.has(gameName)) {
+                    this.lineups.get(gameName).addUsers(lineup.users);
+                } else {
+                    invalidLineups.push(lineup);
+                }
+            });
+            if (invalidLineups.length > 0) {
+                const invalidLineupIds = invalidLineups.map((lineup) => lineup._id);
+                Lineups.deleteMany({ _id: { $in: invalidLineupIds } }).exec().then(() => {
+                    const invalidLineupNames = invalidLineups.map((lineup) => lineup.gameName);
+                    console.log('Deleted the following lineup ids:', invalidLineupNames.join());
+                });
+            }
+        });
     }
 
     /**
@@ -63,7 +80,7 @@ export default class LineupsCache {
      * Get the lineups a user is part in
      * @param user
      */
-     getUserLineups(user : string) : Array<Lineup> {
+    getUserLineups(user : string) : Array<Lineup> {
         const userLineups = new Array<Lineup>();
         this.lineups.forEach((lineup) => {
             if (lineup.hasUser(user)) {
