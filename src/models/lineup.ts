@@ -52,7 +52,7 @@ interface ILineup {
 };
 
 const lineupSchema = new mongoose.Schema<ILineup>({
-    game: {
+    gameName: {
         type: String,
         required: true,
     },
