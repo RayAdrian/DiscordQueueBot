@@ -110,21 +110,11 @@ export default class GamesCache {
     /**
      * Function to handle `.game remove <name>`
      * Remove a game from the cache and database
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
      * @param name - name of the game
      */
     removeGame(
-        bot : Client,
-        message : Message,
         name : string,
-    ) : void {
-        Games.deleteOne({ name })
-            .then(() => {
-                this.gamesMap.delete(name);
-                this.gameNames.delete(name);
-                sendMessage(message.channel, 'Game deleted.');
-            })
-            .catch(error => sendErrorMessage(bot, error));
+    ) : Promise<{ ok?: number; n?: number; } & { deletedCount?: number; }> {
+        return Games.deleteOne({ name }).exec();
     }
 };

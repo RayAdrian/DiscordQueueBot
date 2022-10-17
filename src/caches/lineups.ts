@@ -1,4 +1,5 @@
-import { Lineup, Lineups } from '../models';
+import { Document } from 'mongoose';
+import { ILineup, Lineup, Lineups } from '../models';
 
 export default class LineupsCache {
     private lineups: Map<string, Lineup>;
@@ -94,8 +95,9 @@ export default class LineupsCache {
      * Removes a lineup from the map ie. when a game is deleted.
      * @param gameName - game name of the lineup to be deleted
      */
-    removeLineup(gameName : string) : void {
+    removeLineup(gameName : string) : Promise<ILineup & Document<any, any, ILineup>> {
         this.lineups.delete(gameName);
+        return Lineups.findOneAndDelete({ gameName }).exec();
     }
 
     /**

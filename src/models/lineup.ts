@@ -46,7 +46,7 @@ export class Lineup {
     }
 };
 
-interface ILineup {
+export interface ILineup {
     gameName: string;
     users: Array<string>;
 };

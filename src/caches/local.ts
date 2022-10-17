@@ -1,6 +1,7 @@
 import { Client, Message } from 'discord.js';
+import { Document } from 'mongoose';
 import { Game } from '../models/game.js';
-import { Lineup } from '../models/lineup.js';
+import { ILineup, Lineup } from '../models/lineup.js';
 import GamesCache from './games.js';
 import LineupsCache from './lineups.js';
 import UsersCache from './users.js';
@@ -98,18 +99,13 @@ export default class LocalCache {
 
     /**
      * Function to handle `.game remove <name>`
-     * Remove a game from the cache and database
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
+     * Remove a game (and it's lineup/s) from the cache and database
      * @param name - name of the game
      */
-    removeGame(
-        bot : Client,
-        message : Message,
-        name : string,
-    ) : void {
-        this.gamesCache.removeGame(bot, message, name);
-        this.lineupsCache.removeLineup(name);
+    removeGame(name : string) : Promise<ILineup & Document<any, any, ILineup>> {
+        return this.gamesCache.removeGame(name).then(() => {
+            return this.lineupsCache.removeLineup(name);
+        });
     }
 
     /**

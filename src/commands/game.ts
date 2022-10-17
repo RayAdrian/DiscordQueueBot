@@ -1,7 +1,7 @@
 import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches';
 import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants';
-import { isValidLimit, isValidRole, sendMessageEmbed } from '../utils';
+import { isValidLimit, isValidRole, sendErrorMessage, sendMessage, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**
@@ -190,7 +190,13 @@ function gameRemove(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.removeGame(bot, message, gameName);
+    cache.removeGame(gameName).then(() => {
+        this.gamesMap.delete(gameName);
+        this.gameNames.delete(gameName);
+        sendMessage(message.channel, `Game \`${gameName}\` deleted.`);
+    }).catch((error) => {
+        sendErrorMessage(bot, error)
+    });;
 }
 
 /**
