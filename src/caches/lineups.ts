@@ -21,8 +21,8 @@ export default class LineupsCache {
     /**
      * Fetch lineups data from the database to save in the local cache
      */
-    fetch() : void {
-        Lineups.find({}).exec().then((data) => {
+    fetch() : Promise<void> {
+        return Lineups.find({}).exec().then((data) => {
             const invalidLineups = [];
             data.forEach((lineup) => {
                 const gameName = lineup.gameName;
@@ -105,8 +105,12 @@ export default class LineupsCache {
      * @param gameName - game name of the specified lineup
      * @param users - user ids to be added to the lineup
      */
-    addUsers = (gameName : string, users : Array<string>) : void => {
+    addUsers = (gameName : string, users : Array<string>) : Promise<ILineup & Document<any, any, ILineup>> => {
         this.lineups.get(gameName).addUsers(users);
+        return Lineups.findOneAndUpdate(
+            { gameName },
+
+        ).exec();
     }
 
     /**

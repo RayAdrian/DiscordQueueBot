@@ -20,19 +20,11 @@ export default class LocalCache {
     /**
      * Update local cache with data from the DB
      */
-    fetchAll() : void {
-        this.gamesCache.fetch().then(() => {
-            this.initializeLineups();
-            this.lineupsCache.fetch();
-            this.usersCache.fetch();
+    fetchAll() : Promise<void | [void, void]> {
+        return this.gamesCache.fetch().then(() => {
+            this.lineupsCache.initialize(this.gamesCache.getGameNames());
+            return Promise.all([this.lineupsCache.fetch(), this.usersCache.fetch()]);
         });
-    };
-
-    /**
-     * Initialize lineups
-     */
-    initializeLineups() : void {
-        return this.lineupsCache.initialize(this.gamesCache.getGameNames());
     };
 
     /**

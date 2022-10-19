@@ -32,8 +32,9 @@ bot.on('ready', () => {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         }).then(() => {
-            sendInfoMessage(bot, 'Connected to MongoDB');
-            localCache.fetchAll();
+            sendInfoMessage(bot, 'Connected to MongoDB.\nFetching data.');
+            return localCache.fetchAll();
+        }).then(() => {
             sendInfoMessage(bot, 'Bot is ready', () => {});
         }).catch((error : Error) => sendErrorMessage(bot, error));
     }
