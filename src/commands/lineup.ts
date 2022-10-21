@@ -159,20 +159,22 @@ function lineupAdd(commandInputs : CommandInputs) {
         content['Following users already in the lineup'] = invalidUsers.join(' ');
     }
 
-    if (validUsers.length) {
-        cache.addUsersToLineup(gameName, validUsers);
-        content['Successfully added the following users'] = validUsers.join(' ');
-
-        completeLineupWorker(commandInputs, [gameName]);
-    } else {
-        content['No users added'] = 'No valid users';
-    }
-
     if (excludedUsers.length) {
         content['Cannot add the following users'] = excludedUsers.join(' ');
     }
 
-    sendMessageEmbed(message.channel, 'Lineups Add', content);
+    if (validUsers.length) {
+        cache.addUsersToLineup(gameName, validUsers).then((output) => {
+            console.log('DEBUG: output', output);
+            content['Successfully added the following users'] = validUsers.join(' ');
+            
+            completeLineupWorker(commandInputs, [gameName]);
+            sendMessageEmbed(message.channel, 'Lineups Add', content);
+        });
+    } else {
+        content['No users added'] = 'No valid users';
+        sendMessageEmbed(message.channel, 'Lineups Add', content);
+    }
 }
 
 /**
