@@ -21,9 +21,18 @@ export default class LineupsCache {
     /**
      * Fetch lineups data from the database to save in the local cache
      */
-    fetch() : Promise<void> {
+    fetch() : Promise<{ missingLineups: ILineup[]; invalidLineups: (ILineup & Document<any, any, ILineup>)[]; }> {
         return Lineups.find({}).exec().then((data) => {
-            const invalidLineups = [];
+            // Check whether there are lineups in the cache that are not in the db
+            const existingLineups = new Set(data.map(({ gameName }) => gameName));
+            const missingLineups = [...this.lineups.keys()].filter(
+                (gameName) => !existingLineups.has(gameName),
+            ).map(
+                (gameName) => this.lineups.get(gameName).getLineupWrapper(),
+            );
+
+            // Check whether there are lineups in the db that should not exist
+            const invalidLineups : Array<ILineup & Document<any, any, ILineup>> = [];
             data.forEach((lineup) => {
                 const gameName = lineup.gameName;
                 if (this.lineups.has(gameName)) {
@@ -32,13 +41,11 @@ export default class LineupsCache {
                     invalidLineups.push(lineup);
                 }
             });
-            if (invalidLineups.length > 0) {
-                const invalidLineupIds = invalidLineups.map((lineup) => lineup._id);
-                Lineups.deleteMany({ _id: { $in: invalidLineupIds } }).exec().then(() => {
-                    const invalidLineupNames = invalidLineups.map((lineup) => lineup.gameName);
-                    console.log('Deleted the following lineup ids:', invalidLineupNames.join());
-                });
-            }
+
+            return {
+                missingLineups,
+                invalidLineups,  
+            };
         });
     }
 
@@ -109,7 +116,7 @@ export default class LineupsCache {
         this.lineups.get(gameName).addUsers(users);
         return Lineups.findOneAndUpdate(
             { gameName },
-
+            { users: this.lineups.get(gameName).getUsers() }
         ).exec();
     }
 

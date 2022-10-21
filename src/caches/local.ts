@@ -20,7 +20,10 @@ export default class LocalCache {
     /**
      * Update local cache with data from the DB
      */
-    fetchAll() : Promise<void | [void, void]> {
+    fetchAll() : Promise<void | [
+        { missingLineups: ILineup[]; invalidLineups: (ILineup & Document<any, any, ILineup>)[]; },
+        void,
+    ]> {
         return this.gamesCache.fetch().then(() => {
             this.lineupsCache.initialize(this.gamesCache.getGameNames());
             return Promise.all([this.lineupsCache.fetch(), this.usersCache.fetch()]);
@@ -146,8 +149,10 @@ export default class LocalCache {
      * @param gameName - name of the game of the relevant lineup
      * @param users - user ids to be added to the lineup
      */
-    addUsersToLineup = (gameName : string, users : Array<string>) : void => {
-        this.lineupsCache.addUsers(gameName, users);
+    addUsersToLineup = (
+        gameName : string, users : Array<string>,
+    ) : Promise<ILineup & Document<any, any, ILineup>> => {
+        return this.lineupsCache.addUsers(gameName, users);
     }
 
     /**

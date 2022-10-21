@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
 
+
+export interface ILineup {
+    gameName: string;
+    users: Array<string>;
+};
 export class Lineup {
     private gameName: string;
     private users: Set<string>;
@@ -7,6 +12,13 @@ export class Lineup {
     constructor(gameName : string, users : Array<string>) {
         this.gameName = gameName;
         this.users = new Set(...users);
+    }
+
+    getLineupWrapper() : ILineup {
+        return {
+            gameName: this.gameName,
+            users: [...this.users],
+        }
     }
 
     getGameName() : string {
@@ -44,11 +56,6 @@ export class Lineup {
     clear() : void {
         this.users.clear();
     }
-};
-
-export interface ILineup {
-    gameName: string;
-    users: Array<string>;
 };
 
 const lineupSchema = new mongoose.Schema<ILineup>({
