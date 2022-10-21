@@ -164,8 +164,7 @@ function lineupAdd(commandInputs : CommandInputs) {
     }
 
     if (validUsers.length) {
-        cache.addUsersToLineup(gameName, validUsers).then((output) => {
-            console.log('DEBUG: output', output);
+        cache.addUsersToLineup(gameName, validUsers).then(() => {
             content['Successfully added the following users'] = validUsers.join(' ');
             
             completeLineupWorker(commandInputs, [gameName]);
