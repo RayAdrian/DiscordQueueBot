@@ -253,15 +253,17 @@ function lineupJoin(commandInputs : CommandInputs) {
     }
 
     if (validGameNames.length) {
-        cache.joinLineups(validGameNames, user);
-        content['Successfully added the user to the following lineups'] = `\`${validGameNames.join(' ')}\``;
+        cache.joinLineups(validGameNames, user).then(() => {
+            content['Successfully added the user to the following lineups'] = `\`${validGameNames.join(' ')}\``;
+            completeLineupWorker(commandInputs, validGameNames);
+            sendMessageEmbed(message.channel, 'Lineups Join', content);
+        });
 
-        completeLineupWorker(commandInputs, validGameNames);
     } else {
         content['User not added to any lineup'] = 'No valid lineup';
+        sendMessageEmbed(message.channel, 'Lineups Join', content);
     }
 
-    sendMessageEmbed(message.channel, 'Lineups Join', content);
 }
 
 /**

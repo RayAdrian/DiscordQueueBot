@@ -125,8 +125,16 @@ export default class LineupsCache {
      * @param gameNames - game names of the specified lineups
      * @param user - user id to be added to the lineup
      */
-    joinLineups = (gameNames : Array<string>, user : string) : void => {
+    joinLineups = (
+        gameNames : Array<string>, user : string,
+    ) : Promise<(ILineup & Document<any, any, ILineup>)[]> => {
         gameNames.forEach((gameName) => this.lineups.get(gameName).addUser(user));
+        return Promise.all(gameNames.map((gameName) => {
+            return Lineups.findOneAndUpdate(
+                { gameName },
+                { users: this.lineups.get(gameName).getUsers() },
+            ).exec()
+        }));
     }
 
     /**
