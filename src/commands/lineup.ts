@@ -327,13 +327,14 @@ function lineupKick(commandInputs : CommandInputs) {
     }
 
     if (validUsers.length) {
-        cache.removeUsersFromLineup(gameName, validUsers);
-        content['Successfully kicked the following users'] = validUsers.join(' ');
+        cache.removeUsersFromLineup(gameName, validUsers).then(() => {
+            content['Successfully kicked the following users'] = validUsers.join(' ');
+            sendMessageEmbed(message.channel, 'Lineups Add', content);
+        });
     } else {
         content['No users kicked'] = 'No valid users';
+        sendMessageEmbed(message.channel, 'Lineups Kick', content);
     }
-
-    sendMessageEmbed(message.channel, 'Lineups Kick', content);
 }
 
 /**

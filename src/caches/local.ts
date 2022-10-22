@@ -171,8 +171,10 @@ export default class LocalCache {
      * @param gameName - game name of the specified lineup
      * @param users - user ids to be removed from the lineup
      */
-    removeUsersFromLineup(gameName : string, users : Array<string>) : void {
-        this.lineupsCache.removeUsers(gameName, users);
+    removeUsersFromLineup(
+        gameName : string, users : Array<string>,
+    ) : Promise<ILineup & Document<any, any, ILineup>> {
+        return this.lineupsCache.removeUsers(gameName, users);
     }
 
     /**

@@ -112,7 +112,9 @@ export default class LineupsCache {
      * @param gameName - game name of the specified lineup
      * @param users - user ids to be added to the lineup
      */
-    addUsers = (gameName : string, users : Array<string>) : Promise<ILineup & Document<any, any, ILineup>> => {
+    addUsers = (
+        gameName : string, users : Array<string>,
+    ) : Promise<ILineup & Document<any, any, ILineup>> => {
         this.lineups.get(gameName).addUsers(users);
         return Lineups.findOneAndUpdate(
             { gameName },
@@ -142,8 +144,14 @@ export default class LineupsCache {
      * @param gameName - game name of the specified lineup
      * @param users - user ids to be removed from the lineup
      */
-    removeUsers(gameName : string, users : Array<string>) : void {
+    removeUsers(
+        gameName : string, users : Array<string>,
+    ) : Promise<ILineup & Document<any, any, ILineup>> {
         const lineup = this.lineups.get(gameName).deleteUsers(users);
+        return Lineups.findOneAndUpdate(
+            { gameName },
+            { users: this.lineups.get(gameName).getUsers() }
+        ).exec();
     }
 
     /**
