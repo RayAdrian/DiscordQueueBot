@@ -149,9 +149,9 @@ export default class LocalCache {
      * @param gameName - name of the game of the relevant lineup
      * @param users - user ids to be added to the lineup
      */
-    addUsersToLineup = (
+    addUsersToLineup(
         gameName : string, users : Array<string>,
-    ) : Promise<ILineup & Document<any, any, ILineup>> => {
+    ) : Promise<ILineup & Document<any, any, ILineup>> {
         return this.lineupsCache.addUsers(gameName, users);
     }
 
@@ -160,9 +160,9 @@ export default class LocalCache {
      * @param gameNames - game names of the specified lineups
      * @param user - user id to be added to the lineups
      */
-    joinLineups = (
+    joinLineups(
         gameNames : Array<string>, user : string,
-    ) : Promise<(ILineup & Document<any, any, ILineup>)[]> => {
+    ) : Promise<(ILineup & Document<any, any, ILineup>)[]> {
         return this.lineupsCache.joinLineups(gameNames, user);
     }
 
@@ -182,9 +182,9 @@ export default class LocalCache {
      * @param gameNames - game names of the specified lineups
      * @param user - user id to be removed from the lineups
      */
-    leaveLineups = (
+    leaveLineups(
         gameNames : Array<string>, user : string,
-    ) : Promise<(ILineup & Document<any, any, ILineup>)[]> => {
+    ) : Promise<(ILineup & Document<any, any, ILineup>)[]> {
         return this.lineupsCache.leaveLineups(gameNames, user);
     }
 
