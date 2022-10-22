@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-
 export interface ILineup {
     gameName: string;
     users: Array<string>;
