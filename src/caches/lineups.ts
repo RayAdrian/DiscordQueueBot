@@ -147,7 +147,7 @@ export default class LineupsCache {
     removeUsers(
         gameName : string, users : Array<string>,
     ) : Promise<ILineup & Document<any, any, ILineup>> {
-        const lineup = this.lineups.get(gameName).deleteUsers(users);
+        this.lineups.get(gameName).deleteUsers(users);
         return Lineups.findOneAndUpdate(
             { gameName },
             { users: this.lineups.get(gameName).getUsers() }
@@ -159,8 +159,16 @@ export default class LineupsCache {
      * @param gameNames - game names of the specified lineups
      * @param user - user id to be removed from the lineups
      */
-    leaveLineups = (gameNames : Array<string>, user : string) : void => {
+    leaveLineups = (
+        gameNames : Array<string>, user : string,
+    ) : Promise<(ILineup & Document<any, any, ILineup>)[]> => {
         gameNames.forEach((gameName) => this.lineups.get(gameName).deleteUser(user));
+        return Promise.all(gameNames.map((gameName) => {
+            return Lineups.findOneAndUpdate(
+                { gameName },
+                { users: this.lineups.get(gameName).getUsers() },
+            ).exec()
+        }));
     }
 
     /**

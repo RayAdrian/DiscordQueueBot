@@ -329,7 +329,7 @@ function lineupKick(commandInputs : CommandInputs) {
     if (validUsers.length) {
         cache.removeUsersFromLineup(gameName, validUsers).then(() => {
             content['Successfully kicked the following users'] = validUsers.join(' ');
-            sendMessageEmbed(message.channel, 'Lineups Add', content);
+            sendMessageEmbed(message.channel, 'Lineups Kick', content);
         });
     } else {
         content['No users kicked'] = 'No valid users';
@@ -401,13 +401,14 @@ function lineupLeave(commandInputs : CommandInputs) {
     }
 
     if (validGameNames.length) {
-        cache.leaveLineups(validGameNames, user);
-        content['User succesfully removed from the following lineups'] = `\`${validGameNames.join(' ')}\``;
+        cache.leaveLineups(validGameNames, user).then(() => {
+            content['User succesfully removed from the following lineups'] = `\`${validGameNames.join(' ')}\``;
+            sendMessageEmbed(message.channel, 'Lineups Leave', content);
+        });
     } else {
         content['User not removed from any lineup'] = 'No valid lineup';
+        sendMessageEmbed(message.channel, 'Lineups Leave', content);
     }
-
-    sendMessageEmbed(message.channel, 'Lineups Leave', content);
 }
 
 /**
