@@ -1,5 +1,5 @@
 import { Client, Message } from 'discord.js';
-import { Document } from 'mongoose';
+import { Document, UpdateWriteOpResult } from 'mongoose';
 import { Game } from '../models/game.js';
 import { ILineup, Lineup } from '../models/lineup.js';
 import GamesCache from './games.js';
@@ -191,16 +191,16 @@ export default class LocalCache {
     /**
      * Reset all lineups
      */
-    resetAllLineups() : void {
-        this.lineupsCache.resetAllLineups();
+    resetAllLineups() : Promise<UpdateWriteOpResult> {
+        return this.lineupsCache.resetAllLineups();
     }
 
     /**
      * Reset specified lineups
      * @param gameNames - list of names of game lineups to be reset
      */
-    resetLineups(gameNames : Array<string>) : void {
-        this.lineupsCache.resetLineups(gameNames);
+    resetLineups(gameNames : Array<string>) : Promise<UpdateWriteOpResult> {
+        return this.lineupsCache.resetLineups(gameNames);
     }
 
     /**

@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, UpdateWriteOpResult } from 'mongoose';
 import { ILineup, Lineup, Lineups } from '../models';
 
 export default class LineupsCache {
@@ -174,15 +174,23 @@ export default class LineupsCache {
     /**
      * Reset all lineups
      */
-    resetAllLineups() : void {
+    resetAllLineups() : Promise<UpdateWriteOpResult> {
         this.lineups.forEach((lineup) => lineup.clear());
+        return Lineups.updateMany(
+            {},
+            { users: [] },
+        ).exec();
     }
 
     /**
      * Reset specified lineups
      * @param gameNames - list of names of game lineups to be reset
      */
-    resetLineups(gameNames : Array<string>) : void {
+    resetLineups(gameNames : Array<string>) : Promise<UpdateWriteOpResult> {
         gameNames.forEach((gameName) => this.lineups.get(gameName).clear());
+        return Lineups.updateMany(
+            { gameName: { $in: gameNames } },
+            { users: [] },
+        ).exec();
     }
 };

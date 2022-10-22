@@ -447,22 +447,24 @@ function lineupReset(commandInputs : CommandInputs) {
     const uniqueGameNames = Array(...new Set(gameNames));
 
     if (uniqueGameNames.length === 0) {
-        cache.resetAllLineups();
-        sendMessageEmbed(
-            message.channel,
-            'Notification',
-            'All lineups have been reset.',
-        );
+        cache.resetAllLineups().then(() => {
+            sendMessageEmbed(
+                message.channel,
+                'Notification',
+                'All lineups have been reset.',
+            );
+        });
     } else if (uniqueGameNames.length > 0) {
-        cache.resetLineups(uniqueGameNames);
-        const fieldTitle = 'The following lineups have been reset';
-        sendMessageEmbed(
-            message.channel,
-            'Notification',
-            {
-                [fieldTitle]: uniqueGameNames.join('\n'),
-            },
-        );
+        cache.resetLineups(uniqueGameNames).then(() => {
+            const fieldTitle = 'The following lineups have been reset';
+            sendMessageEmbed(
+                message.channel,
+                'Notification',
+                {
+                    [fieldTitle]: uniqueGameNames.join('\n'),
+                },
+            );
+        });
     } else {
         sendMessageEmbed(
             message.channel,
