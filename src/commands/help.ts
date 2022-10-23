@@ -16,7 +16,7 @@ const getDescriptions = (commands) => {
         });
 
     if (collatedFormats.length !== collatedDescriptions.length) {
-        console.log('WARNING: length of collated help formats and descriptions do not match.');
+        console.log('[WARNING] length of collated help formats and descriptions do not match.');
     }
     return collatedFormats.map((format, index) => (
         `\`${PREFIX}${format}\`\n${collatedDescriptions[index]}`
