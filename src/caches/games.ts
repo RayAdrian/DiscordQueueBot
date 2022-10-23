@@ -1,5 +1,6 @@
 import { Client, Message } from "discord.js";
-import { Games, Game } from "../models";
+import { Document } from 'mongoose';
+import { Games, Game, IGame, IGameMethods } from "../models";
 import { sendErrorMessage, sendMessage } from "../utils";
 
 export default class GamesCache {
@@ -44,29 +45,22 @@ export default class GamesCache {
     /**
      * Function to handle `.game add <name> <role> <limit>`
      * Add a game to local games cache and to the database
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
      * @param name - name of the game
      * @param roleId - role to link to game
      * @param limit - number of slots for the game's lineup
      */
     addGame(
-        bot : Client,
-        message : Message,
         name : string,
         roleId : string,
         limit : number,
-    ) : void {
+    ) : Promise<IGame & Document<any, any, IGame> & IGameMethods> {
         const newGame = new Game({
             name, roleId, limit,
         });
-        Games.create(newGame)
-            .then(() => {
-                this.gamesMap.set(name, newGame);
-                this.gameNames.add(name);
-                sendMessage(message.channel, 'Game added.');
-            })
-            .catch(error => sendErrorMessage(bot, error));
+        this.gamesMap.set(name, newGame);
+        this.gameNames.add(name);
+        return Games.create(newGame);
+            
     }
 
     /**
@@ -115,6 +109,8 @@ export default class GamesCache {
     removeGame(
         name : string,
     ) : Promise<{ ok?: number; n?: number; } & { deletedCount?: number; }> {
+        this.gamesMap.delete(name);
+        this.gameNames.delete(name);
         return Games.deleteOne({ name }).exec();
     }
 };

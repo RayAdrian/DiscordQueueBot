@@ -88,7 +88,13 @@ function gameAdd(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.addGame(bot, message, gameName, role, Number(limit));
+    cache.addGame(gameName, role, Number(limit)).then(() => {
+        sendMessageEmbed(
+            message.channel,
+            'Notification',
+            `Game and Lineup for \`${gameName}\` added.`,
+        );
+    }).catch((error) => sendErrorMessage(bot, error));
 }
 
 /**
@@ -191,12 +197,14 @@ function gameRemove(commandInputs : CommandInputs) {
 
     // arguments validated
     cache.removeGame(gameName).then(() => {
-        this.gamesMap.delete(gameName);
-        this.gameNames.delete(gameName);
-        sendMessage(message.channel, `Game \`${gameName}\` deleted.`);
+        sendMessageEmbed(
+            message.channel,
+            'Notification',
+            `Game and Lineup/s for \`${gameName}\` deleted.`,
+        );
     }).catch((error) => {
         sendErrorMessage(bot, error)
-    });;
+    });
 }
 
 /**

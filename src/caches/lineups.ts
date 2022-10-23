@@ -99,6 +99,16 @@ export default class LineupsCache {
     }
 
     /**
+     * Add a lineup for a game
+     * @param gameName - game name of the lineup to be created
+     */
+    addLineup(gameName : string) : Promise<ILineup & Document<any, any, ILineup>> {
+        const newLineup = new Lineup(gameName, []);
+        this.lineups.set(gameName, newLineup);
+        return Lineups.create(newLineup);
+    }
+
+    /**
      * Removes a lineup from the map ie. when a game is deleted.
      * @param gameName - game name of the lineup to be deleted
      */

@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 
-interface IGame {
+export interface IGame {
     name: string;
     roleId: string;
     limit: number;
 };
 
-interface IGameMethods {
+export interface IGameMethods {
     isInfinite(): boolean;
 }
 
