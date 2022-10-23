@@ -1,11 +1,10 @@
 import { Client, Message } from "discord.js";
-import { Games } from "../models";
-import { Game } from "../models/game";
+import { Games, Game } from "../models";
 import { sendErrorMessage, sendMessage } from "../utils";
 
 export default class GamesCache {
-    gamesMap: Map<string, Game>;
-    gameNames: Set<string>;
+    private gamesMap: Map<string, Game>;
+    private gameNames: Set<string>;
 
     constructor() {
         this.gamesMap = new Map<string, Game>();
@@ -13,23 +12,33 @@ export default class GamesCache {
     }
 
     /**
-     * @returns An array of strings with the list of the names of the games
-     */
-    getGameNames() : Array<string> {
-        return Array(...this.gameNames);
-    }
-
-    /**
      * Fetch games data from the database to save in the local cache
      */
-    fetch() : void {
-        Games.find({}).exec().then((data) => {
+    fetch() : Promise<void> {
+        return Games.find({}).exec().then((data) => {
             data.forEach((game) => {
                 const name = game.name;
                 this.gamesMap.set(name, game);
                 this.gameNames.add(name);
             });
         });
+    }
+
+    /**
+     * Get a copy of the data of a game
+     * @param name - name of the game
+     */
+    getGame(name : string) : Game {
+        const gameData = this.gamesMap.get(name);
+        return JSON.parse(JSON.stringify(gameData)) as Game;
+    }
+
+    /**
+     * Get a deep copy of the list of game names stored in the games cache.
+     * @returns An array of strings with the list of the names of the games
+     */
+    getGameNames() : Array<string> {
+        return Array(...this.gameNames);
     }
 
     /**
@@ -101,21 +110,11 @@ export default class GamesCache {
     /**
      * Function to handle `.game remove <name>`
      * Remove a game from the cache and database
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
      * @param name - name of the game
      */
     removeGame(
-        bot : Client,
-        message : Message,
         name : string,
-    ) : void {
-        Games.deleteOne({ name })
-            .then(() => {
-                this.gamesMap.delete(name);
-                this.gameNames.delete(name);
-                sendMessage(message.channel, 'Game deleted.');
-            })
-            .catch(error => sendErrorMessage(bot, error));
+    ) : Promise<{ ok?: number; n?: number; } & { deletedCount?: number; }> {
+        return Games.deleteOne({ name }).exec();
     }
 };

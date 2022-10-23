@@ -3,9 +3,10 @@ dotenv.config();
 
 export const PREFIX = '.'; // TODO: Replace with slash commands
 
-export const MSG_TIME_DEL = 3000;
-export const MSG_TIME_FULL_DEL = 10000;
-export const INFO_MSG_TIME_DEL = 60000;
+export const NOTIF_MSG_TIME_DEL = 5000;
+export const INFO_MSG_TIME_DEL = 15000;
+export const DEBUG_INFO_MSG_TIME_DEL = 60000;
+export const DEFAULT_MSG_TIME_DEL = NOTIF_MSG_TIME_DEL;
 export const MAIN_CHANNEL_ID = process.env.CHANNEL_ID || '';
 export const INFO_CHANNEL_ID = process.env.INFO_CHANNEL_ID || '';
 export const ERROR_CHANNEL_ID = process.env.ERROR_CHANNEL_ID || '';
@@ -14,9 +15,14 @@ export const PUNISH_TAG = '<@&747740479638208532>';
 export const PUNISH_ID = '747740479638208532'
 export const PUNISH_TIME_DEL = 500;
 
+export const READY_MESSAGE = 'G ';
+
 export const RESERVED_KEYWORDS = [
     'add',
+    'all',
+    'delete',
     'edit',
+    'g',
     'game',
     'games',
     'gamelist',
@@ -27,6 +33,7 @@ export const RESERVED_KEYWORDS = [
     'lineup',
     'lineups',
     'list',
+    'ready',
     'remove',
     'reset',
     'save',

@@ -1,9 +1,9 @@
 import { Client, Message, MessageEmbed, TextChannel } from "discord.js";
-import { INFO_CHANNEL_ID, INFO_MSG_TIME_DEL } from "../common/constants";
+import { INFO_CHANNEL_ID, DEBUG_INFO_MSG_TIME_DEL } from "../common/constants";
 import deleteMessage from "./deleteMessage";
 import sendMessage from "./sendMessage";
 
-const defaultOnSuccess = (sentMsg : Message) => deleteMessage(sentMsg, INFO_MSG_TIME_DEL);
+const defaultOnSuccess = (sentMsg : Message) => deleteMessage(sentMsg, DEBUG_INFO_MSG_TIME_DEL);
 
 /**
  * Send an info message

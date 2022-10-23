@@ -1,7 +1,7 @@
-import { Client, Message, MessageEmbed } from 'discord.js';
+import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches';
 import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants';
-import { isValidLimit, isValidRole, sendMessage, sendMessageEmbed } from '../utils';
+import { isValidLimit, isValidRole, sendErrorMessage, sendMessage, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**
@@ -26,11 +26,15 @@ function gameList(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    const gameNames = cache.gamesCache.getGameNames();
-    const gameListEmbed = new MessageEmbed()
-        .setTitle('Game List')
-        .addField('Current available games', gameNames.length ? gameNames.join('\n') : 'No games available');
-    sendMessage(message.channel, gameListEmbed, () => {});
+    const gameNames = cache.getGameNames();
+    const fieldTitle = 'Current available games';
+    const content = gameNames.length ? gameNames.join('\n') : 'No games available';
+    sendMessageEmbed(
+        message.channel,
+        'Game List',
+        { [fieldTitle] : content },
+        () => {},
+    );
 }
 
 /**
@@ -57,7 +61,7 @@ function gameAdd(commandInputs : CommandInputs) {
     }
 
     const [gameName, role, limit] = args.map(arg => arg?.toLowerCase());
-    const gameNames = cache.gamesCache.getGameNames();
+    const gameNames = cache.getGameNames();
     const errorMessages = [];
 
     if (!ALPHANUMERIC.test(gameName)) {
@@ -84,7 +88,7 @@ function gameAdd(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.gamesCache.addGame(bot, message, gameName, role, Number(limit));
+    cache.addGame(bot, message, gameName, role, Number(limit));
 }
 
 /**
@@ -111,7 +115,7 @@ function gameEdit(commandInputs : CommandInputs) {
     }
  
     const [gameName, role, limit] = args.map(arg => arg?.toLowerCase());
-    const gameNames = cache.gamesCache.getGameNames();
+    const gameNames = cache.getGameNames();
     const errorMessages = [];
 
     if (!ALPHANUMERIC.test(gameName)) {
@@ -138,7 +142,7 @@ function gameEdit(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.gamesCache.editGame(bot, message, gameName, role, limit);
+    cache.editGame(bot, message, gameName, role, limit);
 }
 
 /**
@@ -165,7 +169,7 @@ function gameRemove(commandInputs : CommandInputs) {
     }
  
     const gameName = args[0].toLowerCase();
-    const gameNames = cache.gamesCache.getGameNames();
+    const gameNames = cache.getGameNames();
     let errorMessage = '';
 
     if (!ALPHANUMERIC.test(gameName)) {
@@ -186,11 +190,17 @@ function gameRemove(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.gamesCache.removeGame(bot, message, gameName);
+    cache.removeGame(gameName).then(() => {
+        this.gamesMap.delete(gameName);
+        this.gameNames.delete(gameName);
+        sendMessage(message.channel, `Game \`${gameName}\` deleted.`);
+    }).catch((error) => {
+        sendErrorMessage(bot, error)
+    });;
 }
 
 /**
- * Inform command as invalid
+ * Inform game command as invalid
  * @param parameters - contains the necessary parameters for the command
  */
 function invalidGameCommand(commandInputs : CommandInputs) {
@@ -201,7 +211,7 @@ function invalidGameCommand(commandInputs : CommandInputs) {
             message.channel,
             `Invalid \`${PREFIX}game\` command`,
             `
-                Command for game lacking.
+                Command for \`${PREFIX}game\` lacking.
                 Possible options include \`list\`, \`add\`, \`edit\`, and \`remove\`.
                 ie. \`.game list\`
             `,
@@ -240,7 +250,7 @@ const gameCommands = [{
         'edit a game\'s role and limit',
     ],
 }, {
-    aliases: ['game remove'],
+    aliases: ['game remove', 'game delete'],
     run: gameRemove,
     formats: ['game remove <game>'],
     descriptions: ['delete a game'],

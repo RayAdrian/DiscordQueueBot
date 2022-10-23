@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import { LocalCache } from './caches';
 import { processCommand } from './commands';
 import { PREFIX } from './common/constants';
+import { Lineups } from './models';
 import { sendErrorMessage, sendInfoMessage } from './utils';
 
 // For local development
@@ -32,8 +33,25 @@ bot.on('ready', () => {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         }).then(() => {
-            sendInfoMessage(bot, 'Connected to MongoDB');
-            localCache.fetch();
+            sendInfoMessage(bot, 'Connected to MongoDB. Fetching data.');
+            return localCache.fetchAll();
+        }).then(async (fetchData) => {
+            if (fetchData && fetchData.length) {
+                const { missingLineups, invalidLineups } = fetchData[0];
+
+                if (missingLineups.length > 0) {
+                    await Lineups.create(missingLineups);
+                }
+                
+                if (invalidLineups.length > 0) {
+                    const invalidLineupIds = invalidLineups.map((lineup) => lineup._id);
+                    await Lineups.deleteMany({ _id: { $in: invalidLineupIds } }).exec().then(() => {
+                        const invalidLineupNames = invalidLineups.map((lineup) => lineup.gameName);
+                        const message = `Deleted the following lineup ids: \`${invalidLineupNames.join()}\``;
+                        sendInfoMessage(bot, message, () => {});
+                    });
+                }
+            }
             sendInfoMessage(bot, 'Bot is ready', () => {});
         }).catch((error : Error) => sendErrorMessage(bot, error));
     }
