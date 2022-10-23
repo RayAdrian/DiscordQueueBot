@@ -1,8 +1,8 @@
 
-import { Message } from "discord.js";
+import { Client, Message } from "discord.js";
 import { LocalCache } from "../caches";
 import { ALPHANUMERIC, PREFIX, READY_MESSAGE } from "../common/constants";
-import { isValidUser, sendMessage, sendMessageEmbed } from '../utils';
+import { isValidUser, sendErrorMessage, sendMessage, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**
@@ -93,9 +93,9 @@ function lineupList(commandInputs : CommandInputs) {
  */
 function lineupAdd(commandInputs : CommandInputs) {
     const {
-        args, cache, command, message,
+        args, bot, cache, command, message,
     } : {
-        args : Array<string>, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
     } = commandInputs;
 
     // validation
@@ -169,7 +169,7 @@ function lineupAdd(commandInputs : CommandInputs) {
             
             completeLineupWorker(commandInputs, [gameName]);
             sendMessageEmbed(message.channel, 'Lineups Add', content);
-        });
+        }).catch((error : Error) => sendErrorMessage(bot, error));
     } else {
         content['No users added'] = 'No valid users';
         sendMessageEmbed(message.channel, 'Lineups Add', content);
@@ -183,9 +183,9 @@ function lineupAdd(commandInputs : CommandInputs) {
  */
 function lineupJoin(commandInputs : CommandInputs) {
     const {
-        args, cache, command, message,
+        args, bot, cache, command, message,
     } : {
-        args : Array<string>, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
     } = commandInputs;
 
     // first validation
@@ -257,7 +257,7 @@ function lineupJoin(commandInputs : CommandInputs) {
             content['Successfully added the user to the following lineups'] = `\`${validGameNames.join(' ')}\``;
             completeLineupWorker(commandInputs, validGameNames);
             sendMessageEmbed(message.channel, 'Lineups Join', content);
-        });
+        }).catch((error : Error) => sendErrorMessage(bot, error));
 
     } else {
         content['User not added to any lineup'] = 'No valid lineup';
@@ -273,9 +273,9 @@ function lineupJoin(commandInputs : CommandInputs) {
  */
 function lineupKick(commandInputs : CommandInputs) {
     const {
-        args, cache, command, message,
+        args, bot, cache, command, message,
     } : {
-        args : Array<string>, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
     } = commandInputs;
 
     // validation
@@ -330,7 +330,7 @@ function lineupKick(commandInputs : CommandInputs) {
         cache.removeUsersFromLineup(gameName, validUsers).then(() => {
             content['Successfully kicked the following users'] = validUsers.join(' ');
             sendMessageEmbed(message.channel, 'Lineups Kick', content);
-        });
+        }).catch((error : Error) => sendErrorMessage(bot, error));
     } else {
         content['No users kicked'] = 'No valid users';
         sendMessageEmbed(message.channel, 'Lineups Kick', content);
@@ -344,9 +344,9 @@ function lineupKick(commandInputs : CommandInputs) {
  */
 function lineupLeave(commandInputs : CommandInputs) {
     const {
-        args, cache, message,
+        args, bot, cache, message,
     } : {
-        args : Array<string>, cache : LocalCache, message : Message,
+        args : Array<string>, bot : Client, cache : LocalCache, message : Message,
     } = commandInputs;
 
     const user = `<@${message.author.id}>`;
@@ -404,7 +404,7 @@ function lineupLeave(commandInputs : CommandInputs) {
         cache.leaveLineups(validGameNames, user).then(() => {
             content['User succesfully removed from the following lineups'] = `\`${validGameNames.join(' ')}\``;
             sendMessageEmbed(message.channel, 'Lineups Leave', content);
-        });
+        }).catch((error : Error) => sendErrorMessage(bot, error));
     } else {
         content['User not removed from any lineup'] = 'No valid lineup';
         sendMessageEmbed(message.channel, 'Lineups Leave', content);
@@ -417,8 +417,10 @@ function lineupLeave(commandInputs : CommandInputs) {
  * @param commandInputs - contains the necessary parameters for the command
  */
 function lineupReset(commandInputs : CommandInputs) {
-    const { args, cache, message } : {
-        args : Array<string>, cache : LocalCache, message : Message,
+    const {
+        args, bot, cache, message,
+    } : {
+        args : Array<string>, bot : Client, cache : LocalCache, message : Message,
     } = commandInputs;
 
     // validation
@@ -453,7 +455,7 @@ function lineupReset(commandInputs : CommandInputs) {
                 'Notification',
                 'All lineups have been reset.',
             );
-        });
+        }).catch((error : Error) => sendErrorMessage(bot, error));
     } else if (uniqueGameNames.length > 0) {
         cache.resetLineups(uniqueGameNames).then(() => {
             const fieldTitle = 'The following lineups have been reset';
@@ -464,7 +466,7 @@ function lineupReset(commandInputs : CommandInputs) {
                     [fieldTitle]: uniqueGameNames.join('\n'),
                 },
             );
-        });
+        }).catch((error : Error) => sendErrorMessage(bot, error));
     } else {
         sendMessageEmbed(
             message.channel,
