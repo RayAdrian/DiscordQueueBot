@@ -94,7 +94,7 @@ function gameAdd(commandInputs : CommandInputs) {
             'Notification',
             `Game and Lineup for \`${gameName}\` added.`,
         );
-    }).catch((error) => sendErrorMessage(bot, error));
+    }).catch((error : Error) => sendErrorMessage(bot, error));
 }
 
 /**
@@ -148,7 +148,22 @@ function gameEdit(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.editGame(bot, message, gameName, role, limit);
+    cache.editGame(gameName, role, limit).then(() => {
+        sendMessageEmbed(
+            message.channel,
+            'Notification',
+            `Game \`${gameName}\` edited.`,
+        );
+    }, (error : any) => {
+        if (error instanceof Error) {
+            throw error;
+        }
+        sendMessageEmbed(
+            message.channel,
+            'Error Notification',
+            error,
+        );
+    }).catch((error : Error) => sendErrorMessage(bot, error));
 }
 
 /**
@@ -202,9 +217,7 @@ function gameRemove(commandInputs : CommandInputs) {
             'Notification',
             `Game and Lineup/s for \`${gameName}\` deleted.`,
         );
-    }).catch((error) => {
-        sendErrorMessage(bot, error)
-    });
+    }).catch((error : Error) => sendErrorMessage(bot, error));
 }
 
 /**
