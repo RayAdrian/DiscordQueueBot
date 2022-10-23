@@ -18,7 +18,7 @@ export default function sendInfoMessage(
     onSuccess : Function = defaultOnSuccess,
     onError ?: Function,
 ) {
-    console.log('INFO: ', info);
+    console.log('INFO:', info);
     if (!INFO_CHANNEL_ID) {
         console.log('WARNING: No info channel id set');
         return;

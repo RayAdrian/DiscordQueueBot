@@ -15,7 +15,7 @@ export default function sendErrorMessage(
     onSuccess : Function = () => {},
     onError ?: Function,
 ) {
-    console.log('ERROR: ', error);
+    console.log('ERROR:', error);
     if (!ERROR_CHANNEL_ID) {
         console.log('WARNING: No error channel id set');
         return;
