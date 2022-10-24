@@ -6,7 +6,7 @@ const defaultOnSuccess = (sentMessage : Message) => {
 }
 
 const defaultOnError = (error : any) => {
-    console.log('ERROR: ', error);
+    console.log('[ERROR]', error);
 };
 
 /**
@@ -24,6 +24,6 @@ export default function sendMessage(
     onError : Function = defaultOnError,
 ) {
     channel.send(content)
-        .then(sentMessage => onSuccess(sentMessage))
-        .catch(error => onError(error));
+        .then((sentMessage) => onSuccess(sentMessage))
+        .catch((error) => onError(error));
 }

@@ -1,6 +1,5 @@
-import { Client, Message } from 'discord.js';
 import { Document, UpdateWriteOpResult } from 'mongoose';
-import { Game } from '../models/game.js';
+import { Game, IGame, IGameMethods } from '../models/game.js';
 import { ILineup, Lineup } from '../models/lineup.js';
 import GamesCache from './games.js';
 import LineupsCache from './lineups.js';
@@ -57,39 +56,33 @@ export default class LocalCache {
     /**
      * Function to handle `.game add <name> <role> <limit>`
      * Add a game to local games cache and to the database
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
      * @param name - name of the game
      * @param roleId - role to link to game
      * @param limit - number of slots for the game's lineup
      */
     addGame(
-        bot : Client,
-        message : Message,
         name : string,
         roleId : string,
         limit : number,
-    ) : void {
-        this.gamesCache.addGame(bot, message, name, roleId, Number(limit));
+    ) : Promise<(ILineup & Document<any, any, ILineup>) | (IGame & Document<any, any, IGame> & IGameMethods)> {
+        return this.gamesCache.addGame(name, roleId, Number(limit)).then(() => {
+            return this.lineupsCache.addLineup(name);
+        });
     }
 
     /**
      * Function to handle `.game edit <name> <role> <?limit>`
      * Edit a game's set parameters
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
      * @param name - name of the game
      * @param roleId - role to link to game
      * @param limit - (optional) number of slots for the game's lineup
      */
     editGame(
-        bot : Client,
-        message : Message,
         name : string,
         roleId : string,
         limit ?: string,
-    ) : void {
-        this.gamesCache.editGame(bot, message, name, roleId, limit);
+    ) : Promise<IGame & Document<any, any, IGame> & IGameMethods>  {
+        return this.gamesCache.editGame(name, roleId, limit);
     }
 
     /**

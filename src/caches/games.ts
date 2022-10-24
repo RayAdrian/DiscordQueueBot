@@ -1,6 +1,5 @@
-import { Client, Message } from "discord.js";
-import { Games, Game } from "../models";
-import { sendErrorMessage, sendMessage } from "../utils";
+import { Document } from 'mongoose';
+import { Games, Game, IGame, IGameMethods } from "../models";
 
 export default class GamesCache {
     private gamesMap: Map<string, Game>;
@@ -44,67 +43,56 @@ export default class GamesCache {
     /**
      * Function to handle `.game add <name> <role> <limit>`
      * Add a game to local games cache and to the database
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
      * @param name - name of the game
      * @param roleId - role to link to game
      * @param limit - number of slots for the game's lineup
      */
     addGame(
-        bot : Client,
-        message : Message,
         name : string,
         roleId : string,
         limit : number,
-    ) : void {
+    ) : Promise<IGame & Document<any, any, IGame> & IGameMethods> {
         const newGame = new Game({
             name, roleId, limit,
         });
-        Games.create(newGame)
-            .then(() => {
-                this.gamesMap.set(name, newGame);
-                this.gameNames.add(name);
-                sendMessage(message.channel, 'Game added.');
-            })
-            .catch(error => sendErrorMessage(bot, error));
+        this.gamesMap.set(name, newGame);
+        this.gameNames.add(name);
+        return Games.create(newGame);
+            
     }
 
     /**
      * Function to handle `.game edit <name> <role> <?limit>`
      * Edit a game's set parameters
-     * @param bot - for sending error messages
-     * @param message - for replying to the original message
      * @param name - name of the game
      * @param roleId - role to link to game
      * @param limit - (optional) number of slots for the game's lineup
      */
     editGame(
-        bot : Client,
-        message : Message,
         name : string,
         roleId : string,
         limit ?: string,
-    ) : void {
+    ) : Promise<IGame & Document<any, any, IGame> & IGameMethods> {
         const currentGame = this.gamesMap.get(name);
+
         // check if there any changes to be done
         if (roleId === currentGame.roleId && (!limit || Number(limit) === currentGame.limit)) {
-            sendMessage(message.channel, 'No changes to be done.');
-            return;
+            return Promise.reject(`No changes requested to game \`${name}\`.`);
         }
 
         // apply changes
+        currentGame['roleId'] = roleId;
         const newGameParams = { roleId };
         if (limit) {
+            currentGame['limit'] = Number(limit);
             newGameParams['limit'] = Number(limit);
         }
-        Games.findOneAndUpdate(
+
+        return Games.findOneAndUpdate(
             { name },
             { $set: newGameParams },
             { new: true },
-        ).then((editedGame) => {
-            this.gamesMap.set(name, editedGame);
-            sendMessage(message.channel, 'Game edited.');
-        }).catch(error => sendErrorMessage(bot, error));
+        ).exec();
     }
 
     /**
@@ -115,6 +103,8 @@ export default class GamesCache {
     removeGame(
         name : string,
     ) : Promise<{ ok?: number; n?: number; } & { deletedCount?: number; }> {
+        this.gamesMap.delete(name);
+        this.gameNames.delete(name);
         return Games.deleteOne({ name }).exec();
     }
 };
