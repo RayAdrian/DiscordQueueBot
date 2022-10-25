@@ -10,7 +10,7 @@ export class Lineup {
 
     constructor(gameName : string, users : Array<string>) {
         this.gameName = gameName;
-        this.users = new Set(...users);
+        this.users = new Set(users);
     }
 
     getLineupWrapper() : ILineup {
