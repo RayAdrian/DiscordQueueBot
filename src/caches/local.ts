@@ -1,6 +1,7 @@
 import { Document, UpdateWriteOpResult } from 'mongoose';
 import { Game, IGame, IGameMethods } from '../models/game.js';
 import { ILineup, Lineup } from '../models/lineup.js';
+import { IUser } from '../models/user.js';
 import GamesCache from './games.js';
 import LineupsCache from './lineups.js';
 import UsersCache from './users.js';
@@ -94,6 +95,20 @@ export default class LocalCache {
         return this.gamesCache.removeGame(name).then(() => {
             return this.lineupsCache.removeLineup(name);
         });
+    }
+
+    /**
+     * Function to handle `.user save <game/s>`
+     * Save game/s to user's game list in cache and database
+     * @param user - name of the specified user
+     * @param gameNames - name of the games to be saved
+     */
+    saveToUserGames(user : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
+        return this.usersCache.saveToUserGames(user, gameNames);
+    }
+
+    userHasGame(user : string, gameName : string) : boolean {
+        return this.usersCache.userHasGame(user, gameName);
     }
 
     /**
