@@ -1,0 +1,139 @@
+import { Client, Message } from 'discord.js';
+import { LocalCache } from '../caches';
+import { ALPHANUMERIC, PREFIX } from '../common/constants';
+import { sendErrorMessage, sendMessageEmbed } from '../utils';
+import { CommandInputs } from './processCommand';
+
+/**
+ * Function to handle `.user save <game/s>`
+ * Save game/s to user's game list
+ * @param parameters - contains the necessary parameters for the command
+ */
+function userSave(commandInputs : CommandInputs) {
+    const {
+        args, bot, cache, command, message,
+    } : {
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
+    // first validation
+    const argsCount = args.length;
+    if (argsCount < 1) {
+        sendMessageEmbed(
+            message.channel,
+            'Unexpected number of arguments',
+            `Expecting at least 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+        );
+        return;
+    }
+
+    // blocking game args validation
+    const errorMessages = [];
+    const gameNames = Array(...new Set(args.map(arg => arg?.trim()?.toLowerCase())));
+    const storedGameNames = cache.getGameNames();
+
+    if (!(gameNames.length === 1 && gameNames[0] === 'all')) { // validate game names
+        gameNames.forEach((gameName) => {
+            if (!ALPHANUMERIC.test(gameName)) {
+                errorMessages.push('Invalid game name. Should only consist of alphanumeric characters.');
+            } else if (!storedGameNames.includes(gameName)) {
+                errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
+            }
+        });
+    }
+
+    if (errorMessages.length) {
+        sendMessageEmbed(
+            message.channel,
+            'Invalid arguments',
+            errorMessages.join('\n'),
+        );
+        return;
+    }
+
+    // non-blocking game args validation
+    const user = `<@${message.author.id}>`;
+
+    const validGameNames = []; // games not yet in user's gamelist
+    const invalidGameNames = []; // games already saved
+
+    (gameNames[0] === 'all' ? storedGameNames : gameNames).forEach((gameName) => {
+        if (cache.userHasGame(user, gameName)) {
+            invalidGameNames.push(gameName);
+        } else {
+            validGameNames.push(gameName);
+        }
+    });
+
+    // info messages and actual cache operations
+    const content = {};
+
+    if (invalidGameNames.length) {
+        content['Following games already saved in user\'s games list'] = `\`${invalidGameNames.join(' ')}\``;
+    }
+
+    if (validGameNames.length) {
+        cache.saveToUserGames(user, gameNames).then(() => {
+            content['Successfully saved the following games to your gameslist'] = `\`${gameNames.join(' ')}\``;
+            sendMessageEmbed(message.channel, 'User Save', content);
+        }).catch((error : Error) => sendErrorMessage(bot, error));
+    } else {
+        content['No games saved'] = 'All specified games already in user\'s saved games list';
+        sendMessageEmbed(message.channel, 'User Save', content);
+    }
+}
+
+/**
+ * Function to handle `.user delete <game/s>`
+ * Remove game/s from user's game list
+ * @param parameters - contains the necessary parameters for the command
+ */
+function userDelete(commandInputs : CommandInputs) {
+
+}
+
+/**
+ * Inform user command as invalid
+ * @param parameters - contains the necessary parameters for the command
+ */
+function invalidUserCommand(commandInputs : CommandInputs) {
+    const { args, message } : { args : Array<string>, message : Message } = commandInputs;
+
+    if (args.length === 0) {
+        sendMessageEmbed(
+            message.channel,
+            `Invalid \`${PREFIX}user\` command`,
+            `
+                Command for \`${PREFIX}user\` lacking.
+                Possible options include \`save\`, and \`delete\`.
+                ie. \`.user save\`
+            `,
+        );
+        return;
+    }
+    sendMessageEmbed(
+        message.channel,
+        `Invalid \`${PREFIX}user\` command`,
+        `Command for \`${PREFIX}user\` unrecognized.`,
+    );
+}
+
+/**
+ * Commands for users
+ */
+const userCommands = [{
+    aliases: ['user save', 'save'],
+    run: userSave,
+    formats: ['user save <game/s>'],
+    descriptions: [''],
+}, {
+    aliases: ['user delete', 'delete'],
+    run: userDelete,
+    formats: ['user delete <game/s>'],
+    descriptions: ['delete game/s from user list'],
+}, {
+    aliases: ['user'],
+    run: invalidUserCommand,
+}];
+
+export default userCommands;
