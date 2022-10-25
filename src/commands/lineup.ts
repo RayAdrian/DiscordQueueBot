@@ -263,7 +263,6 @@ function lineupJoin(commandInputs : CommandInputs) {
         content['User not added to any lineup'] = 'No valid lineup';
         sendMessageEmbed(message.channel, 'Lineups Join', content);
     }
-
 }
 
 /**
