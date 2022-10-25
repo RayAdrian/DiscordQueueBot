@@ -5,6 +5,7 @@ import { sendMessageEmbed } from '../utils';
 import gameCommands from './game';
 import helpCommands from './help';
 import lineupCommands, { specialJoinCommand } from './lineup';
+import userCommands from './user';
 
 /**
  * Class for generalizing inputs to command functions
@@ -35,6 +36,7 @@ const commands = [
     ...helpCommands,
     ...gameCommands,
     ...lineupCommands,
+    ...userCommands,
 ];
 
 // No need to check for prefix in command
