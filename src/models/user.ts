@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 export interface IUser {
     name: string;
-    gameNames: string[];
+    gameNames: Array<string>;
 };
 
 export class User {
