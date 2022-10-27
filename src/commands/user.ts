@@ -79,12 +79,77 @@ function userSave(commandInputs : CommandInputs) {
 }
 
 /**
- * Function to handle `.user delete <game/s>`
+ * Function to handle `.user remove <game/s>`
  * Remove game/s from user's game list
  * @param parameters - contains the necessary parameters for the command
  */
-function userDelete(commandInputs : CommandInputs) {
+function userRemove(commandInputs : CommandInputs) {
+const {
+        args, bot, cache, command, message,
+    } : {
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
 
+    // first validation
+    const argsCount = args.length;
+    if (argsCount < 1) {
+        sendMessageEmbed(
+            message.channel,
+            'Unexpected number of arguments',
+            `Expecting at least 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+        );
+        return;
+    }
+
+    // blocking game args validation
+    const errorMessages = [];
+    const gameNames = Array(...new Set(args.map(arg => arg?.trim()?.toLowerCase())));
+    const storedGameNames = cache.getGameNames();
+
+    if (!(gameNames.length === 1 && gameNames[0] === 'all')) { // validate game names
+        gameNames.forEach((gameName) => {
+            if (!ALPHANUMERIC.test(gameName)) {
+                errorMessages.push('Invalid game name. Should only consist of alphanumeric characters.');
+            } else if (!storedGameNames.includes(gameName)) {
+                errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
+            }
+        });
+    }
+
+    if (errorMessages.length) {
+        sendMessageEmbed(
+            message.channel,
+            'Invalid arguments',
+            errorMessages.join('\n'),
+        );
+        return;
+    }
+
+    // non-blocking validation and actual cache+db actions
+    const userId = `<@${message.author.id}>`;
+    cache.confirmUserInit(userId).then(() => {
+        const {
+            savedGames : validGameNames,
+            unsavedGames : invalidGameNames,
+        } = cache.processIfUserHasGames(userId, gameNames[0] === 'all' ? storedGameNames : gameNames);
+
+        // info messages and actual cache operations
+        const content = {};
+
+        if (invalidGameNames.length) {
+            content['Following games are not saved in the user\'s games list'] = `\`${invalidGameNames.join(' ')}\``;
+        }
+
+        if (validGameNames.length) {
+            cache.removeFromUserGames(userId, gameNames).then(() => {
+                content['Successfully removed the following games from your games list'] = `\`${validGameNames.join(' ')}\``;
+                sendMessageEmbed(message.channel, 'User Remove', content);
+            }).catch((error : Error) => sendErrorMessage(bot, error));
+        } else {
+            content['No games removed'] = 'None of the specified games are in the user\'s games list';
+            sendMessageEmbed(message.channel, 'User Remove', content);
+        }
+    });
 }
 
 /**
@@ -100,7 +165,7 @@ function invalidUserCommand(commandInputs : CommandInputs) {
             `Invalid \`${PREFIX}user\` command`,
             `
                 Command for \`${PREFIX}user\` lacking.
-                Possible options include \`save\`, and \`delete\`.
+                Possible options include \`save\`, and \`remove\`.
                 ie. \`.user save\`
             `,
         );
@@ -120,12 +185,12 @@ const userCommands = [{
     aliases: ['user save', 'save'],
     run: userSave,
     formats: ['user save <game/s>'],
-    descriptions: [''],
+    descriptions: ['save game/s to user list'],
 }, {
-    aliases: ['user delete', 'delete'],
-    run: userDelete,
-    formats: ['user delete <game/s>'],
-    descriptions: ['delete game/s from user list'],
+    aliases: ['user remove', 'remove'],
+    run: userRemove,
+    formats: ['user remove <game/s>'],
+    descriptions: ['remove game/s from user list'],
 }, {
     aliases: ['user'],
     run: invalidUserCommand,

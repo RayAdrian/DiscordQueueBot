@@ -24,6 +24,14 @@ export default class UsersCache {
         ).exec();
     }
 
+    removeFromUserGames(id : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
+        this.usersMap.get(id).deleteGameNames(gameNames);
+        return Users.findOneAndUpdate(
+            { id },
+            { gameNames: this.usersMap.get(id).getGameNames() }
+        ).exec();
+    }
+
     confirmUserInit(id : string) : Promise<void> {
         if (this.usersMap.has(id)) {
             return Promise.resolve();

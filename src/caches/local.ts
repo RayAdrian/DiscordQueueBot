@@ -108,6 +108,16 @@ export default class LocalCache {
     }
 
     /**
+     * Function to handle `.user remove <game/s>`
+     * Remove game/s from user's game list in cache and database
+     * @param user - name of the specified user
+     * @param gameNames - name of the games to be removed
+     */
+    removeFromUserGames(user : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
+        return this.usersCache.removeFromUserGames(user, gameNames);
+    }
+
+    /**
      * Check whether user 
      * @param user - specified user to check
      */
