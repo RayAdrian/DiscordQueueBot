@@ -45,17 +45,20 @@ export default class UsersCache {
      * @param gameNames - the list of games to process
      * @returns An object containing 2 arrays, one for saved games, and the other for unsaved games.
      */
-     processIfUserHasGames(
+    processIfUserHasGames(
         user : string, gameNames : Array<string>,
     ) : { savedGames: Array<string>; unsavedGames: Array<string>; } {
+
         const savedGames : Array<string> = []; // games not yet in user's gamelist
         const unsavedGames : Array<string> = []; // games already saved
 
+        const userGames : User = this.usersMap.get(user);
+
         gameNames.forEach((gameName) => {
-            if (this.usersMap.get(user).hasGame(gameName)) {
-                unsavedGames.push(gameName);
-            } else {
+            if (userGames.hasGame(gameName)) {
                 savedGames.push(gameName);
+            } else {
+                unsavedGames.push(gameName);
             }
         });
 
