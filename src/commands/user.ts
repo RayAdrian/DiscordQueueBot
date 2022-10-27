@@ -102,11 +102,11 @@ function userSave(commandInputs : CommandInputs) {
         if (validGameNames.length) {
             cache.saveToUserGames(userId, gameNames).then(() => {
                 content['Successfully saved the following games to your gameslist'] = `\`${validGameNames.join(' ')}\``;
-                sendMessageEmbed(message.channel, 'User Save', content);
+                sendMessageEmbed(message.channel, 'Notification', content);
             }).catch((error : Error) => sendErrorMessage(bot, error));
         } else {
             content['No games saved'] = 'All specified games already in user\'s saved games list';
-            sendMessageEmbed(message.channel, 'User Save', content);
+            sendMessageEmbed(message.channel, 'Notification', content);
         }
     });
 }
@@ -176,12 +176,46 @@ const {
         if (validGameNames.length) {
             cache.removeFromUserGames(userId, gameNames).then(() => {
                 content['Successfully removed the following games from your games list'] = `\`${validGameNames.join(' ')}\``;
-                sendMessageEmbed(message.channel, 'User Remove', content);
+                sendMessageEmbed(message.channel, 'Notification', content);
             }).catch((error : Error) => sendErrorMessage(bot, error));
         } else {
             content['No games removed'] = 'None of the specified games are in the user\'s games list';
-            sendMessageEmbed(message.channel, 'User Remove', content);
+            sendMessageEmbed(message.channel, 'Notification', content);
         }
+    });
+}
+
+/**
+ * Function to handle `.user clear`
+ * Clear all games from user's game list
+ * @param parameters - contains the necessary parameters for the command
+ */
+ function userClear(commandInputs : CommandInputs) {
+    const {
+        args, cache, command, message,
+    } : {
+        args : Array<string>, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
+    // first validation
+    const argsCount = args.length;
+    if (argsCount > 0) {
+        sendMessageEmbed(
+            message.channel,
+            'Unexpected number of arguments',
+            `Expecting at 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+        );
+        return;
+    }
+
+    // non-blocking validation and actual cache+db actions
+    const userId = `<@${message.author.id}>`;
+    cache.confirmUserInit(userId).then(() => {
+        cache.clearUserGames(userId).then(() => {
+            sendMessageEmbed(message.channel, 'Notification', 'Removed all games from user\'s save list');
+        }, (error) => {
+            sendMessageEmbed(message.channel, 'Error Notification ', error);
+        });
     });
 }
 
@@ -228,7 +262,12 @@ const userCommands = [{
     aliases: ['user remove', 'remove'],
     run: userRemove,
     formats: ['user remove <game/s>'],
-    descriptions: ['remove game/s from user list'],
+    descriptions: ['remove game/s from user save list'],
+}, {
+    aliases: ['user clear', 'clear'],
+    run: userClear,
+    formats: ['user clear'],
+    descriptions: ['clear all games from user save list'],
 }, {
     aliases: ['user'],
     run: invalidUserCommand,

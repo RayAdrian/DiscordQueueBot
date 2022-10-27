@@ -41,7 +41,7 @@ export class User {
         gameNames.forEach((gameName) => this.gameNames.delete(gameName));
     }
 
-    clear() : void {
+    clearGameNames() : void {
         this.gameNames.clear();
     }
 }

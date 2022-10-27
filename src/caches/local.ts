@@ -124,6 +124,14 @@ export default class LocalCache {
     }
 
     /**
+     * Clear all games from user's game list in cache and database
+     * @param userId - id of the specified user
+     */
+    clearUserGames(userId : string) : Promise<IUser & Document<any, any, IUser>> {
+        return this.usersCache.clearUserGames(userId);
+    }
+
+    /**
      * Check whether user has been initialized in the users cache
      * @param user - specified user to check
      */
