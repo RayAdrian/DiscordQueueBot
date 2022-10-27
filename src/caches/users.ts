@@ -16,10 +16,20 @@ export default class UsersCache {
         });
     }
 
+    /**
+     * Get list of games saved by a user
+     * @param user - name of the specified user
+     * @returns list of strings of game names
+     */
     getUserGames(id : string) : Array<string> {
         return this.usersMap.get(id).getGameNames();
     }
 
+    /**
+     * Save game/s to user's game list in cache and database
+     * @param user - name of the specified user
+     * @param gameNames - name of the games to be saved
+     */
     saveToUserGames(id : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
         this.usersMap.get(id).addGameNames(gameNames);
         return Users.findOneAndUpdate(
@@ -28,6 +38,11 @@ export default class UsersCache {
         ).exec();
     }
 
+    /**
+     * Remove game/s from user's game list in cache and database
+     * @param user - name of the specified user
+     * @param gameNames - name of the games to be removed
+     */
     removeFromUserGames(id : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
         this.usersMap.get(id).deleteGameNames(gameNames);
         return Users.findOneAndUpdate(
@@ -36,6 +51,10 @@ export default class UsersCache {
         ).exec();
     }
 
+    /**
+     * Check whether user has been initialized in the users cache
+     * @param user - specified user to check
+     */
     confirmUserInit(id : string) : Promise<void> {
         if (this.usersMap.has(id)) {
             return Promise.resolve();
