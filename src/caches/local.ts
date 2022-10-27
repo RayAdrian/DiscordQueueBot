@@ -130,7 +130,7 @@ export default class LocalCache {
     /**
      * Get a copy of a specified game's lineup
      * @param gameName - name of the lineup to be retrieved
-     * @returns array of user id strings in the lineup
+     * @returns Lineup object
      */
     getLineup(gameName : string) : Lineup {
         return this.lineupsCache.getLineup(gameName);
@@ -138,7 +138,7 @@ export default class LocalCache {
 
     /**
      * Get a deep copy of the list of lineups
-     * @returns List of lineups per game
+     * @returns List of Lineup objects
      */
     getLineups() : Array<Lineup> {
         return this.lineupsCache.getLineups();
@@ -148,7 +148,7 @@ export default class LocalCache {
      * Get a specific list of lineups
      * @param gameNames - list of names of game lineups to fetch
      * @param fullOnly - optional param to only fetch full lineups
-     * @returns List of lineups per game
+     * @returns List of Lineup objects
      */
     getFilteredLineups(
         gameNames : Array<string>, fullOnly : boolean = false,
