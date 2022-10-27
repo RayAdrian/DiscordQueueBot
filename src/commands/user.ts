@@ -51,36 +51,31 @@ function userSave(commandInputs : CommandInputs) {
         return;
     }
 
-    // non-blocking game args validation
+    // non-blocking validation and actual cache+db actions
     const user = `<@${message.author.id}>`;
+    cache.confirmUserInit(user).then(() => {
+        const {
+            unsavedGames : validGameNames,
+            savedGames : invalidGameNames,
+        } = cache.processIfUserHasGames(user, gameNames[0] === 'all' ? storedGameNames : gameNames);
 
-    const validGameNames = []; // games not yet in user's gamelist
-    const invalidGameNames = []; // games already saved
+        // info messages and actual cache operations
+        const content = {};
 
-    (gameNames[0] === 'all' ? storedGameNames : gameNames).forEach((gameName) => {
-        if (cache.userHasGame(user, gameName)) {
-            invalidGameNames.push(gameName);
+        if (invalidGameNames.length) {
+            content['Following games already saved in user\'s games list'] = `\`${invalidGameNames.join(' ')}\``;
+        }
+
+        if (validGameNames.length) {
+            cache.saveToUserGames(user, gameNames).then(() => {
+                content['Successfully saved the following games to your gameslist'] = `\`${gameNames.join(' ')}\``;
+                sendMessageEmbed(message.channel, 'User Save', content);
+            }).catch((error : Error) => sendErrorMessage(bot, error));
         } else {
-            validGameNames.push(gameName);
+            content['No games saved'] = 'All specified games already in user\'s saved games list';
+            sendMessageEmbed(message.channel, 'User Save', content);
         }
     });
-
-    // info messages and actual cache operations
-    const content = {};
-
-    if (invalidGameNames.length) {
-        content['Following games already saved in user\'s games list'] = `\`${invalidGameNames.join(' ')}\``;
-    }
-
-    if (validGameNames.length) {
-        cache.saveToUserGames(user, gameNames).then(() => {
-            content['Successfully saved the following games to your gameslist'] = `\`${gameNames.join(' ')}\``;
-            sendMessageEmbed(message.channel, 'User Save', content);
-        }).catch((error : Error) => sendErrorMessage(bot, error));
-    } else {
-        content['No games saved'] = 'All specified games already in user\'s saved games list';
-        sendMessageEmbed(message.channel, 'User Save', content);
-    }
 }
 
 /**

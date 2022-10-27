@@ -107,8 +107,24 @@ export default class LocalCache {
         return this.usersCache.saveToUserGames(user, gameNames);
     }
 
-    userHasGame(user : string, gameName : string) : boolean {
-        return this.usersCache.userHasGame(user, gameName);
+    /**
+     * Check whether user 
+     * @param user - specified user to check
+     */
+    confirmUserInit(user : string) : Promise<void> {
+        return this.usersCache.confirmUserInit(user);
+    }
+
+    /**
+     * Split games into games that the user has saved, and games that they have not.
+     * @param user - the specified user
+     * @param gameNames - the list of games to process
+     * @returns An object containing 2 arrays, one for saved games, and the other for unsaved games.
+     */
+    processIfUserHasGames(
+        user : string, gameNames : Array<string>,
+    ) : { savedGames: Array<string>; unsavedGames: Array<string>; } {
+        return this.usersCache.processIfUserHasGames(user, gameNames);
     }
 
     /**
