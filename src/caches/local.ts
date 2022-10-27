@@ -99,6 +99,15 @@ export default class LocalCache {
 
     /**
      * Function to handle `.user save <game/s>`
+     * Get list of games saved by a user
+     * @param user - name of the specified user
+     */
+    getUserGames(user : string) : Array<string> {
+        return this.usersCache.getUserGames(user);
+    }
+
+    /**
+     * Function to handle `.user save <game/s>`
      * Save game/s to user's game list in cache and database
      * @param user - name of the specified user
      * @param gameNames - name of the games to be saved

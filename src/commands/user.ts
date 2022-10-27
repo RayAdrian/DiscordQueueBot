@@ -5,6 +5,39 @@ import { sendErrorMessage, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**
+ * Function to handle `.user view <game/s>`
+ * View list of games saved by the user
+ * @param parameters - contains the necessary parameters for the command
+ */
+ function userView(commandInputs : CommandInputs) {
+    const {
+        args, cache, command, message,
+    } : {
+        args : Array<string>, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
+    // first validation
+    const argsCount = args.length;
+    if (argsCount > 0) {
+        sendMessageEmbed(
+            message.channel,
+            'Unexpected number of arguments',
+            `Expecting at 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+        );
+        return;
+    }
+
+    // non-blocking validation and actual cache+db actions
+    const userId = `<@${message.author.id}>`;
+    cache.confirmUserInit(userId).then(() => {
+        const userGames = cache.getUserGames(userId);
+        const title = `Saved Games - ${message.author.username}`;
+        const content = userGames.length ? `${userGames.join('\n')}` : 'No games saved';
+        sendMessageEmbed(message.channel, title, { Games: content });
+    });
+}
+
+/**
  * Function to handle `.user save <game/s>`
  * Save game/s to user's game list
  * @param parameters - contains the necessary parameters for the command
@@ -182,6 +215,11 @@ function invalidUserCommand(commandInputs : CommandInputs) {
  * Commands for users
  */
 const userCommands = [{
+    aliases: ['user view', 'view', 'user savelist', 'savelist', 'user save list', 'save list'],
+    run: userView,
+    formats: ['user view'],
+    descriptions: ['view list of games saved by the user'],
+}, {
     aliases: ['user save', 'save'],
     run: userSave,
     formats: ['user save <game/s>'],

@@ -16,6 +16,10 @@ export default class UsersCache {
         });
     }
 
+    getUserGames(id : string) : Array<string> {
+        return this.usersMap.get(id).getGameNames();
+    }
+
     saveToUserGames(id : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
         this.usersMap.get(id).addGameNames(gameNames);
         return Users.findOneAndUpdate(
