@@ -33,6 +33,7 @@ export default class LocalCache {
     /**
      * Get a copy of the data of a game
      * @param name - name of the game
+     * @returns a Game object
      */
     getGame(name : string) : Game {
         return this.gamesCache.getGame(name);
@@ -41,6 +42,7 @@ export default class LocalCache {
     /**
      * Get the role associated to a game
      * @param name - name of the game
+     * @returns the role id string
      */
     getRole(name : string) : string {
         return this.gamesCache.getGame(name).roleId;
@@ -48,14 +50,13 @@ export default class LocalCache {
 
     /**
      * Get a deep copy of the list of game names stored in the games cache.
-     * @returns An array of strings with the list of the names of the games
+     * @returns an array of strings with the list of the names of the games
      */
     getGameNames() : Array<string> {
         return this.gamesCache.getGameNames();
     }
 
     /**
-     * Function to handle `.game add <name> <role> <limit>`
      * Add a game to local games cache and to the database
      * @param name - name of the game
      * @param roleId - role to link to game
@@ -72,7 +73,6 @@ export default class LocalCache {
     }
 
     /**
-     * Function to handle `.game edit <name> <role> <?limit>`
      * Edit a game's set parameters
      * @param name - name of the game
      * @param roleId - role to link to game
@@ -87,7 +87,6 @@ export default class LocalCache {
     }
 
     /**
-     * Function to handle `.game remove <name>`
      * Remove a game (and it's lineup/s) from the cache and database
      * @param name - name of the game
      */
@@ -98,16 +97,15 @@ export default class LocalCache {
     }
 
     /**
-     * Function to handle `.user save <game/s>`
      * Get list of games saved by a user
      * @param user - name of the specified user
+     * @returns list of strings of game names
      */
     getUserGames(user : string) : Array<string> {
         return this.usersCache.getUserGames(user);
     }
 
     /**
-     * Function to handle `.user save <game/s>`
      * Save game/s to user's game list in cache and database
      * @param user - name of the specified user
      * @param gameNames - name of the games to be saved
@@ -117,7 +115,6 @@ export default class LocalCache {
     }
 
     /**
-     * Function to handle `.user remove <game/s>`
      * Remove game/s from user's game list in cache and database
      * @param user - name of the specified user
      * @param gameNames - name of the games to be removed
@@ -127,7 +124,7 @@ export default class LocalCache {
     }
 
     /**
-     * Check whether user 
+     * Check whether user has been initialized in the users cache
      * @param user - specified user to check
      */
     confirmUserInit(user : string) : Promise<void> {
@@ -138,7 +135,7 @@ export default class LocalCache {
      * Split games into games that the user has saved, and games that they have not.
      * @param userId - id of the specified user
      * @param gameNames - the list of games to process
-     * @returns An object containing 2 arrays, one for saved games, and the other for unsaved games.
+     * @returns an object containing 2 arrays, one for saved games, and the other for unsaved games
      */
     processIfUserHasGames(
         userId : string, gameNames : Array<string>,
@@ -149,7 +146,7 @@ export default class LocalCache {
     /**
      * Get a copy of a specified game's lineup
      * @param gameName - name of the lineup to be retrieved
-     * @returns Lineup object
+     * @returns a Lineup object
      */
     getLineup(gameName : string) : Lineup {
         return this.lineupsCache.getLineup(gameName);
@@ -157,7 +154,7 @@ export default class LocalCache {
 
     /**
      * Get a deep copy of the list of lineups
-     * @returns List of Lineup objects
+     * @returns list of Lineup objects
      */
     getLineups() : Array<Lineup> {
         return this.lineupsCache.getLineups();
@@ -167,7 +164,7 @@ export default class LocalCache {
      * Get a specific list of lineups
      * @param gameNames - list of names of game lineups to fetch
      * @param fullOnly - optional param to only fetch full lineups
-     * @returns List of Lineup objects
+     * @returns list of Lineup objects
      */
     getFilteredLineups(
         gameNames : Array<string>, fullOnly : boolean = false,
@@ -181,7 +178,8 @@ export default class LocalCache {
 
     /**
      * Get the lineups a user is part in
-     * @param user
+     * @param user - id of the specified user
+     * @returns list of Lineup objects
      */
     getUserLineups(user : string) : Array<Lineup> { 
         return this.lineupsCache.getUserLineups(user);
@@ -249,7 +247,7 @@ export default class LocalCache {
     /**
      * Check if lineup is full
      * @param gameName - name of game lineup to check
-     * @returns boolean whether lineup is full
+     * @returns true if the lineup is full, false otherwise
      */
     isLineupFull(gameName : string) : boolean {
         const { isInfinite, limit } = this.getGame(gameName);
@@ -267,6 +265,7 @@ export default class LocalCache {
     /**
      * Check how many slots are available in a lineup
      * @param gameName - name of game lineup to check
+     * @returns the number of slots remaining
      */
     getLineupOpenings(gameName : string) : number {
         const { isInfinite, limit } = this.getGame(gameName);
@@ -278,6 +277,12 @@ export default class LocalCache {
         return limit - userCount;
     }
 
+    /**
+     * Check if a user is in a lineup
+     * @param gameName  - name of game lineup to check
+     * @param user - id of the specified user
+     * @returns true if the user is in the lineup, false otherwise
+     */
     lineupHasUser(gameName, user) : boolean {
         return this.getLineup(gameName).hasUser(user);
     }
