@@ -52,12 +52,12 @@ function userSave(commandInputs : CommandInputs) {
     }
 
     // non-blocking validation and actual cache+db actions
-    const user = `<@${message.author.id}>`;
-    cache.confirmUserInit(user).then(() => {
+    const userId = `<@${message.author.id}>`;
+    cache.confirmUserInit(userId).then(() => {
         const {
             unsavedGames : validGameNames,
             savedGames : invalidGameNames,
-        } = cache.processIfUserHasGames(user, gameNames[0] === 'all' ? storedGameNames : gameNames);
+        } = cache.processIfUserHasGames(userId, gameNames[0] === 'all' ? storedGameNames : gameNames);
 
         // info messages and actual cache operations
         const content = {};
@@ -67,8 +67,8 @@ function userSave(commandInputs : CommandInputs) {
         }
 
         if (validGameNames.length) {
-            cache.saveToUserGames(user, gameNames).then(() => {
-                content['Successfully saved the following games to your gameslist'] = `\`${gameNames.join(' ')}\``;
+            cache.saveToUserGames(userId, gameNames).then(() => {
+                content['Successfully saved the following games to your gameslist'] = `\`${validGameNames.join(' ')}\``;
                 sendMessageEmbed(message.channel, 'User Save', content);
             }).catch((error : Error) => sendErrorMessage(bot, error));
         } else {

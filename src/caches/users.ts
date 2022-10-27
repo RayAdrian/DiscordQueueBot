@@ -10,49 +10,43 @@ export default class UsersCache {
 
     fetch() : Promise<void> {
         return Users.find({}).exec().then((data) => {
-            data.forEach(({ name, gameNames }) => {
-                this.usersMap.set(name, new User(name, gameNames));
+            data.forEach(({ id, gameNames }) => {
+                this.usersMap.set(id, new User(id, gameNames));
             });
         });
     }
 
-    saveToUserGames(user : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
-        if (this.usersMap.has(user)) {
-            this.usersMap.get(user).addGameNames(gameNames);
-            return Users.findOneAndUpdate(
-                { user },
-                { gameNames: this.usersMap.get(user).getGameNames() }
-            ).exec();
-        }
-
-        const newUser = new User(user, gameNames);
-        this.usersMap.set(user, newUser);
-        return Users.create(newUser.getUserWrapper());
+    saveToUserGames(id : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
+        this.usersMap.get(id).addGameNames(gameNames);
+        return Users.findOneAndUpdate(
+            { id },
+            { gameNames: this.usersMap.get(id).getGameNames() }
+        ).exec();
     }
 
-    confirmUserInit(user : string) : Promise<void> {
-        if (this.usersMap.has(user)) {
+    confirmUserInit(id : string) : Promise<void> {
+        if (this.usersMap.has(id)) {
             return Promise.resolve();
         }
-        const newUser = new User(user, []);
-        this.usersMap.set(user, newUser);
+        const newUser = new User(id, []);
+        this.usersMap.set(id, newUser);
         return Users.create(newUser.getUserWrapper()).then(() => {});
     }
 
     /**
      * Split games into games that the user has saved, and games that they have not.
-     * @param user - the specified user
+     * @param id - id of the specified user
      * @param gameNames - the list of games to process
      * @returns An object containing 2 arrays, one for saved games, and the other for unsaved games.
      */
     processIfUserHasGames(
-        user : string, gameNames : Array<string>,
+        id : string, gameNames : Array<string>,
     ) : { savedGames: Array<string>; unsavedGames: Array<string>; } {
 
         const savedGames : Array<string> = []; // games not yet in user's gamelist
         const unsavedGames : Array<string> = []; // games already saved
 
-        const userGames : User = this.usersMap.get(user);
+        const userGames : User = this.usersMap.get(id);
 
         gameNames.forEach((gameName) => {
             if (userGames.hasGame(gameName)) {

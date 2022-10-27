@@ -1,28 +1,28 @@
 import mongoose from 'mongoose';
 
 export interface IUser {
-    name: string;
+    id: string;
     gameNames: Array<string>;
 };
 
 export class User {
-    private name: string;
+    private id: string;
     private gameNames: Set<string>;
 
-    constructor(name : string, gameNames : Array<string> = []) {
-        this.name = name;
+    constructor(id : string, gameNames : Array<string> = []) {
+        this.id = id;
         this.gameNames = new Set(gameNames);
     }
 
     getUserWrapper() : IUser {
         return {
-            name: this.name,
+            id: this.id,
             gameNames: [...this.gameNames],
         }
     }
 
-    getName() : string {
-        return this.name;
+    getId() : string {
+        return this.id;
     }
 
     getGameNames() : Array<string> {
@@ -47,7 +47,7 @@ export class User {
 }
 
 const userSchema = new mongoose.Schema<IUser>({
-    name: {
+    id: {
         type: String,
         required: true,
     },

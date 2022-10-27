@@ -117,14 +117,14 @@ export default class LocalCache {
 
     /**
      * Split games into games that the user has saved, and games that they have not.
-     * @param user - the specified user
+     * @param userId - id of the specified user
      * @param gameNames - the list of games to process
      * @returns An object containing 2 arrays, one for saved games, and the other for unsaved games.
      */
     processIfUserHasGames(
-        user : string, gameNames : Array<string>,
+        userId : string, gameNames : Array<string>,
     ) : { savedGames: Array<string>; unsavedGames: Array<string>; } {
-        return this.usersCache.processIfUserHasGames(user, gameNames);
+        return this.usersCache.processIfUserHasGames(userId, gameNames);
     }
 
     /**
