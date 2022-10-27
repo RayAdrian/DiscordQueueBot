@@ -98,29 +98,29 @@ export default class LocalCache {
 
     /**
      * Get list of games saved by a user
-     * @param user - name of the specified user
+     * @param userId - id of the specified user
      * @returns list of strings of game names
      */
-    getUserGames(user : string) : Array<string> {
-        return this.usersCache.getUserGames(user);
+    getUserGames(userId : string) : Array<string> {
+        return this.usersCache.getUserGames(userId);
     }
 
     /**
      * Save game/s to user's game list in cache and database
-     * @param user - name of the specified user
+     * @param userId - id of the specified user
      * @param gameNames - name of the games to be saved
      */
-    saveToUserGames(user : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
-        return this.usersCache.saveToUserGames(user, gameNames);
+    saveToUserGames(userId : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
+        return this.usersCache.saveToUserGames(userId, gameNames);
     }
 
     /**
      * Remove game/s from user's game list in cache and database
-     * @param user - name of the specified user
+     * @param userId - id of the specified user
      * @param gameNames - name of the games to be removed
      */
-    removeFromUserGames(user : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
-        return this.usersCache.removeFromUserGames(user, gameNames);
+    removeFromUserGames(userId : string, gameNames : Array<string>) : Promise<IUser & Document<any, any, IUser>> {
+        return this.usersCache.removeFromUserGames(userId, gameNames);
     }
 
     /**
@@ -133,10 +133,10 @@ export default class LocalCache {
 
     /**
      * Check whether user has been initialized in the users cache
-     * @param user - specified user to check
+     * @param userId - id of the specified user
      */
-    confirmUserInit(user : string) : Promise<void> {
-        return this.usersCache.confirmUserInit(user);
+    confirmUserInit(userId : string) : Promise<void> {
+        return this.usersCache.confirmUserInit(userId);
     }
 
     /**
@@ -186,55 +186,55 @@ export default class LocalCache {
 
     /**
      * Get the lineups a user is part in
-     * @param user - id of the specified user
+     * @param userId - id of the specified user
      * @returns list of Lineup objects
      */
-    getUserLineups(user : string) : Array<Lineup> { 
-        return this.lineupsCache.getUserLineups(user);
+    getUserLineups(userId : string) : Array<Lineup> { 
+        return this.lineupsCache.getUserLineups(userId);
     }
 
     /**
      * Adds user/s to a specified lineup
      * @param gameName - name of the game of the relevant lineup
-     * @param users - user ids to be added to the lineup
+     * @param userIds - user ids to be added to the lineup
      */
     addUsersToLineup(
-        gameName : string, users : Array<string>,
+        gameName : string, userIds : Array<string>,
     ) : Promise<ILineup & Document<any, any, ILineup>> {
-        return this.lineupsCache.addUsers(gameName, users);
+        return this.lineupsCache.addUsers(gameName, userIds);
     }
 
     /**
      * Adds a user to the specified lineups
      * @param gameNames - game names of the specified lineups
-     * @param user - user id to be added to the lineups
+     * @param userId - user id to be added to the lineups
      */
     joinLineups(
-        gameNames : Array<string>, user : string,
+        gameNames : Array<string>, userId : string,
     ) : Promise<(ILineup & Document<any, any, ILineup>)[]> {
-        return this.lineupsCache.joinLineups(gameNames, user);
+        return this.lineupsCache.joinLineups(gameNames, userId);
     }
 
     /**
      * Removes user/s from a specified lineup
      * @param gameName - game name of the specified lineup
-     * @param users - user ids to be removed from the lineup
+     * @param userIds - user ids to be removed from the lineup
      */
     removeUsersFromLineup(
-        gameName : string, users : Array<string>,
+        gameName : string, userIds : Array<string>,
     ) : Promise<ILineup & Document<any, any, ILineup>> {
-        return this.lineupsCache.removeUsers(gameName, users);
+        return this.lineupsCache.removeUsers(gameName, userIds);
     }
 
     /**
      * Removes a user from the specified lineups
      * @param gameNames - game names of the specified lineups
-     * @param user - user id to be removed from the lineups
+     * @param userId - user id to be removed from the lineups
      */
     leaveLineups(
-        gameNames : Array<string>, user : string,
+        gameNames : Array<string>, userId : string,
     ) : Promise<(ILineup & Document<any, any, ILineup>)[]> {
-        return this.lineupsCache.leaveLineups(gameNames, user);
+        return this.lineupsCache.leaveLineups(gameNames, userId);
     }
 
     /**
@@ -288,10 +288,10 @@ export default class LocalCache {
     /**
      * Check if a user is in a lineup
      * @param gameName  - name of game lineup to check
-     * @param user - id of the specified user
+     * @param userId - id of the specified user
      * @returns true if the user is in the lineup, false otherwise
      */
-    lineupHasUser(gameName, user) : boolean {
-        return this.getLineup(gameName).hasUser(user);
+    lineupHasUser(gameName, userId) : boolean {
+        return this.getLineup(gameName).hasUser(userId);
     }
 };
