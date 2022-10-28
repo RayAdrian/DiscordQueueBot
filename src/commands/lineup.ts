@@ -183,55 +183,53 @@ function lineupAdd(commandInputs : CommandInputs) {
  */
 function lineupJoin(commandInputs : CommandInputs) {
     const {
-        args, bot, cache, command, message,
+        args, bot, cache, message,
     } : {
-        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, bot : Client, cache : LocalCache, message : Message,
     } = commandInputs;
 
-    // first validation
     const argsCount = args.length;
-    if (argsCount < 1) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expecting at least 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
-        return;
-    }
+    const user = `<@${message.author.id}>`;
+    let gameNames = argsCount === 0
+        ? cache.getUserGames(user)
+        : Array(...new Set(args.map(arg => arg?.trim()?.toLowerCase())));
 
     // blocking game args validation
-    const errorMessages = [];
-    const gameNames = args.map(arg => arg?.trim()?.toLowerCase());
-    const storedGameNames = cache.getGameNames();
+    if (argsCount > 0) {
+        const isJoinAll = gameNames.length === 1 && gameNames[0] === 'all';
+        const errorMessages = [];
+        const storedGameNames = cache.getGameNames();
 
-    if (!(gameNames.length === 1 && gameNames[0] === 'all')) { // validate game names
-        gameNames.forEach((gameName) => {
-            if (!ALPHANUMERIC.test(gameName)) {
-                errorMessages.push('Invalid game name. Should only consist of alphanumeric characters.');
-            } else if (!storedGameNames.includes(gameName)) {
-                errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
-            }
-        });
-    }
+        if (!isJoinAll) { // validate game names
+            gameNames.forEach((gameName) => {
+                if (!ALPHANUMERIC.test(gameName)) {
+                    errorMessages.push('Invalid game name. Should only consist of alphanumeric characters.');
+                } else if (!storedGameNames.includes(gameName)) {
+                    errorMessages.push(`Invalid game name. Cannot find the game \`${gameName}\`.`);
+                }
+            });
+        }
 
-    if (errorMessages.length) {
-        sendMessageEmbed(
-            message.channel,
-            'Invalid arguments',
-            errorMessages.join('\n'),
-        );
-        return;
+        if (errorMessages.length) {
+            sendMessageEmbed(
+                message.channel,
+                'Invalid arguments',
+                errorMessages.join('\n'),
+            );
+            return;
+        }
+
+        if (isJoinAll) {
+            gameNames = storedGameNames;
+        }
     }
 
     // non-blocking game args validation
-    const uniqueGameNames = Array(...new Set(gameNames));
-    const user = `<@${message.author.id}>`;
-
     const fullGameNames = []; // full lineups
     const invalidGameNames = []; // lineups user is already in
     const validGameNames = []; // lineups user can join
 
-    (gameNames[0] === 'all' ? storedGameNames : uniqueGameNames).forEach((gameName) => {
+    gameNames.forEach((gameName) => {
         if (cache.lineupHasUser(gameName, user)) {
             invalidGameNames.push(gameName);
         } else if (cache.isLineupFull(gameName)) {
