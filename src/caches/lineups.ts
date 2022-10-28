@@ -105,7 +105,7 @@ export default class LineupsCache {
     addLineup(gameName : string) : Promise<ILineup & Document<any, any, ILineup>> {
         const newLineup = new Lineup(gameName, []);
         this.lineups.set(gameName, newLineup);
-        return Lineups.create(newLineup);
+        return Lineups.create(newLineup.getLineupWrapper());
     }
 
     /**

@@ -37,6 +37,7 @@ export const RESERVED_KEYWORDS = [
     'remove',
     'reset',
     'save',
+    'savelist',
     'user',
 ];
 export const ALPHANUMERIC = /^[a-z0-9]+$/i;

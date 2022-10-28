@@ -4,6 +4,7 @@ import { sendMessage } from '../utils';
 import gameCommands from './game';
 import lineupCommands, { specialJoinCommand } from './lineup';
 import { CommandInputs } from './processCommand';
+import userCommands from './user';
 
 const getDescriptions = (commands) => {
     const collatedFormats = [];
@@ -26,6 +27,7 @@ const getDescriptions = (commands) => {
 const helpDescriptions = {
     'Games': getDescriptions(gameCommands),
     'Lineups': getDescriptions([...lineupCommands, specialJoinCommand]),
+    'Users': getDescriptions(userCommands),
 };
 
 /**
