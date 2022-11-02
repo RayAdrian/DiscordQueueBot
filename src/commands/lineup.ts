@@ -29,7 +29,7 @@ function completeLineupWorker(
 }
 
 /**
- * Function for `lineup list`  / `lineup list <game/s>` commands
+ * Function for `lineup list` / `lineup list <game/s>` commands
  * Sends list of all lineups
  * @param commandInputs - contains the necessary parameters for the command
  */
@@ -44,15 +44,19 @@ function lineupList(commandInputs : CommandInputs) {
     if (
         gameNames.length === 0
         || (gameNames.length === 1 && gameNames[0] === 'all')
-    ) { // list all lineups
-        const lineups = cache.getLineups();
-        const content = {};
-        lineups.forEach((lineup) => {
-            const capitalisedGameName = lineup.getGameName().toLocaleUpperCase();
-            const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join(' ')}` : '\`No players in lineup\`';
-            content[capitalisedGameName] = gameLineupsString;
-        }) 
-        sendMessageEmbed(message.channel, 'Lineups', content);
+    ) { // list all non-empty lineups
+        const lineups = cache.getLineups().filter((lineup) => lineup.getUserCount() > 0);
+        if (lineups.length > 0) {
+            const content = {};
+            lineups.forEach((lineup) => {
+                const capitalisedGameName = lineup.getGameName().toLocaleUpperCase();
+                const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join(' ')}` : '\`No players in lineup\`';
+                content[capitalisedGameName] = gameLineupsString;
+            }) 
+            sendMessageEmbed(message.channel, 'Lineups', content);
+        } else {
+            sendMessageEmbed(message.channel, 'Lineups', 'All lineups empty');
+        }
     } else if (gameNames.length > 0) { // list specified lineups
         // validation
         const errorMessages = []; 
