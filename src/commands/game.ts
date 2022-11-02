@@ -1,7 +1,7 @@
 import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches';
 import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants';
-import { isValidLimit, isValidRole, sendErrorMessage, sendMessage, sendMessageEmbed } from '../utils';
+import { isValidLimit, isValidRole, sendErrorMessage, sendMessageEmbed } from '../utils';
 import { CommandInputs } from './processCommand';
 
 /**

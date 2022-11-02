@@ -1,12 +1,13 @@
-import { Client } from 'discord.js';
+import { Client, TextChannel } from 'discord.js';
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
+import cron from 'node-cron';
 import { LocalCache } from './caches';
 import { processCommand } from './commands';
-import { PREFIX } from './common/constants';
+import { MAIN_CHANNEL_ID, PREFIX, RESET_CRON_SCHEDULE } from './common/constants';
 import { Lineups } from './models';
-import { sendErrorMessage, sendInfoMessage } from './utils';
+import { sendErrorMessage, sendInfoMessage, sendMessageEmbed } from './utils';
 
 // For local development
 dotenv.config();
@@ -69,5 +70,19 @@ if (process.env.ALLOW_LEGACY_MESSAGING) {
         }
     });
 }
+
+/** Reset lineups daily based on a schedule */
+cron.schedule(RESET_CRON_SCHEDULE, () => {
+    localCache.resetAllLineups().then(() => {
+        sendMessageEmbed(
+            bot.channels.cache.get(MAIN_CHANNEL_ID) as TextChannel,
+            'Notification',
+            'All lineups have been reset.',
+        );
+    }).catch((error : Error) => sendErrorMessage(bot, error));
+}, {
+    scheduled: true,
+    timezone: "Asia/Manila", // TODO: base timezone based on guild (server) config
+});
 
 bot.login(process.env.BOT_TOKEN);
