@@ -14,7 +14,7 @@ Main problem with this version was all the code was cluttered and crammed into a
 
 ### V2.0
 The new and improved Version 2.0, code-wise and UX-wise. \
-The whole code was refactored so that there is structure. Every function is now it's appropriate file and folder \\
+The whole code was refactored so that there is structure. Every function is now in it's appropriate file and folder \
 Changes:
 - The code now uses Typescript
 - Lineups are now stored in a database (MongoDB). Previously the lineups are erased once the heroku/gcloud instance decides to restart.
