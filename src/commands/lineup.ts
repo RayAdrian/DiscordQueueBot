@@ -464,7 +464,7 @@ function lineupReset(commandInputs : CommandInputs) {
                 message.channel,
                 'Notification',
                 {
-                    [fieldTitle]: uniqueGameNames.join('\n'),
+                    [fieldTitle]: `\`${uniqueGameNames.join('\n')}\``,
                 },
             );
         }).catch((error : Error) => sendErrorMessage(bot, error));
