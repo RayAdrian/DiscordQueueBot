@@ -81,11 +81,20 @@ function lineupList(commandInputs : CommandInputs) {
         const uniqueGameNames = Array(...new Set(gameNames));
         const lineups = cache.getFilteredLineups(uniqueGameNames);
         const content = {};
-        lineups.forEach((lineup) => {
+
+        if (lineups.length === 1) {
+            const lineup = lineups[0];
             const capitalisedGameName = lineup.getGameName().toLocaleUpperCase();
-            const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join(' ')}` : '\`No players in lineup\`';
+            const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join('\n')}` : '\`No players in lineup\`';
             content[capitalisedGameName] = gameLineupsString;
-        }) 
+        } else {
+            lineups.forEach((lineup) => {
+                const capitalisedGameName = lineup.getGameName().toLocaleUpperCase();
+                const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join(' ')}` : '\`No players in lineup\`';
+                content[capitalisedGameName] = gameLineupsString;
+            });
+        }
+
         sendMessageEmbed(message.channel, 'Lineups', content);
     }
 }
