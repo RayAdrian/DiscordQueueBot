@@ -24,7 +24,7 @@ function completeLineupWorker(
         `);
     });
     if (completedLineupsStrings.length > 0) {
-        sendMessage(message.channel, completedLineupsStrings.join('\n'));
+        sendMessage(message.channel, completedLineupsStrings.join('\n'), () => {});
     }
 }
 
