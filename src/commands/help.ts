@@ -9,7 +9,7 @@ import userCommands from './user';
 const getDescriptions = (commands) : Array<{ name : string, value : string }> => {
     return commands
         .filter(({ name, formats, descriptions }) => (name?.length && formats?.length && descriptions?.length))
-        .map(({ name, aliases, formats, descriptions }) => ({
+        .map(({ name, aliases = ['None'], formats, descriptions }) => ({
             name,
             value: `
                 *Aliases: ${aliases.join(', ')}*\n
