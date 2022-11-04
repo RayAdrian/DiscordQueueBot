@@ -682,7 +682,7 @@ export const specialJoinCommand = {
     name: 'Special Lineup Join',
     run: lineupJoin,
     formats: ['<game>'],
-    descriptions: ['join the specified lineup'],
+    descriptions: ['join the specified game\'s lineup'],
 };
 
 export default lineupCommands;
