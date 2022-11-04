@@ -14,6 +14,7 @@ const getDescriptions = (commands) : Array<{ name : string, value : string }> =>
             value: `
                 *Aliases: ${aliases.join(', ')}*\n
                 ${formats.map((format, index) => `\`${PREFIX}${format}\`\n${descriptions[index]}\n`).join('\n')}
+                \u200b
             `,
         }));
 };
@@ -38,10 +39,11 @@ function help(commandInputs : CommandInputs) {
         .addField('Aliases', `
             Alternate keywords for the command.
             ie. \`${PREFIX}lineup add\` = \`${PREFIX}add\`
+            \u200b
         `);
 
     Object.entries(helpDescriptions).forEach(([category, commands]) => {
-        helpEmbed.addField(`\u200b\n${category} Commands`, '\u200b');
+        helpEmbed.addField(`${category} Commands`, '\u200b');
         commands.forEach(({ name, value }) => {
             helpEmbed.addField(name, value, true);
         });
