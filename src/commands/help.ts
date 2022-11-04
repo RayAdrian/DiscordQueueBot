@@ -6,22 +6,16 @@ import lineupCommands, { specialJoinCommand } from './lineup';
 import { CommandInputs } from './processCommand';
 import userCommands from './user';
 
-const getDescriptions = (commands) => {
-    const collatedFormats = [];
-    const collatedDescriptions = [];
-    commands
-        .filter(({ formats, descriptions }) => (formats?.length && descriptions?.length))
-        .forEach(({ formats, descriptions }) => {
-            collatedFormats.push(...formats);
-            collatedDescriptions.push(...descriptions);
-        });
-
-    if (collatedFormats.length !== collatedDescriptions.length) {
-        console.log('[WARNING] length of collated help formats and descriptions do not match.');
-    }
-    return collatedFormats.map((format, index) => (
-        `\`${PREFIX}${format}\`\n${collatedDescriptions[index]}`
-    ));
+const getDescriptions = (commands) : Array<{ name : string, value : string }> => {
+    return commands
+        .filter(({ name, formats, descriptions }) => (name?.length && formats?.length && descriptions?.length))
+        .map(({ name, aliases, formats, descriptions }) => ({
+            name,
+            value: `
+                *Aliases: ${aliases.join(', ')}*\n
+                ${formats.map((format, index) => `\`${PREFIX}${format}\`\n${descriptions[index]}\n`).join('\n')}
+            `,
+        }));
 };
 
 const helpDescriptions = {
@@ -42,12 +36,17 @@ function help(commandInputs : CommandInputs) {
         .setTitle('GentleBot Help')
         .addField('Queueing Commands', 'e.g. \`.help\`')
         .addField('Aliases', `
-            Commands for lineups usually have aliases, where the word \`${PREFIX}lineup\` is not included.
+            Alternate keywords for the command.
             ie. \`${PREFIX}lineup add\` = \`${PREFIX}add\`
         `);
+
     Object.entries(helpDescriptions).forEach(([category, commands]) => {
-        helpEmbed.addField(category, commands.join('\n\n'), true);
+        helpEmbed.addField(`\u200b\n${category} Commands`, '\u200b');
+        commands.forEach(({ name, value }) => {
+            helpEmbed.addField(name, value, true);
+        });
     });
+
     sendMessage(message.channel, helpEmbed, () => {});
 }
 
