@@ -38,9 +38,69 @@ function gameList(commandInputs : CommandInputs) {
 }
 
 /**
+ * Function to handle `.game <name>`
+ * Show the info pertaining to a game
+ * @param commandInputs - contains the necessary parameters for the command
+ */
+ function gameDescribe(commandInputs : CommandInputs) {
+    const {
+        args, bot, cache, command, message,
+    } : {
+        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+    } = commandInputs;
+
+    // validation
+    const argsCount = args.length;
+    if (argsCount !== 1) {
+        sendMessageEmbed(
+            message.channel,
+            'Unexpected number of arguments',
+            `Expecting 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+        );
+        return;
+    }
+ 
+    const gameName = args[0].toLowerCase();
+    const gameNames = cache.getGameNames();
+    let errorMessage = '';
+
+    if (!ALPHANUMERIC.test(gameName)) {
+        errorMessage = 'Invalid game name. Should only consist of alphanumeric characters.';
+    } else if (RESERVED_KEYWORDS.includes(gameName)) {
+        errorMessage = 'Invalid game name. Uses a reserved keyword.';
+    } else if (!gameNames.includes(gameName)) {
+        errorMessage = 'Invalid game name. Does not exist.';
+    }
+
+    if (errorMessage.length) {
+        sendMessageEmbed(
+            message.channel,
+            'Invalid argument',
+            errorMessage,
+        );
+        return;
+    }
+
+    // arguments validated
+    const game = cache.getGame(gameName);
+    const descriptionMessage = {
+        'Information': `
+            name - ${game.name}
+            role - ${game.roleId}
+            limit - ${game.limit === 0 ? 'none' : game.limit}
+        `,
+    };
+    sendMessageEmbed(
+        message.channel,
+        `Game Description - \`${gameName}\``,
+        descriptionMessage,
+    );
+}
+
+/**
  * Function to handle `.game add <name> <role> <limit>`
  * Add a game
- * @param parameters - contains the necessary parameters for the command
+ * @param commandInputs - contains the necessary parameters for the command
  */
 function gameAdd(commandInputs : CommandInputs) {
     const {
@@ -100,7 +160,7 @@ function gameAdd(commandInputs : CommandInputs) {
 /**
  * Function to handle `.game remove <name>`
  * Remove a game
- * @param parameters - contains the necessary parameters for the command
+ * @param commandInputs - contains the necessary parameters for the command
  */
 function gameRemove(commandInputs : CommandInputs) {
     const {
@@ -154,7 +214,7 @@ function gameRemove(commandInputs : CommandInputs) {
 /**
  * Function to handle `.game edit <name> <role> <?limit>`
  * Edit a game's set parameters
- * @param parameters - contains the necessary parameters for the command
+ * @param commandInputs - contains the necessary parameters for the command
  */
 function gameEdit(commandInputs : CommandInputs) {
     const {
@@ -222,7 +282,7 @@ function gameEdit(commandInputs : CommandInputs) {
 
 /**
  * Inform game command as invalid
- * @param parameters - contains the necessary parameters for the command
+ * @param commandInputs - contains the necessary parameters for the command
  */
 function invalidGameCommand(commandInputs : CommandInputs) {
     const { args, message } : { args : Array<string>, message : Message } = commandInputs;
@@ -255,6 +315,12 @@ const gameCommands = [{
     run: gameList,
     formats: ['game list'],
     descriptions: ['see the list of all available games'],
+}, {
+    name: 'Game Describe',
+    aliases: ['game describe', 'game', 'describe'],
+    run: gameDescribe,
+    formats: ['game <game>'],
+    descriptions: ['describe a game'],
 }, {
     name: 'Game Add',
     aliases: ['game add'],
