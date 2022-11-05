@@ -37,7 +37,7 @@ export default class GamesCache {
      * @returns An array of strings with the list of the names of the games
      */
     getGameNames() : Array<string> {
-        return Array(...this.gameNames);
+        return Array(...this.gameNames).sort();
     }
 
     /**

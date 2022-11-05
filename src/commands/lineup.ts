@@ -81,11 +81,20 @@ function lineupList(commandInputs : CommandInputs) {
         const uniqueGameNames = Array(...new Set(gameNames));
         const lineups = cache.getFilteredLineups(uniqueGameNames);
         const content = {};
-        lineups.forEach((lineup) => {
+
+        if (lineups.length === 1) {
+            const lineup = lineups[0];
             const capitalisedGameName = lineup.getGameName().toLocaleUpperCase();
-            const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join(' ')}` : '\`No players in lineup\`';
+            const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join('\n')}` : '\`No players in lineup\`';
             content[capitalisedGameName] = gameLineupsString;
-        }) 
+        } else {
+            lineups.forEach((lineup) => {
+                const capitalisedGameName = lineup.getGameName().toLocaleUpperCase();
+                const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join(' ')}` : '\`No players in lineup\`';
+                content[capitalisedGameName] = gameLineupsString;
+            });
+        }
+
         sendMessageEmbed(message.channel, 'Lineups', content);
     }
 }
@@ -620,51 +629,60 @@ function lineupInvite(commandInputs : CommandInputs) {
  * Commands for lineups
  */
 const lineupCommands = [{
+    name: 'Lineup Add',
     aliases: ['lineup add', 'add', 'lineups add'],
     run: lineupAdd,
-    formats: ['lineup add <game> <user id>'],
+    formats: ['add <game> <user id>'],
     descriptions: ['add a user to a game\'s lineup'],
 }, {
+    name: 'Lineup Join',
     aliases: ['lineup join', 'join', 'lineups join'],
     run: lineupJoin,
-    formats: ['lineup join <game>'],
+    formats: ['join <game>'],
     descriptions: ['add the user that sent the message to a game\'s lineup'],
 }, {
+    name: 'Lineup Kick',
     aliases: ['lineup kick', 'kick', 'lineups kick'],
     run: lineupKick,
-    formats: ['lineup kick <game>'],
+    formats: ['kick <game>'],
     descriptions: ['remove a user from a game\'s lineup'],
 }, {
+    name: 'Lineup Leave',
     aliases: ['lineup leave', 'leave', 'lineups leave'],
     run: lineupLeave,
-    formats: ['lineup leave', 'lineup leave <game1> <game2> ...'],
+    formats: ['leave', 'leave <game1> <game2> ...'],
     descriptions: ['leave all lineups user is in', 'leave the specified lineups'],
 },  {
+    name: 'Lineup Reset',
     aliases: ['lineup reset', 'reset', 'lineups reset'],
     run: lineupReset,
-    formats: ['lineup reset', 'lineup reset <game1> <game2> ...'],
+    formats: ['reset', 'reset <game1> <game2> ...'],
     descriptions: ['reset all lineups', 'reset the specified lineups'],
 }, {
+    name: 'Lineup Invite',
     aliases: ['lineup invite', 'invite', 'lineups invite'],
     run: lineupInvite,
-    formats: ['lineup invite', 'lineup invite <game1> <game2> ...'],
+    formats: ['invite', 'invite <game1> <game2> ...'],
     descriptions: ['invite all lineups user is in', 'invite the specified lineups'],
 }, {
+    name: 'Lineup Ready',
     aliases: ['lineups ready', 'ready', 'lineup g', 'g'],
     run: lineupReady,
-    formats: ['lineup ready', 'lineup ready <game1> <game2> ...'],
+    formats: ['ready', 'ready <game1> <game2> ...'],
     descriptions: ['notify users in lineups user is in', 'invite the specified lineups'],
 }, {
+    name: 'Lineup List',
     aliases: ['lineup list', 'lineup', 'lineups list', 'lineups'],
     run: lineupList,
-    formats: ['lineup list', 'lineup list <game1> <game2> ...',],
+    formats: ['lineups', 'lineups <game1> <game2> ...',],
     descriptions: ['see the list of all game lineups', 'see the list of specified game lineups'],
 }];
 
 export const specialJoinCommand = {
+    name: 'Special Lineup Join',
     run: lineupJoin,
     formats: ['<game>'],
-    descriptions: ['join the specified lineup'],
+    descriptions: ['join the specified game\'s lineup'],
 };
 
 export default lineupCommands;

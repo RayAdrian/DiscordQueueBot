@@ -249,24 +249,28 @@ function invalidUserCommand(commandInputs : CommandInputs) {
  * Commands for users
  */
 const userCommands = [{
+    name: 'User View',
     aliases: ['user view', 'view', 'user savelist', 'savelist', 'user save list', 'save list'],
     run: userView,
-    formats: ['user view'],
+    formats: ['view'],
     descriptions: ['view list of games saved by the user'],
 }, {
+    name: 'User Save',
     aliases: ['user save', 'save'],
     run: userSave,
-    formats: ['user save <game/s>'],
+    formats: ['save <game/s>'],
     descriptions: ['save game/s to user list'],
 }, {
+    name: 'User Remove',
     aliases: ['user remove', 'remove'],
     run: userRemove,
-    formats: ['user remove <game/s>'],
+    formats: ['remove <game/s>'],
     descriptions: ['remove game/s from user save list'],
 }, {
+    name: 'User Clear',
     aliases: ['user clear', 'clear'],
     run: userClear,
-    formats: ['user clear'],
+    formats: ['clear'],
     descriptions: ['clear all games from user save list'],
 }, {
     aliases: ['user'],
