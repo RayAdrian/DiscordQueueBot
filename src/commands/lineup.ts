@@ -674,7 +674,7 @@ const lineupCommands = [{
     name: 'Lineup List',
     aliases: ['lineup list', 'lineup', 'lineups list', 'lineups'],
     run: lineupList,
-    formats: ['list', 'list <game1> <game2> ...',],
+    formats: ['lineups', 'lineups <game1> <game2> ...',],
     descriptions: ['see the list of all game lineups', 'see the list of specified game lineups'],
 }];
 
