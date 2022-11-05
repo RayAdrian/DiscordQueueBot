@@ -1,6 +1,6 @@
 import { Message, MessageEmbed } from 'discord.js';
-import { INFO_MSG_TIME_DEL, PREFIX } from '../common/constants';
-import { deleteMessage, sendMessage } from '../utils';
+import { PREFIX } from '../common/constants';
+import { sendMessage } from '../utils';
 import gameCommands from './game';
 import lineupCommands, { specialJoinCommand } from './lineup';
 import { CommandInputs } from './processCommand';
@@ -61,9 +61,7 @@ function help(commandInputs : CommandInputs) {
         commands.forEach(({ name, description }) => helpEmbed.addField(name, description, true));
     });
 
-    sendMessage(message.channel, simpleHelpEmbed, (sentMessage : Message) => {
-        deleteMessage(sentMessage, INFO_MSG_TIME_DEL);
-    });
+    sendMessage(message.channel, simpleHelpEmbed, () => {});
     message.author.send(helpEmbed);   
 }
 
