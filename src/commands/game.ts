@@ -316,12 +316,6 @@ const gameCommands = [{
     formats: ['game list'],
     descriptions: ['see the list of all available games'],
 }, {
-    name: 'Game Describe',
-    aliases: ['game describe', 'game', 'describe'],
-    run: gameDescribe,
-    formats: ['game <game>'],
-    descriptions: ['describe a game'],
-}, {
     name: 'Game Add',
     aliases: ['game add'],
     run: gameAdd,
@@ -345,6 +339,12 @@ const gameCommands = [{
         'edit a game\'s role',
         'edit a game\'s role and limit',
     ],
+}, {
+    name: 'Game Describe',
+    aliases: ['game describe', 'game', 'describe'],
+    run: gameDescribe,
+    formats: ['game <game>'],
+    descriptions: ['describe a game'],
 }, {
     aliases: ['game'],
     run: invalidGameCommand,
