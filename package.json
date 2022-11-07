@@ -5,7 +5,7 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "start": "npx ts-node-esm --experimental-specifier-resolution=node src/index.ts"
+    "start": "npx --max_old_space_size=400 ts-node-esm --experimental-specifier-resolution=node src/index.ts --production"
   },
   "author": "Raymund",
   "license": "ISC",
