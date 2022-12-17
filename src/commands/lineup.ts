@@ -1,9 +1,9 @@
 
 import { Client, Message } from "discord.js";
-import { LocalCache } from "../caches";
-import { ALPHANUMERIC, PREFIX, READY_MESSAGE } from "../common/constants";
-import { isValidUser, sendErrorMessage, sendMessage, sendMessageEmbed } from '../utils';
-import { CommandInputs } from './processCommand';
+import { LocalCache } from "../caches/index.js";
+import { ALPHANUMERIC, PREFIX, READY_MESSAGE } from "../common/constants.js";
+import { isValidUser, sendErrorMessage, sendMessage, sendMessageEmbed } from '../utils/index.js';
+import { CommandInputs } from './processCommand.js';
 
 /**
  * Worker function to check for complete lineups
@@ -19,9 +19,7 @@ function completeLineupWorker(
     const fullLineups = cache.getFilteredLineups(gameNames, true);
 
     fullLineups.forEach((lineup) => {
-        completedLineupsStrings.push(`
-            \`${lineup.getGameName().toLocaleUpperCase()}\` Lineup Complete: ${lineup.getUsers().join(' ')}
-        `);
+        completedLineupsStrings.push(`\`${lineup.getGameName().toLocaleUpperCase()}\` Lineup Complete: ${lineup.getUsers().join(' ')}`);
     });
     if (completedLineupsStrings.length > 0) {
         sendMessage(message.channel, completedLineupsStrings.join('\n'), () => {});

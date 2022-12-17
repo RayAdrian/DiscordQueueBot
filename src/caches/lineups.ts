@@ -1,5 +1,5 @@
 import { Document, UpdateWriteOpResult } from 'mongoose';
-import { ILineup, Lineup, Lineups } from '../models';
+import { ILineup, Lineup, Lineups } from '../models/index.js';
 
 export default class LineupsCache {
     private lineups: Map<string, Lineup>;

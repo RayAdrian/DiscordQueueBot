@@ -1,8 +1,8 @@
 import { Client, Message } from 'discord.js';
-import { LocalCache } from '../caches';
-import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants';
-import { isValidLimit, isValidRole, sendErrorMessage, sendMessageEmbed } from '../utils';
-import { CommandInputs } from './processCommand';
+import { LocalCache } from '../caches/index.js';
+import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants.js';
+import { isValidLimit, isValidRole, sendErrorMessage, sendMessageEmbed } from '../utils/index.js';
+import { CommandInputs } from './processCommand.js';
 
 /**
  * Function for game list command

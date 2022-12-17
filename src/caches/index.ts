@@ -1,1 +1,1 @@
-export { default as LocalCache } from "./local";
+export { default as LocalCache } from "./local.js";

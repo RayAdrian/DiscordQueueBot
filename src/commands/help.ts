@@ -1,10 +1,10 @@
 import { Message, MessageEmbed } from 'discord.js';
-import { PREFIX } from '../common/constants';
-import { sendMessage } from '../utils';
-import gameCommands from './game';
-import lineupCommands, { specialJoinCommand } from './lineup';
-import { CommandInputs } from './processCommand';
-import userCommands from './user';
+import { PREFIX } from '../common/constants.js';
+import { sendMessage } from '../utils/index.js';
+import gameCommands from './game.js';
+import lineupCommands, { specialJoinCommand } from './lineup.js';
+import { CommandInputs } from './processCommand.js';
+import userCommands from './user.js';
 
 const getDescriptions = (commands) : Array<{ name : string, description : string, simpleDescription }> => {
     return commands

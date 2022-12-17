@@ -1,11 +1,11 @@
 import { Client, Message } from 'discord.js';
-import { LocalCache } from '../caches';
-import { PREFIX } from '../common/constants';
-import { sendMessageEmbed } from '../utils';
-import gameCommands from './game';
-import helpCommands from './help';
-import lineupCommands, { specialJoinCommand } from './lineup';
-import userCommands from './user';
+import { LocalCache } from '../caches/index.js';
+import { PREFIX } from '../common/constants.js';
+import { sendMessageEmbed } from '../utils/index.js';
+import gameCommands from './game.js';
+import helpCommands from './help.js';
+import lineupCommands, { specialJoinCommand } from './lineup.js';
+import userCommands from './user.js';
 
 /**
  * Class for generalizing inputs to command functions
