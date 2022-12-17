@@ -16,4 +16,4 @@ RUN npm run build
 # Clean up src files
 RUN rm -r src
 # Run the web service on container startup.
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "start:prod" ]
