@@ -1,8 +1,8 @@
 import { Client, Message } from 'discord.js';
-import { LocalCache } from '../caches';
-import { ALPHANUMERIC, PREFIX } from '../common/constants';
-import { sendErrorMessage, sendMessageEmbed } from '../utils';
-import { CommandInputs } from './processCommand';
+import { LocalCache } from '../caches/index.js';
+import { ALPHANUMERIC, PREFIX } from '../common/constants.js';
+import { sendErrorMessage, sendMessageEmbed } from '../utils/index.js';
+import { CommandInputs } from './processCommand.js';
 
 /**
  * Function to handle `.user view <game/s>`

@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { DEFAULT_MSG_TIME_DEL } from "../common/constants";
+import { DEFAULT_MSG_TIME_DEL } from "../common/constants.js";
 
 /**
  * Delete message after a certain amount of time

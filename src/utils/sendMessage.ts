@@ -1,5 +1,5 @@
 import { DMChannel, Message, NewsChannel, TextChannel } from "discord.js";
-import deleteMessage from "./deleteMessage";
+import deleteMessage from "./deleteMessage.js";
 
 const defaultOnSuccess = (sentMessage : Message) => {
     deleteMessage(sentMessage);

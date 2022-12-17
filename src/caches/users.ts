@@ -1,5 +1,5 @@
 import { Document } from 'mongoose';
-import { Users, User, IUser } from '../models';
+import { Users, User, IUser } from '../models/index.js';
 
 export default class UsersCache {
     usersMap: Map<string, User>;

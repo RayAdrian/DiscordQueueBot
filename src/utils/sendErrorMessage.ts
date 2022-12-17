@@ -1,6 +1,6 @@
 import { Client, MessageEmbed, TextChannel } from "discord.js";
-import { ERROR_CHANNEL_ID } from "../common/constants";
-import sendMessage from "./sendMessage";
+import { ERROR_CHANNEL_ID } from "../common/constants.js";
+import sendMessage from "./sendMessage.js";
 
 /**
  * Send an error message

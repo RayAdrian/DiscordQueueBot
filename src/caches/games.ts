@@ -1,5 +1,5 @@
 import { Document } from 'mongoose';
-import { Games, Game, IGame, IGameMethods } from "../models";
+import { Games, Game, IGame, IGameMethods } from "../models/index.js";
 
 export default class GamesCache {
     private gamesMap: Map<string, Game>;

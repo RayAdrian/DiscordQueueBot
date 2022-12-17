@@ -1,1 +1,1 @@
-export { default as processCommand } from './processCommand';
+export { default as processCommand } from './processCommand.js';

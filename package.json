@@ -5,7 +5,8 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "start": "npx ts-node-esm --experimental-specifier-resolution=node src/index.ts"
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "author": "Raymund",
   "license": "ISC",
@@ -14,8 +15,7 @@
     "dotenv": "^16.0.2",
     "express": "^4.16.4",
     "mongoose": "^5.10.0",
-    "node-cron": "^3.0.0",
-    "ts-node": "^10.9.1"
+    "node-cron": "^3.0.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.13",

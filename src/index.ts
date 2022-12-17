@@ -3,11 +3,11 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import cron from 'node-cron';
-import { LocalCache } from './caches';
-import { processCommand } from './commands';
-import { MAIN_CHANNEL_ID, PREFIX, RESET_CRON_SCHEDULE } from './common/constants';
-import { Lineups } from './models';
-import { sendErrorMessage, sendInfoMessage, sendMessageEmbed } from './utils';
+import { LocalCache } from './caches/index.js';
+import { processCommand } from './commands/index.js';
+import { MAIN_CHANNEL_ID, PREFIX, RESET_CRON_SCHEDULE } from './common/constants.js';
+import { Lineups } from './models/index.js';
+import { sendErrorMessage, sendInfoMessage, sendMessageEmbed } from './utils/index.js';
 
 // For local development
 dotenv.config();

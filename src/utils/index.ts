@@ -1,8 +1,8 @@
-export { default as deleteMessage } from './deleteMessage';
-export { default as isValidLimit } from './isValidLimit';
-export { default as isValidRole } from './isValidRole';
-export { default as isValidUser } from './isValidUser';
-export { default as sendErrorMessage } from './sendErrorMessage';
-export { default as sendInfoMessage } from './sendInfoMessage';
-export { default as sendMessage } from './sendMessage';
-export { default as sendMessageEmbed } from './sendMessageEmbed';
+export { default as deleteMessage } from './deleteMessage.js';
+export { default as isValidLimit } from './isValidLimit.js';
+export { default as isValidRole } from './isValidRole.js';
+export { default as isValidUser } from './isValidUser.js';
+export { default as sendErrorMessage } from './sendErrorMessage.js';
+export { default as sendInfoMessage } from './sendInfoMessage.js';
+export { default as sendMessage } from './sendMessage.js';
+export { default as sendMessageEmbed } from './sendMessageEmbed.js';
