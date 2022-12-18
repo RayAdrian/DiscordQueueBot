@@ -1,6 +1,6 @@
 import { Client, MessageEmbed, TextChannel } from "discord.js";
 import { ERROR_CHANNEL_ID } from "../common/constants.js";
-import sendMessage from "./sendMessage.js";
+import sendRawMessage from "./sendRawMessage.js";
 
 /**
  * Send an error message
@@ -24,7 +24,7 @@ export default function sendErrorMessage(
         .setTitle('ERROR')
         .addField('DateTime', new Date().toISOString())
         .addField('Message', error.toString());
-    sendMessage(
+    sendRawMessage(
         bot.channels.cache.get(ERROR_CHANNEL_ID) as TextChannel,
         errorEmbed,
         onSuccess,

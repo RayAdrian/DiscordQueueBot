@@ -1,7 +1,7 @@
 import { Channel, Message, MessageEmbed, TextChannel } from "discord.js";
 import { INFO_MSG_TIME_DEL } from "../common/constants.js";
 import deleteMessage from "./deleteMessage.js";
-import sendMessage from "./sendMessage.js";
+import sendRawMessage from "./sendRawMessage.js";
 
 const defaultOnSuccess = (sentMessage : Message) => {
     deleteMessage(sentMessage, INFO_MSG_TIME_DEL);
@@ -30,5 +30,5 @@ export default function sendMessageEmbed(
             messageEmbed.addField(title, contents);
         })
     }
-    sendMessage(channel as TextChannel, messageEmbed, onSuccess, onError);
+    sendRawMessage(channel as TextChannel, messageEmbed, onSuccess, onError);
 }

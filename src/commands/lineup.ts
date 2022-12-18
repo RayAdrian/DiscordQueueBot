@@ -2,7 +2,7 @@
 import { Client, Message } from "discord.js";
 import { LocalCache } from "../caches/index.js";
 import { ALPHANUMERIC, PREFIX, READY_MESSAGE } from "../common/constants.js";
-import { isValidUser, sendErrorMessage, sendMessage, sendMessageEmbed } from '../utils/index.js';
+import { isValidUser, sendErrorMessage, sendRawMessage, sendMessageEmbed } from '../utils/index.js';
 import { CommandInputs } from './processCommand.js';
 
 /**
@@ -22,7 +22,7 @@ function completeLineupWorker(
         completedLineupsStrings.push(`\`${lineup.getGameName().toLocaleUpperCase()}\` Lineup Complete: ${lineup.getUsers().join(' ')}`);
     });
     if (completedLineupsStrings.length > 0) {
-        sendMessage(message.channel, completedLineupsStrings.join('\n'), () => {});
+        sendRawMessage(message.channel, completedLineupsStrings.join('\n'), () => {});
     }
 }
 
@@ -555,7 +555,7 @@ function lineupInvite(commandInputs : CommandInputs) {
                 return `\`${gameName.toLocaleUpperCase()}\` ${role} +${slots}`;
             }).join('\n')}
         `;  
-        sendMessage(message.channel, inviteMessage);
+        sendRawMessage(message.channel, inviteMessage);
     }
 
 }
@@ -616,9 +616,9 @@ function lineupInvite(commandInputs : CommandInputs) {
         validLineups.forEach((lineup) => {
             readyMessages.push(`${READY_MESSAGE} \`${lineup.getGameName().toLocaleUpperCase()}\` ${lineup.getUsers().join(' ')}`);
         });
-        sendMessage(message.channel, readyMessages.join('\n'));
+        sendRawMessage(message.channel, readyMessages.join('\n'));
     } else {
-        sendMessage(message.channel, 'No lineups ready');
+        sendRawMessage(message.channel, 'No lineups ready');
     }
 }
 

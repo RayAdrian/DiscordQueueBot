@@ -1,7 +1,7 @@
 import { Client, Message, MessageEmbed, TextChannel } from "discord.js";
 import { INFO_CHANNEL_ID, DEBUG_INFO_MSG_TIME_DEL } from "../common/constants.js";
 import deleteMessage from "./deleteMessage.js";
-import sendMessage from "./sendMessage.js";
+import sendRawMessage from "./sendRawMessage.js";
 
 const defaultOnSuccess = (sentMsg : Message) => deleteMessage(sentMsg, DEBUG_INFO_MSG_TIME_DEL);
 
@@ -27,7 +27,7 @@ export default function sendInfoMessage(
         .setTitle('INFO')
         .addField('DateTime', new Date().toISOString())
         .addField('Message', info);
-    sendMessage(
+    sendRawMessage(
         bot.channels.cache.get(INFO_CHANNEL_ID) as TextChannel,
         infoEmbed,
         onSuccess,

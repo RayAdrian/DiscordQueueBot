@@ -1,6 +1,6 @@
 import { Message, MessageEmbed } from 'discord.js';
 import { PREFIX } from '../common/constants.js';
-import { sendMessage } from '../utils/index.js';
+import { sendRawMessage } from '../utils/index.js';
 import gameCommands from './game.js';
 import lineupCommands, { specialJoinCommand } from './lineup.js';
 import { CommandInputs } from './processCommand.js';
@@ -61,7 +61,7 @@ function help(commandInputs : CommandInputs) {
         commands.forEach(({ name, description }) => helpEmbed.addField(name, description, true));
     });
 
-    sendMessage(message.channel, simpleHelpEmbed, () => {});
+    sendRawMessage(message.channel, simpleHelpEmbed, () => {});
     message.author.send(helpEmbed);   
 }
 
