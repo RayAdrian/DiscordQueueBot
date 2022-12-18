@@ -1,6 +1,6 @@
 # Use the official Node.js 10 image.
 # https://hub.docker.com/_/node
-FROM node:16
+FROM node:18-bullseye-slim
 # Create and change to the app directory.
 WORKDIR /usr/src/app
 # Copy application dependency manifests to the container image.
@@ -11,5 +11,9 @@ COPY package*.json ./
 RUN npm install --only=production
 # Copy local code to the container image.
 COPY . .
+# Build JS app
+RUN npm run build
+# Clean up src files
+RUN rm -r src
 # Run the web service on container startup.
-CMD [ "npm", "start" ]
+CMD [ "npm", "run", "start:prod" ]
