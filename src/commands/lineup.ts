@@ -628,10 +628,10 @@ const lineupCommands = [{
     descriptions: ['invite all lineups user is in', 'invite the specified lineups'],
 }, {
     name: 'Lineup Ready',
-    aliases: ['lineups ready', 'ready', 'lineup g', 'g'],
+    aliases: ['lineup ready', 'ready', 'lineups ready', 'lineup g', 'g', 'lineups g'],
     run: lineupReady,
     formats: ['ready', 'ready <game1> <game2> ...'],
-    descriptions: ['notify users in lineups user is in', 'invite the specified lineups'],
+    descriptions: ['notify users in lineups user is in', 'tag the specified lineups'],
 }, {
     name: 'Lineup List',
     aliases: ['lineup list', 'lineup', 'lineups list', 'lineups'],
