@@ -1,7 +1,7 @@
 import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches/index.js';
 import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants.js';
-import { isValidLimit, isValidRole, sendErrorMessage, sendMessageEmbed } from '../utils/index.js';
+import { isValidLimit, isValidRole, sendDebugErrorMessage, sendMessageEmbed } from '../utils/index.js';
 import { CommandInputs } from './processCommand.js';
 
 /**
@@ -154,7 +154,7 @@ function gameAdd(commandInputs : CommandInputs) {
             'Notification',
             `Game and Lineup for \`${gameName}\` added.`,
         );
-    }).catch((error : Error) => sendErrorMessage(bot, error));
+    }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }
 
 /**
@@ -208,7 +208,7 @@ function gameRemove(commandInputs : CommandInputs) {
             'Notification',
             `Game and Lineup/s for \`${gameName}\` deleted.`,
         );
-    }).catch((error : Error) => sendErrorMessage(bot, error));
+    }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }
 
 /**
@@ -277,7 +277,7 @@ function gameEdit(commandInputs : CommandInputs) {
             'Error Notification',
             error,
         );
-    }).catch((error : Error) => sendErrorMessage(bot, error));
+    }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }
 
 /**

@@ -9,7 +9,7 @@ import sendRawMessage from "./sendRawMessage.js";
  * @param onSuccess - optional callback to run when message sends successfully
  * @param onError - optional callback to run when message sends fails
  */
-export default function sendErrorMessage(
+export default function sendDebugErrorMessage(
     bot: Client,
     error : Error,
     onSuccess : Function = () => {},

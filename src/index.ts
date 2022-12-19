@@ -7,7 +7,7 @@ import { LocalCache } from './caches/index.js';
 import { processCommand } from './commands/index.js';
 import { MAIN_CHANNEL_ID, PREFIX, RESET_CRON_SCHEDULE } from './common/constants.js';
 import { Lineups } from './models/index.js';
-import { sendErrorMessage, sendDebugInfoMessage, sendMessageEmbed } from './utils/index.js';
+import { sendDebugErrorMessage, sendDebugInfoMessage, sendMessageEmbed } from './utils/index.js';
 
 // For local development
 dotenv.config();
@@ -54,7 +54,7 @@ bot.on('ready', () => {
                 }
             }
             sendDebugInfoMessage(bot, 'Bot is ready', () => {});
-        }).catch((error : Error) => sendErrorMessage(bot, error));
+        }).catch((error : Error) => sendDebugErrorMessage(bot, error));
     }
 });
 
@@ -79,7 +79,7 @@ cron.schedule(RESET_CRON_SCHEDULE, () => {
             'Notification',
             'All lineups have been reset.',
         );
-    }).catch((error : Error) => sendErrorMessage(bot, error));
+    }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }, {
     scheduled: true,
     timezone: "Asia/Manila", // TODO: base timezone based on guild (server) config

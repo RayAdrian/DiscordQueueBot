@@ -1,7 +1,7 @@
 import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches/index.js';
 import { ALPHANUMERIC, PREFIX } from '../common/constants.js';
-import { sendErrorMessage, sendMessageEmbed } from '../utils/index.js';
+import { sendDebugErrorMessage, sendMessageEmbed } from '../utils/index.js';
 import { CommandInputs } from './processCommand.js';
 
 /**
@@ -103,7 +103,7 @@ function userSave(commandInputs : CommandInputs) {
             cache.saveToUserGames(userId, gameNames).then(() => {
                 content['Successfully saved the following games to your gameslist'] = `\`${validGameNames.join(' ')}\``;
                 sendMessageEmbed(message.channel, 'Notification', content);
-            }).catch((error : Error) => sendErrorMessage(bot, error));
+            }).catch((error : Error) => sendDebugErrorMessage(bot, error));
         } else {
             content['No games saved'] = 'All specified games already in user\'s saved games list';
             sendMessageEmbed(message.channel, 'Notification', content);
@@ -177,7 +177,7 @@ const {
             cache.removeFromUserGames(userId, gameNames).then(() => {
                 content['Successfully removed the following games from your games list'] = `\`${validGameNames.join(' ')}\``;
                 sendMessageEmbed(message.channel, 'Notification', content);
-            }).catch((error : Error) => sendErrorMessage(bot, error));
+            }).catch((error : Error) => sendDebugErrorMessage(bot, error));
         } else {
             content['No games removed'] = 'None of the specified games are in the user\'s games list';
             sendMessageEmbed(message.channel, 'Notification', content);
