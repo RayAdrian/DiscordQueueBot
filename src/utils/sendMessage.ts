@@ -1,5 +1,5 @@
-import { Channel, Message, MessageEmbed } from "discord.js";
-import { ERROR_MSG_TIME_DEL, NOTIF_MSG_TIME_DEL, WARNING_MSG_TIME_DEL } from '../common/constants.js';
+import { Channel, Message, MessageEmbed } from 'discord.js';
+import { ERROR_MSG_TIME_DEL, INFO_CHANNEL_ID, NOTIF_MSG_TIME_DEL, WARNING_MSG_TIME_DEL } from '../common/constants.js';
 import deleteMessage from './deleteMessage.js';
 import sendRawMessage from './sendRawMessage.js';
 
@@ -13,6 +13,13 @@ const addFields = (messageEmbed : MessageEmbed, description : string | Object) =
     }
 };
 
+type types = 'plain'
+    | 'success'
+    | 'information'
+    | 'error'
+    | 'warning'
+    | 'invite'
+
 /**
  * Send a message to a specified channel
  * @param channel - channel to send to
@@ -23,15 +30,15 @@ const addFields = (messageEmbed : MessageEmbed, description : string | Object) =
 export default function sendMessage(
     channel : Channel,
     message : string | Object,
-    type: 'plain' | 'success' | 'information' | 'error' | 'warning' | 'invite',
+    type: types,
     title ?: string,
 ) : Promise<Message> {
     let embed: MessageEmbed;
     
-    if (type === "success") {
+    if (type === 'success') {
         embed = new MessageEmbed()
           .setColor('#28CC2D')
-          .setTitle(title || "Notification");
+          .setTitle(title || 'Notification');
         addFields(embed, message);
         return sendRawMessage(
             channel,
@@ -40,18 +47,18 @@ export default function sendMessage(
         );
     }
 
-    if (type === "information") {
+    if (type === 'information') {
         embed = new MessageEmbed()
           .setColor('#63CAD8')
-          .setTitle(title || "Information");
+          .setTitle(title || 'Information');
         addFields(embed, message);
         return sendRawMessage(channel, embed, () => {});
     }
     
-    if (type === "error") {
+    if (type === 'error') {
         embed = new MessageEmbed()
           .setColor('#D82E3F')
-          .setTitle(title || "Error");
+          .setTitle(title || 'Error');
         addFields(embed, message);
         return sendRawMessage(
             channel,
@@ -60,10 +67,10 @@ export default function sendMessage(
         );
     }
     
-    if (type === "warning") {
+    if (type === 'warning') {
         embed = new MessageEmbed()
           .setColor('#FFE135')
-          .setTitle(title || "Warning");
+          .setTitle(title || 'Warning');
         addFields(embed, message);
         return sendRawMessage(
             channel,
@@ -72,9 +79,10 @@ export default function sendMessage(
         );
     }
     
-    if (type === "invite") {
+    if (type === 'invite') {
         return sendRawMessage(channel, message, () => {});
     }
 
+    // type === 'plain'
     return sendRawMessage(channel, message);
 }
