@@ -12,7 +12,7 @@ const defaultOnSuccess = (sentMsg : Message) => deleteMessage(sentMsg, DEBUG_INF
  * @param onSuccess - optional callback to run when message sends successfully
  * @param onError - optional callback to run when message sends fails
  */
-export default function sendInfoMessage(
+export default function sendDebugInfoMessage(
     bot: Client,
     info : string,
     onSuccess : Function = defaultOnSuccess,

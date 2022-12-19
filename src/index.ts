@@ -7,7 +7,7 @@ import { LocalCache } from './caches/index.js';
 import { processCommand } from './commands/index.js';
 import { MAIN_CHANNEL_ID, PREFIX, RESET_CRON_SCHEDULE } from './common/constants.js';
 import { Lineups } from './models/index.js';
-import { sendErrorMessage, sendInfoMessage, sendMessageEmbed } from './utils/index.js';
+import { sendErrorMessage, sendDebugInfoMessage, sendMessageEmbed } from './utils/index.js';
 
 // For local development
 dotenv.config();
@@ -25,7 +25,7 @@ const localCache = new LocalCache();
  * Setup and run bot
  */
 bot.on('ready', () => {
-    sendInfoMessage(bot, 'Setting up bot');
+    sendDebugInfoMessage(bot, 'Setting up bot');
     if (bot && bot.user) {
         bot.user.setActivity(".help | Sup gamers");
 
@@ -34,7 +34,7 @@ bot.on('ready', () => {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         }).then(() => {
-            sendInfoMessage(bot, 'Connected to MongoDB. Fetching data.');
+            sendDebugInfoMessage(bot, 'Connected to MongoDB. Fetching data.');
             return localCache.fetchAll();
         }).then(async (fetchData) => {
             if (fetchData && fetchData.length) {
@@ -49,11 +49,11 @@ bot.on('ready', () => {
                     await Lineups.deleteMany({ _id: { $in: invalidLineupIds } }).exec().then(() => {
                         const invalidLineupNames = invalidLineups.map((lineup) => lineup.gameName);
                         const message = `Deleted the following lineup ids: \`${invalidLineupNames.join()}\``;
-                        sendInfoMessage(bot, message, () => {});
+                        sendDebugInfoMessage(bot, message, () => {});
                     });
                 }
             }
-            sendInfoMessage(bot, 'Bot is ready', () => {});
+            sendDebugInfoMessage(bot, 'Bot is ready', () => {});
         }).catch((error : Error) => sendErrorMessage(bot, error));
     }
 });
