@@ -36,9 +36,11 @@ function help(commandInputs : CommandInputs) {
 
     const simpleHelpEmbed = new MessageEmbed()
         .setTitle('GentleBot Help')
+        .setColor('#63CAD8')
         .addField('Comprehensive Help', 'For a comprehensive help message, check your DM\'s.');
     const helpEmbed = new MessageEmbed()
         .setTitle('GentleBot Help')
+        .setColor('#63CAD8')
         .addField('Queueing Commands', `
             Command formats listed under the aliases, highlighted like the ff. command.
             e.g. \`.help\`
