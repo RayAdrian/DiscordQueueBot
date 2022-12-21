@@ -1,7 +1,7 @@
 import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches/index.js';
 import { PREFIX } from '../common/constants.js';
-import { sendMessageEmbed } from '../utils/index.js';
+import { sendMessage } from '../utils/index.js';
 import gameCommands from './game.js';
 import helpCommands from './help.js';
 import lineupCommands, { specialJoinCommand } from './lineup.js';
@@ -87,10 +87,7 @@ export default function processCommand(bot : Client, cache: LocalCache, message 
     }
 
     if (!isValidCommand) { // no valid command
-        sendMessageEmbed(
-            message.channel,
-            'Wrong command',
-            `No valid command detected in \`${cleanedContent}\``,
-        );
+        const content = { 'Error Notification': `No valid command detected in \`${cleanedContent}\`` };
+        sendMessage(message.channel, content, 'error', 'Wrong Command');
     }
 };
