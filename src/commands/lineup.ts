@@ -51,10 +51,10 @@ function lineupList(commandInputs : CommandInputs) {
                 const gameLineupsString = lineup.getUserCount() ? `${lineup.getUsers().join(' ')}` : '\`No players in lineup\`';
                 content[capitalisedGameName] = gameLineupsString;
             }) 
-            sendMessage(message.channel, content, 'information', 'Lineups List');
+            sendMessage(message.channel, content, 'information', 'Lineup List');
         } else {
             const content = { 'Notification': 'All lineups empty.' };
-            sendMessage(message.channel, content, 'information', 'Lineups List')
+            sendMessage(message.channel, content, 'information', 'Lineup List')
         }
     } else if (gameNames.length > 0) { // list specified lineups
         // validation
@@ -69,7 +69,7 @@ function lineupList(commandInputs : CommandInputs) {
 
         if (errorMessages.length) {
             const content = { 'Invalid arguments': errorMessages.join('\n') };
-            sendMessage(message.channel, content, 'error', 'Lineups List');
+            sendMessage(message.channel, content, 'error', 'Lineup List');
             return;
         }
     
@@ -91,7 +91,7 @@ function lineupList(commandInputs : CommandInputs) {
             });
         }
 
-        sendMessage(message.channel, content, 'information', 'Lineups List');
+        sendMessage(message.channel, content, 'information', 'Lineup List');
     }
 }
 
@@ -113,7 +113,7 @@ function lineupAdd(commandInputs : CommandInputs) {
         const content = {
             'Unexpected number of arguments': `Expecting at least 2 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
         };
-        sendMessage(message.channel, content, 'error', 'Lineups Add');
+        sendMessage(message.channel, content, 'error', 'Lineup Add');
         return;
     }
 
@@ -135,7 +135,7 @@ function lineupAdd(commandInputs : CommandInputs) {
 
     if (errorMessages.length) {
         const content = { 'Invalid arguments': errorMessages.join('\n') };
-        sendMessage(message.channel, content, 'error', 'Lineups Add');
+        sendMessage(message.channel, content, 'error', 'Lineup Add');
         return;
     }
 
@@ -173,11 +173,11 @@ function lineupAdd(commandInputs : CommandInputs) {
             content['Successfully added the following users'] = validUsers.join(' ');
             
             completeLineupWorker(commandInputs, [gameName]);
-            sendMessage(message.channel, content, 'success', 'Lineups Add');
+            sendMessage(message.channel, content, 'success', 'Lineup Add');
         }).catch((error : Error) => sendDebugErrorMessage(bot, error));
     } else {
         content['No users added'] = 'No valid users';
-        sendMessage(message.channel, content, 'warning', 'Lineups Add');
+        sendMessage(message.channel, content, 'warning', 'Lineup Add');
     }
 }
 
@@ -217,7 +217,7 @@ function lineupJoin(commandInputs : CommandInputs) {
 
         if (errorMessages.length) {
             const content = { 'Invalid arguments': errorMessages.join('\n') };
-            sendMessage(message.channel, content, 'error', 'Lineups Join');
+            sendMessage(message.channel, content, 'error', 'Lineup Join');
             return;
         }
 
@@ -256,12 +256,12 @@ function lineupJoin(commandInputs : CommandInputs) {
         cache.joinLineups(validGameNames, user).then(() => {
             content['Successfully added the user to the following lineups'] = `\`${validGameNames.join(' ')}\``;
             completeLineupWorker(commandInputs, validGameNames);
-            sendMessage(message.channel, content, 'success', 'Lineups Join');
+            sendMessage(message.channel, content, 'success', 'Lineup Join');
         }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 
     } else {
         content['User not added to any lineup'] = 'No valid lineup';
-        sendMessage(message.channel, content, 'warning', 'Lineups Join');
+        sendMessage(message.channel, content, 'warning', 'Lineup Join');
     }
 }
 
@@ -283,7 +283,7 @@ function lineupKick(commandInputs : CommandInputs) {
         const content = {
             'Unexpected number of arguments': `Expecting at least 2 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
         };
-        sendMessage(message.channel, content, 'error', 'Lineups Kick');
+        sendMessage(message.channel, content, 'error', 'Lineup Kick');
         return;
     }
 
@@ -303,7 +303,7 @@ function lineupKick(commandInputs : CommandInputs) {
 
     if (errorMessages.length) {
         const content = { 'Invalid arguments': errorMessages.join('\n') };
-        sendMessage(message.channel, content, 'error', 'Lineups Kick');
+        sendMessage(message.channel, content, 'error', 'Lineup Kick');
         return;
     }
 
@@ -324,11 +324,11 @@ function lineupKick(commandInputs : CommandInputs) {
     if (validUsers.length) {
         cache.removeUsersFromLineup(gameName, validUsers).then(() => {
             content['Successfully kicked the following users'] = validUsers.join(' ');
-            sendMessage(message.channel, content, 'success', 'Lineups Kick');
+            sendMessage(message.channel, content, 'success', 'Lineup Kick');
         }).catch((error : Error) => sendDebugErrorMessage(bot, error));
     } else {
         content['No users kicked'] = 'No valid users';
-        sendMessage(message.channel, content, 'warning', 'Lineups Kick');
+        sendMessage(message.channel, content, 'warning', 'Lineup Kick');
     }
 }
 
@@ -370,7 +370,7 @@ function lineupLeave(commandInputs : CommandInputs) {
 
     if (errorMessages.length) {
         const content = { 'Invalid arguments': errorMessages.join('\n') };
-        sendMessage(message.channel, content, 'error', 'Lineups Leave');
+        sendMessage(message.channel, content, 'error', 'Lineup Leave');
         return;
     }
 
@@ -395,11 +395,11 @@ function lineupLeave(commandInputs : CommandInputs) {
     if (validGameNames.length) {
         cache.leaveLineups(validGameNames, user).then(() => {
             content['User succesfully removed from the following lineups'] = `\`${validGameNames.join(' ')}\``;
-            sendMessage(message.channel, content, 'success', 'Lineups Leave');
+            sendMessage(message.channel, content, 'success', 'Lineup Leave');
         }).catch((error : Error) => sendDebugErrorMessage(bot, error));
     } else {
         content['User not removed from any lineup'] = 'No valid lineup';
-        sendMessage(message.channel, content, 'warning', 'Lineups Leave');
+        sendMessage(message.channel, content, 'warning', 'Lineup Leave');
     }
 }
 
@@ -430,7 +430,7 @@ function lineupReset(commandInputs : CommandInputs) {
 
     if (errorMessages.length) {
         const content = { 'Invalid arguments': errorMessages.join('\n') };
-        sendMessage(message.channel, content, 'error', 'Lineups Reset');
+        sendMessage(message.channel, content, 'error', 'Lineup Reset');
         return;
     }
 
@@ -440,17 +440,17 @@ function lineupReset(commandInputs : CommandInputs) {
     if (uniqueGameNames.length === 0) {
         cache.resetAllLineups().then(() => {
             const content = { 'Notification': 'All lineups have been reset.' };
-            sendMessage(message.channel, content, 'success', 'Lineups Reset');
+            sendMessage(message.channel, content, 'success', 'Lineup Reset');
         }).catch((error : Error) => sendDebugErrorMessage(bot, error));
     } else if (uniqueGameNames.length > 0) {
         cache.resetLineups(uniqueGameNames).then(() => {
             const fieldTitle = 'The following lineups have been reset';
             const content = { [fieldTitle]: `\`${uniqueGameNames.join('\n')}\`` };
-            sendMessage(message.channel, content, 'success', 'Lineups Reset');
+            sendMessage(message.channel, content, 'success', 'Lineup Reset');
         }).catch((error : Error) => sendDebugErrorMessage(bot, error));
     } else {
         const content = { 'Notification': 'No lineup has been reset.' };
-        sendMessage(message.channel, content, 'warning', 'Lineups Reset');
+        sendMessage(message.channel, content, 'warning', 'Lineup Reset');
     }
 }
 
@@ -493,7 +493,7 @@ function lineupInvite(commandInputs : CommandInputs) {
 
     if (errorMessages.length) {
         const content = { 'Invalid arguments': errorMessages.join('\n') };
-        sendMessage(message.channel, content, 'error', 'Lineups Invite');
+        sendMessage(message.channel, content, 'error', 'Lineup Invite');
         return;
     }
 
@@ -511,7 +511,7 @@ function lineupInvite(commandInputs : CommandInputs) {
     if (fullGameNames.length) {
         const content = {};
         content['Following lineups are already full'] = `\`${fullGameNames.join(' ')}\``;
-        sendMessage(message.channel, content, 'warning', 'Lineups Invite');
+        sendMessage(message.channel, content, 'warning', 'Lineup Invite');
     }
 
     if (validGameNames.length) {
@@ -566,7 +566,7 @@ function lineupInvite(commandInputs : CommandInputs) {
 
     if (errorMessages.length) {
         const content = { 'Invalid arguments': errorMessages.join('\n') };
-        sendMessage(message.channel, content, 'error', 'Lineups Ready');
+        sendMessage(message.channel, content, 'error', 'Lineup Ready');
         return;
     }
 
@@ -582,7 +582,7 @@ function lineupInvite(commandInputs : CommandInputs) {
         });
         sendMessage(message.channel, readyMessages.join('\n'), 'invite');
     } else {
-        sendMessage(message.channel, { 'Notification': 'No lineups ready' }, 'warning', 'Lineups Ready');
+        sendMessage(message.channel, { 'Notification': 'No lineups ready' }, 'warning', 'Lineup Ready');
     }
 }
 
