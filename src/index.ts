@@ -7,7 +7,7 @@ import { LocalCache } from './caches/index.js';
 import { processCommand } from './commands/index.js';
 import { MAIN_CHANNEL_ID, PREFIX, RESET_CRON_SCHEDULE } from './common/constants.js';
 import { Lineups } from './models/index.js';
-import { sendDebugErrorMessage, sendDebugInfoMessage, sendMessageEmbed } from './utils/index.js';
+import { sendDebugErrorMessage, sendDebugInfoMessage, sendMessage } from './utils/index.js';
 
 // For local development
 dotenv.config();
@@ -74,10 +74,12 @@ if (process.env.ALLOW_LEGACY_MESSAGING) {
 /** Reset lineups daily based on a schedule */
 cron.schedule(RESET_CRON_SCHEDULE, () => {
     localCache.resetAllLineups().then(() => {
-        sendMessageEmbed(
+        const content = { 'Notification': 'All lineups have been reset.' };
+        sendMessage(
             bot.channels.cache.get(MAIN_CHANNEL_ID) as TextChannel,
-            'Notification',
-            'All lineups have been reset.',
+            content,
+            'information',
+            'Scheduled Reset',
         );
     }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }, {
