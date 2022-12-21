@@ -1,5 +1,5 @@
 import { Channel, Message, MessageEmbed } from 'discord.js';
-import { ERROR_MSG_TIME_DEL, INFO_CHANNEL_ID, NOTIF_MSG_TIME_DEL, WARNING_MSG_TIME_DEL } from '../common/constants.js';
+import { COLORS, ERROR_MSG_TIME_DEL, INFO_CHANNEL_ID, NOTIF_MSG_TIME_DEL, WARNING_MSG_TIME_DEL } from '../common/constants.js';
 import deleteMessage from './deleteMessage.js';
 import sendRawMessage from './sendRawMessage.js';
 
@@ -37,7 +37,7 @@ export default function sendMessage(
     
     if (type === 'success') {
         embed = new MessageEmbed()
-          .setColor('#28CC2D')
+          .setColor(COLORS.SUCCESS)
           .setTitle(title || 'Notification');
         addFields(embed, message);
         return sendRawMessage(
@@ -49,7 +49,7 @@ export default function sendMessage(
 
     if (type === 'information') {
         embed = new MessageEmbed()
-          .setColor('#63CAD8')
+          .setColor(COLORS.INFORMATION)
           .setTitle(title || 'Information');
         addFields(embed, message);
         return sendRawMessage(channel, embed, () => {});
@@ -57,7 +57,7 @@ export default function sendMessage(
     
     if (type === 'error') {
         embed = new MessageEmbed()
-          .setColor('#D82E3F')
+          .setColor(COLORS.INFORMATION)
           .setTitle(title || 'Error');
         addFields(embed, message);
         return sendRawMessage(
@@ -69,7 +69,7 @@ export default function sendMessage(
     
     if (type === 'warning') {
         embed = new MessageEmbed()
-          .setColor('#FFE135')
+          .setColor(COLORS.WARNING)
           .setTitle(title || 'Warning');
         addFields(embed, message);
         return sendRawMessage(

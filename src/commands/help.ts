@@ -1,5 +1,5 @@
 import { Message, MessageEmbed } from 'discord.js';
-import { PREFIX } from '../common/constants.js';
+import { COLORS, PREFIX } from '../common/constants.js';
 import { sendRawMessage } from '../utils/index.js';
 import gameCommands from './game.js';
 import lineupCommands, { specialJoinCommand } from './lineup.js';
@@ -36,11 +36,11 @@ function help(commandInputs : CommandInputs) {
 
     const simpleHelpEmbed = new MessageEmbed()
         .setTitle('GentleBot Help')
-        .setColor('#63CAD8')
+        .setColor(COLORS.INFORMATION)
         .addField('Comprehensive Help', 'For a comprehensive help message, check your DM\'s.');
     const helpEmbed = new MessageEmbed()
         .setTitle('GentleBot Help')
-        .setColor('#63CAD8')
+        .setColor(COLORS.INFORMATION)
         .addField('Queueing Commands', `
             Command formats listed under the aliases, highlighted like the ff. command.
             e.g. \`.help\`

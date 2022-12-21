@@ -10,6 +10,13 @@ export const ERROR_MSG_TIME_DEL = 15000;
 export const WARNING_MSG_TIME_DEL = 30000;
 export const DEFAULT_MSG_TIME_DEL = NOTIF_MSG_TIME_DEL;
 
+export const COLORS = {
+    SUCCESS: '#28CC2D',
+    INFORMATION: '#63CAD8',
+    ERROR: '#D82E3F',
+    WARNING: '#FFE135',
+};
+
 export const DEBUG_INFO_MSG_TIME_DEL = 60000;
 
 export const MAIN_CHANNEL_ID = process.env.CHANNEL_ID || '';
