@@ -1,5 +1,5 @@
 import { Client, Message, MessageEmbed, TextChannel } from "discord.js";
-import { INFO_CHANNEL_ID, DEBUG_INFO_MSG_TIME_DEL } from "../common/constants.js";
+import { INFO_CHANNEL_ID, DEBUG_INFO_MSG_TIME_DEL, COLORS } from "../common/constants.js";
 import deleteMessage from "./deleteMessage.js";
 import sendRawMessage from "./sendRawMessage.js";
 
@@ -25,6 +25,7 @@ export default function sendDebugInfoMessage(
     }
     const infoEmbed = new MessageEmbed()
         .setTitle('INFO')
+        .setColor(COLORS.DEBUG_INFO)
         .addField('DateTime', new Date().toISOString())
         .addField('Message', info);
     sendRawMessage(

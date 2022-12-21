@@ -15,6 +15,8 @@ export const COLORS = {
     INFORMATION: '#63CAD8',
     ERROR: '#D82E3F',
     WARNING: '#FFE135',
+    DEBUG_INFO: '#003A6D',
+    DEBUG_ERROR: '#AF0000',
 };
 
 export const DEBUG_INFO_MSG_TIME_DEL = 60000;

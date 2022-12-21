@@ -1,5 +1,5 @@
 import { Client, MessageEmbed, TextChannel } from "discord.js";
-import { ERROR_CHANNEL_ID } from "../common/constants.js";
+import { COLORS, ERROR_CHANNEL_ID } from "../common/constants.js";
 import sendRawMessage from "./sendRawMessage.js";
 
 /**
@@ -22,6 +22,7 @@ export default function sendDebugErrorMessage(
     }
     const errorEmbed = new MessageEmbed()
         .setTitle('ERROR')
+        .setColor(COLORS.DEBUG_ERROR)
         .addField('DateTime', new Date().toISOString())
         .addField('Message', error.toString());
     sendRawMessage(
