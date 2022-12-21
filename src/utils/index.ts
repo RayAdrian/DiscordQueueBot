@@ -5,5 +5,4 @@ export { default as isValidUser } from './isValidUser.js';
 export { default as sendDebugErrorMessage } from './sendDebugErrorMessage.js';
 export { default as sendDebugInfoMessage } from './sendDebugInfoMessage.js';
 export { default as sendMessage } from './sendMessage.js';
-export { default as sendMessageEmbed } from './sendMessageEmbed.js';
 export { default as sendRawMessage } from './sendRawMessage.js';
