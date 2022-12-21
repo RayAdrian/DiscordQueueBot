@@ -57,7 +57,7 @@ export default function sendMessage(
     
     if (type === 'error') {
         embed = new MessageEmbed()
-          .setColor(COLORS.INFORMATION)
+          .setColor(COLORS.ERROR)
           .setTitle(title || 'Error');
         addFields(embed, message);
         return sendRawMessage(
