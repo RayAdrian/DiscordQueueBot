@@ -1,5 +1,5 @@
 import { Document, UpdateWriteOpResult } from 'mongoose';
-import { Game, IGame, IGameMethods } from '../models/game.js';
+import { Game, IGame } from '../models/game.js';
 import { ILineup, Lineup } from '../models/lineup.js';
 import { IUser } from '../models/user.js';
 import GamesCache from './games.js';
@@ -45,7 +45,7 @@ export default class LocalCache {
      * @returns the role id string
      */
     getRole(name : string) : string {
-        return this.gamesCache.getGame(name).roleId;
+        return this.gamesCache.getGame(name).getRoleId();
     }
 
     /**
@@ -66,7 +66,7 @@ export default class LocalCache {
         name : string,
         roleId : string,
         limit : number,
-    ) : Promise<(ILineup & Document<any, any, ILineup>) | (IGame & Document<any, any, IGame> & IGameMethods)> {
+    ) : Promise<(ILineup & Document<any, any, ILineup>) | (IGame & Document<any, any, IGame>)> {
         return this.gamesCache.addGame(name, roleId, Number(limit)).then(() => {
             return this.lineupsCache.addLineup(name);
         });
@@ -82,7 +82,7 @@ export default class LocalCache {
         name : string,
         roleId : string,
         limit ?: string,
-    ) : Promise<IGame & Document<any, any, IGame> & IGameMethods>  {
+    ) : Promise<IGame & Document<any, any, IGame>>  {
         return this.gamesCache.editGame(name, roleId, limit);
     }
 
@@ -258,13 +258,13 @@ export default class LocalCache {
      * @returns true if the lineup is full, false otherwise
      */
     isLineupFull(gameName : string) : boolean {
-        const { isInfinite, limit } = this.getGame(gameName);
-        if (isInfinite) {
+        const game = this.getGame(gameName);
+        if (game.isInfinite()) {
             return false;
         }
 
         const userCount = this.getLineup(gameName).getUserCount();
-        if (userCount < limit) {
+        if (userCount < game.getLimit()) {
             return false;
         }
         return true;
@@ -276,13 +276,13 @@ export default class LocalCache {
      * @returns the number of slots remaining
      */
     getLineupOpenings(gameName : string) : number {
-        const { isInfinite, limit } = this.getGame(gameName);
-        if (isInfinite) {
+        const game = this.getGame(gameName);
+        if (game.isInfinite()) {
             return Infinity;
         }
 
         const userCount = this.getLineup(gameName).getUserCount();
-        return limit - userCount;
+        return game.getLimit() - userCount;
     }
 
     /**
