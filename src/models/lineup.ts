@@ -17,7 +17,7 @@ export class Lineup {
         return {
             gameName: this.gameName,
             users: [...this.users],
-        }
+        };
     }
 
     getGameName() : string {
