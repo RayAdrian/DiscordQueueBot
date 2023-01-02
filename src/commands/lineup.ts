@@ -112,6 +112,7 @@ function lineupAdd(commandInputs : CommandInputs) {
     if (argsCount < 2) {
         const content = {
             'Unexpected number of arguments': `Expecting at least 2 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.lineup add <game> <user id/s>\`',
         };
         sendMessage(message.channel, content, 'error', 'Lineup Add');
         return;
@@ -282,6 +283,7 @@ function lineupKick(commandInputs : CommandInputs) {
     if (argsCount < 2) {
         const content = {
             'Unexpected number of arguments': `Expecting at least 2 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.lineup kick <game> <user id>\`',
         };
         sendMessage(message.channel, content, 'error', 'Lineup Kick');
         return;
