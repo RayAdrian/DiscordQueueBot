@@ -20,6 +20,7 @@ function gameList(commandInputs : CommandInputs) {
     if (argsCount !== 0) {
         const content = {
             'Unexpected number of arguments': `Expecting no arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.game list\`',
         };
         sendMessage(message.channel, content, 'error', 'Game List');
         return;
@@ -34,15 +35,15 @@ function gameList(commandInputs : CommandInputs) {
 }
 
 /**
- * Function to handle `.game <name>`
+ * Function to handle `.game <game>`
  * Show the info pertaining to a game
  * @param commandInputs - contains the necessary parameters for the command
  */
  function gameDescribe(commandInputs : CommandInputs) {
     const {
-        args, bot, cache, command, message,
+        args, cache, command, message,
     } : {
-        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, cache : LocalCache, command : string, message : Message,
     } = commandInputs;
 
     // validation
@@ -50,6 +51,7 @@ function gameList(commandInputs : CommandInputs) {
     if (argsCount !== 1) {
         const content = {
             'Unexpected number of arguments': `Expecting 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.game <game>\`',
         };
         sendMessage(message.channel, content, 'error', 'Game Describe');
         return;
@@ -86,7 +88,7 @@ function gameList(commandInputs : CommandInputs) {
 }
 
 /**
- * Function to handle `.game add <name> <role> <limit>`
+ * Function to handle `.game add <game> <role> <limit>`
  * Add a game
  * @param commandInputs - contains the necessary parameters for the command
  */
@@ -102,8 +104,9 @@ function gameAdd(commandInputs : CommandInputs) {
     if (argsCount !== 3) {
         const content = {
             'Unexpected number of arguments': `Expecting 3 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.game add <game> <role> <limit>\`',
         };
-        sendMessage(message.channel, content, 'error', 'Game Describe');
+        sendMessage(message.channel, content, 'error', 'Game Add');
         return;
     }
 
@@ -141,7 +144,7 @@ function gameAdd(commandInputs : CommandInputs) {
 }
 
 /**
- * Function to handle `.game remove <name>`
+ * Function to handle `.game remove <game>`
  * Remove a game
  * @param commandInputs - contains the necessary parameters for the command
  */
@@ -157,6 +160,7 @@ function gameRemove(commandInputs : CommandInputs) {
     if (argsCount !== 1) {
         const content = {
             'Unexpected number of arguments': `Expecting 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.game remove <game>\`',
         };
         sendMessage(message.channel, content, 'error', 'Game Remove');
         return;
@@ -190,7 +194,7 @@ function gameRemove(commandInputs : CommandInputs) {
 }
 
 /**
- * Function to handle `.game edit <name> <role> <?limit>`
+ * Function to handle `.game edit <game> <role> <?limit>`
  * Edit a game's set parameters
  * @param commandInputs - contains the necessary parameters for the command
  */
@@ -206,6 +210,7 @@ function gameEdit(commandInputs : CommandInputs) {
     if (![2, 3].includes(argsCount)) {
         const content = {
             'Unexpected number of arguments': `Expecting 2 or 3 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.game edit <game> <role>\`\n\`.game edit <game> <role> <limit>\`',
         };
         sendMessage(message.channel, content, 'error', 'Game Edit');
         return;
