@@ -21,6 +21,7 @@ import { CommandInputs } from './processCommand.js';
     if (argsCount > 0) {
         const content = {
             'Unexpected number of arguments': `Expecting 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.user view\`',
         };
         sendMessage(message.channel, content, 'error', 'User View');
         return;
@@ -52,6 +53,7 @@ function userSave(commandInputs : CommandInputs) {
     if (argsCount < 1) {
         const content = {
             'Unexpected number of arguments': `Expecting at least 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.user save <game/s>\`',
         };
         sendMessage(message.channel, content, 'error', 'User Save');
         return;
@@ -122,6 +124,7 @@ const {
     if (argsCount < 1) {
         const content = {
             'Unexpected number of arguments': `Expecting at least 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.user remove <game/s>\`',
         };
         sendMessage(message.channel, content, 'error', 'User Remove');
         return;
@@ -192,6 +195,7 @@ const {
     if (argsCount > 0) {
         const content = {
             'Unexpected number of arguments': `Expecting 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.user clear\`',
         };
         sendMessage(message.channel, content, 'error', 'User Clear');
         return;
