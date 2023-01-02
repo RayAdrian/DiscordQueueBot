@@ -18,7 +18,7 @@ export class User {
         return {
             id: this.id,
             gameNames: [...this.gameNames],
-        }
+        };
     }
 
     getId() : string {

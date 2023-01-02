@@ -77,9 +77,9 @@ function gameList(commandInputs : CommandInputs) {
     const game = cache.getGame(gameName);
     const descriptionMessage = {
         'Information': `
-            name - ${game.name}
-            role - ${game.roleId}
-            limit - ${game.limit === 0 ? 'none' : game.limit}
+            name - ${game.getName()}
+            role - ${game.getRoleId()}
+            limit - ${game.getLimit() === 0 ? 'none' : game.getLimit()}
         `,
     };
     sendMessage(message.channel, descriptionMessage, 'information', `Game Description - \`${gameName}\``);
