@@ -1,7 +1,8 @@
 import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches/index.js';
 import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants.js';
-import { isValidLimit, isValidRole, sendErrorMessage, sendMessageEmbed } from '../utils/index.js';
+import { isValidLimit, isValidRole, sendDebugErrorMessage } from '../utils/index.js';
+import sendMessage from '../utils/sendMessage.js';
 import { CommandInputs } from './processCommand.js';
 
 /**
@@ -17,46 +18,42 @@ function gameList(commandInputs : CommandInputs) {
     // validation
     const argsCount = args.length;
     if (argsCount !== 0) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expected 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
+        const content = {
+            'Unexpected number of arguments': `Expecting no arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.game list\`',
+        };
+        sendMessage(message.channel, content, 'error', 'Game List');
         return;
     }
 
     // arguments validated
     const gameNames = cache.getGameNames();
-    const fieldTitle = 'Current available games';
-    const content = gameNames.length ? gameNames.join('\n') : 'No games available';
-    sendMessageEmbed(
-        message.channel,
-        'Game List',
-        { [fieldTitle] : content },
-        () => {},
-    );
+    const content = {
+        'Current available games': gameNames.length ? gameNames.join('\n') : 'No games available',
+    };
+    sendMessage(message.channel, content, 'information', 'Game List');
 }
 
 /**
- * Function to handle `.game <name>`
+ * Function to handle `.game <game>`
  * Show the info pertaining to a game
  * @param commandInputs - contains the necessary parameters for the command
  */
  function gameDescribe(commandInputs : CommandInputs) {
     const {
-        args, bot, cache, command, message,
+        args, cache, command, message,
     } : {
-        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, cache : LocalCache, command : string, message : Message,
     } = commandInputs;
 
     // validation
     const argsCount = args.length;
     if (argsCount !== 1) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expecting 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
+        const content = {
+            'Unexpected number of arguments': `Expecting 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.game <game>\`',
+        };
+        sendMessage(message.channel, content, 'error', 'Game Describe');
         return;
     }
  
@@ -73,11 +70,8 @@ function gameList(commandInputs : CommandInputs) {
     }
 
     if (errorMessage.length) {
-        sendMessageEmbed(
-            message.channel,
-            'Invalid argument',
-            errorMessage,
-        );
+        const content = { 'Invalid argument': errorMessage };
+        sendMessage(message.channel, content, 'error', 'Game Description');
         return;
     }
 
@@ -85,20 +79,16 @@ function gameList(commandInputs : CommandInputs) {
     const game = cache.getGame(gameName);
     const descriptionMessage = {
         'Information': `
-            name - ${game.name}
-            role - ${game.roleId}
-            limit - ${game.limit === 0 ? 'none' : game.limit}
+            name - ${game.getName()}
+            role - ${game.getRoleId()}
+            limit - ${game.getLimit() === 0 ? 'none' : game.getLimit()}
         `,
     };
-    sendMessageEmbed(
-        message.channel,
-        `Game Description - \`${gameName}\``,
-        descriptionMessage,
-    );
+    sendMessage(message.channel, descriptionMessage, 'information', `Game Description - \`${gameName}\``);
 }
 
 /**
- * Function to handle `.game add <name> <role> <limit>`
+ * Function to handle `.game add <game> <role> <limit>`
  * Add a game
  * @param commandInputs - contains the necessary parameters for the command
  */
@@ -112,11 +102,11 @@ function gameAdd(commandInputs : CommandInputs) {
     // validation
     const argsCount = args.length;
     if (argsCount !== 3) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expecting 3 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
+        const content = {
+            'Unexpected number of arguments': `Expecting 3 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.game add <game> <role> <limit>\`',
+        };
+        sendMessage(message.channel, content, 'error', 'Game Add');
         return;
     }
 
@@ -139,26 +129,22 @@ function gameAdd(commandInputs : CommandInputs) {
     }
 
     if (errorMessages.length) {
-        sendMessageEmbed(
-            message.channel,
-            'Invalid arguments',
-            errorMessages.join('\n'),
-        );
+        const content = { 'Invalid arguments': errorMessages.join('\n') };
+        sendMessage(message.channel, content, 'error', 'Game Add');
         return;
     }
 
     // arguments validated
     cache.addGame(gameName, role, Number(limit)).then(() => {
-        sendMessageEmbed(
-            message.channel,
-            'Notification',
-            `Game and Lineup for \`${gameName}\` added.`,
-        );
-    }).catch((error : Error) => sendErrorMessage(bot, error));
+        const content = {
+            'Notification': `Game and Lineup for \`${gameName}\` added.`,
+        };
+        sendMessage(message.channel, content, 'success', 'Game Add');
+    }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }
 
 /**
- * Function to handle `.game remove <name>`
+ * Function to handle `.game remove <game>`
  * Remove a game
  * @param commandInputs - contains the necessary parameters for the command
  */
@@ -172,11 +158,11 @@ function gameRemove(commandInputs : CommandInputs) {
     // validation
     const argsCount = args.length;
     if (argsCount !== 1) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expecting 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
+        const content = {
+            'Unexpected number of arguments': `Expecting 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.game remove <game>\`',
+        };
+        sendMessage(message.channel, content, 'error', 'Game Remove');
         return;
     }
  
@@ -193,26 +179,22 @@ function gameRemove(commandInputs : CommandInputs) {
     }
 
     if (errorMessage.length) {
-        sendMessageEmbed(
-            message.channel,
-            'Invalid argument',
-            errorMessage,
-        );
+        const content = { 'Invalid argument': errorMessage };
+        sendMessage(message.channel, content, 'error', 'Game Remove');
         return;
     }
 
     // arguments validated
     cache.removeGame(gameName).then(() => {
-        sendMessageEmbed(
-            message.channel,
-            'Notification',
-            `Game and Lineup/s for \`${gameName}\` deleted.`,
-        );
-    }).catch((error : Error) => sendErrorMessage(bot, error));
+        const content = {
+            'Notification':  `Game and Lineup/s for \`${gameName}\` deleted.`,
+        };
+        sendMessage(message.channel, content, 'success', 'Game Remove');
+    }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }
 
 /**
- * Function to handle `.game edit <name> <role> <?limit>`
+ * Function to handle `.game edit <game> <role> <?limit>`
  * Edit a game's set parameters
  * @param commandInputs - contains the necessary parameters for the command
  */
@@ -226,11 +208,11 @@ function gameEdit(commandInputs : CommandInputs) {
     // validation
     const argsCount = args.length;
     if (![2, 3].includes(argsCount)) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expecting 2 or 3 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
+        const content = {
+            'Unexpected number of arguments': `Expecting 2 or 3 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.game edit <game> <role>\`\n\`.game edit <game> <role> <limit>\`',
+        };
+        sendMessage(message.channel, content, 'error', 'Game Edit');
         return;
     }
  
@@ -253,57 +235,24 @@ function gameEdit(commandInputs : CommandInputs) {
     }
 
     if (errorMessages.length) {
-        sendMessageEmbed(
-            message.channel,
-            'Invalid arguments',
-            errorMessages.join('\n'),
-        );
+        const content = { 'Invalid arguments': errorMessages.join('\n') };
+        sendMessage(message.channel, content, 'error', 'Game Edit');
         return;
     }
 
     // arguments validated
     cache.editGame(gameName, role, limit).then(() => {
-        sendMessageEmbed(
-            message.channel,
-            'Notification',
-            `Game \`${gameName}\` edited.`,
-        );
+        const content = {
+            'Notification': `Game \`${gameName}\` edited.`,
+        };
+        sendMessage(message.channel, content, 'success', `Game Edit - ${gameName}`);
     }, (error : any) => {
         if (error instanceof Error) {
             throw error;
         }
-        sendMessageEmbed(
-            message.channel,
-            'Error Notification',
-            error,
-        );
-    }).catch((error : Error) => sendErrorMessage(bot, error));
-}
-
-/**
- * Inform game command as invalid
- * @param commandInputs - contains the necessary parameters for the command
- */
-function invalidGameCommand(commandInputs : CommandInputs) {
-    const { args, message } : { args : Array<string>, message : Message } = commandInputs;
-
-    if (args.length === 0) {
-        sendMessageEmbed(
-            message.channel,
-            `Invalid \`${PREFIX}game\` command`,
-            `
-                Command for \`${PREFIX}game\` lacking.
-                Possible options include \`list\`, \`add\`, \`edit\`, and \`remove\`.
-                ie. \`.game list\`
-            `,
-        );
-        return;
-    }
-    sendMessageEmbed(
-        message.channel,
-        `Invalid \`${PREFIX}game\` command`,
-        `Command for \`${PREFIX}game\` unrecognized.`,
-    );
+        const content = { 'Error Notification': error };
+        sendMessage(message.channel, content, 'error', `Game Edit - ${gameName}`);
+    }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }
 
 /**
@@ -345,9 +294,6 @@ const gameCommands = [{
     run: gameDescribe,
     formats: ['game <game>'],
     descriptions: ['describe a game'],
-}, {
-    aliases: ['game'],
-    run: invalidGameCommand,
 }];
 
 export default gameCommands;

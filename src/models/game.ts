@@ -6,37 +6,46 @@ export interface IGame {
     limit: number;
 };
 
-export interface IGameMethods {
-    isInfinite(): boolean;
-}
-
-type GameModel = mongoose.Model<IGame, {}, IGameMethods>;
-
-export class Game implements IGame, IGameMethods {
-    name: string;
-    roleId: string;
-    limit: number = 5;
-    /**
-     * Returns whether this game has infinite slots based on limit
-     */
-    isInfinite() : boolean {
-        return this.limit === 0;
-    }
+export class Game {
+    private name: string;
+    private roleId: string;
+    private limit: number = 5;
 
     constructor(game: IGame) {
         this.name = game.name;
         this.roleId = game.roleId;
         this.limit = game.limit;
     }
+
+    getGameWrapper() : IGame {
+        return {
+            name: this.name,
+            roleId: this.roleId,
+            limit: this.limit,
+        };
+    }
+
+    getName() : string {
+        return this.name;
+    }
+
+    getRoleId() : string {
+        return this.roleId;
+    }
+
+    getLimit() : number {
+        return this.limit;
+    }
+
+    isInfinite() : boolean {
+        return this.limit === 0;
+    }
 };
 
-const gameSchema = new mongoose.Schema<IGame, GameModel, undefined, IGameMethods>({
+const gameSchema = new mongoose.Schema<IGame>({
     name: String,
     roleId: String,
     limit: Number,
 });
-gameSchema.method('isInfinite', function isInfinite() {
-    return this.limit === 0;
-});
 
-export default mongoose.model<IGame, GameModel>('Game', gameSchema);
+export default mongoose.model<IGame>('Game', gameSchema);
