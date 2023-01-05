@@ -8,6 +8,7 @@ export const RESET_CRON_SCHEDULE = '0 6 * * *';
 export const NOTIF_MSG_TIME_DEL = 10000;
 export const ERROR_MSG_TIME_DEL = 15000;
 export const WARNING_MSG_TIME_DEL = 30000;
+export const MEME_MSG_TIME_DEL = 30000;
 export const DEFAULT_MSG_TIME_DEL = NOTIF_MSG_TIME_DEL;
 
 export const COLORS = {
