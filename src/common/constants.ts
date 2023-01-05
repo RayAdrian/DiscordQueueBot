@@ -30,6 +30,7 @@ export const PUNISH_ID = '747740479638208532'
 export const PUNISH_TIME_DEL = 500;
 
 export const COPYPASTA_DELAY = 3000;
+export const COPYPASTA_COOLDOWN = 60000;
 
 export const READY_MESSAGE = 'G ';
 

@@ -1,5 +1,6 @@
 import { Message } from 'discord.js';
-import { COPYPASTA_DELAY } from '../common/constants.js';
+import LocalCache from '../caches/local.js';
+import { COPYPASTA_COOLDOWN, COPYPASTA_DELAY } from '../common/constants.js';
 import { CLUB_PENGUIN } from '../common/copypastas.js';
 import sendMessage from '../utils/sendMessage.js';
 import { CommandInputs } from './processCommand.js';
@@ -11,9 +12,9 @@ import { CommandInputs } from './processCommand.js';
  */
 function clubPenguin(commandInputs : CommandInputs) {
     const {
-        args, message,
+        args, cache, command, message,
     } : {
-        args : Array<string>, message : Message,
+        args : Array<string>, cache : LocalCache, command : string, message : Message,
     } = commandInputs;
 
     // validation
@@ -23,11 +24,25 @@ function clubPenguin(commandInputs : CommandInputs) {
         return;
     }
 
+    // check if in cooldown
+    const endCooldown = cache.getCooldown('club penguin');
+    const now = new Date();
+    if (endCooldown && endCooldown > now) {
+        const remainingDuration = (now.getTime() - endCooldown.getTime()) / 1000;
+        const content = {
+            'Command Cooldown': `.\`${command}\` is in cooldown for ${remainingDuration} more seconds.`,
+        };
+        sendMessage(message.channel, content, 'error', command);
+    }
+
     // send copypasta line per line with delay
     CLUB_PENGUIN.split('\n').forEach((line, index) => {
         const delay = COPYPASTA_DELAY * index;
         setTimeout(() => sendMessage(message.channel, line, 'plain'), delay);
     });
+
+    // set cooldown
+    cache.addCooldown('club penguin', COPYPASTA_COOLDOWN);
 }
 
 /**
