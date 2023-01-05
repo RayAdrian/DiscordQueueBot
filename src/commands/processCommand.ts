@@ -4,6 +4,7 @@ import { PREFIX } from '../common/constants.js';
 import { sendMessage } from '../utils/index.js';
 import gameCommands from './game.js';
 import helpCommands from './help.js';
+import hiddenCommands from './hidden.js';
 import lineupCommands, { specialJoinCommand } from './lineup.js';
 import userCommands from './user.js';
 
@@ -37,7 +38,13 @@ const commands = [
     ...gameCommands,
     ...lineupCommands,
     ...userCommands,
+    ...hiddenCommands,
 ];
+
+const extractSpecialCharacters = (content : string) : string => {
+    const result = new RegExp(`^${PREFIX}(\\W*)`, 'gu').exec(content);
+    return result ? result[1].trim() : '';
+}
 
 // No need to check for prefix in command
 const getCommandRegExp = (command : string) : RegExp => new RegExp(`^${PREFIX}(${command})\\b(.*)`, 'gi');
@@ -53,6 +60,7 @@ export default function processCommand(bot : Client, cache: LocalCache, message 
     const cleanedContent = content.trim();
 
     let isValidCommand = commands.some(({ aliases, run }) => {
+        const specialCharacters = extractSpecialCharacters(cleanedContent);
         for (const alias of aliases) {
             const result = getCommandRegExp(alias).exec(cleanedContent);
             if (result !== null) { // check if command is valid
@@ -60,6 +68,12 @@ export default function processCommand(bot : Client, cache: LocalCache, message 
                 const args = result[2].trim().split(' ').filter((arg) => arg.length);
 
                 const parameters = new CommandInputs(args, bot, cache, command, message);
+                run(parameters);
+                return true;
+            }
+
+            if (specialCharacters === alias) {
+                const parameters = new CommandInputs([], bot, cache, alias, message);
                 run(parameters);
                 return true;
             }

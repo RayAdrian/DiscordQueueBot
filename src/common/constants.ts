@@ -29,6 +29,8 @@ export const PUNISH_TAG = '<@&747740479638208532>';
 export const PUNISH_ID = '747740479638208532'
 export const PUNISH_TIME_DEL = 500;
 
+export const COPYPASTA_DELAY = 3000;
+
 export const READY_MESSAGE = 'G ';
 
 export const RESERVED_KEYWORDS = [
