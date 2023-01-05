@@ -39,7 +39,7 @@ function clubPenguin(commandInputs : CommandInputs) {
     // send copypasta line per line with delay
     CLUB_PENGUIN.split('\n').forEach((line, index) => {
         const delay = COPYPASTA_DELAY * index;
-        setTimeout(() => sendMessage(message.channel, line, 'plain'), delay);
+        setTimeout(() => sendMessage(message.channel, line, 'meme'), delay);
     });
 
     // set cooldown
