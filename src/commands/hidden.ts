@@ -33,6 +33,7 @@ function clubPenguin(commandInputs : CommandInputs) {
             'Command Cooldown': `.\`${command}\` is in cooldown for ${remainingDuration} more seconds.`,
         };
         sendMessage(message.channel, content, 'error', command);
+        return;
     }
 
     // send copypasta line per line with delay
