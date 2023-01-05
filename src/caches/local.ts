@@ -10,11 +10,13 @@ export default class LocalCache {
     private gamesCache: GamesCache;
     private lineupsCache: LineupsCache;
     private usersCache: UsersCache;
+    private commandCooldowns : Map<string, Date>;
 
     constructor() {
         this.gamesCache = new GamesCache();
         this.lineupsCache = new LineupsCache();
         this.usersCache = new UsersCache();
+        this.commandCooldowns = new Map<string, Date>();
     }
 
     /**
@@ -293,5 +295,23 @@ export default class LocalCache {
      */
     lineupHasUser(gameName, userId) : boolean {
         return this.getLineup(gameName).hasUser(userId);
+    }
+
+    /**
+     * Add a cooldown to a command to prevent spam
+     * @param command - name of the command to add a cooldown to
+     * @param duration - cooldown in milliseconds
+     */
+    addCooldown(command, duration) : void {
+        const endTime = new Date(Date.now() + duration);
+        this.commandCooldowns.set(command, endTime);
+    }
+
+    /**
+     * Retrieve the cooldown of a command
+     * @param command - name of the command to retrieve the cooldown of
+     */
+    getCooldown(command) : Date {
+        return this.commandCooldowns.get(command) || null;
     }
 };
