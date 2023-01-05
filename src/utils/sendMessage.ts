@@ -24,7 +24,7 @@ type types = 'plain'
  * Send a message to a specified channel
  * @param channel - channel to send to
  * @param message - contents to be parsed and sent
- * @param type - type of message
+ * @param type - type of message (plain | success | information | error | warning | invite)
  * @param title - if present and applicable, title of the embedded message
  */
 export default function sendMessage(
