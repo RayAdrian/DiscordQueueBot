@@ -28,7 +28,7 @@ function clubPenguin(commandInputs : CommandInputs) {
     const endCooldown = cache.getCooldown('club penguin');
     const now = new Date();
     if (endCooldown && endCooldown > now) {
-        const remainingDuration = (now.getTime() - endCooldown.getTime()) / 1000;
+        const remainingDuration = ((endCooldown.getTime() - now.getTime()) / 1000).toFixed(0);
         const content = {
             'Command Cooldown': `.\`${command}\` is in cooldown for ${remainingDuration} more seconds.`,
         };
