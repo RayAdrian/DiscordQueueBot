@@ -1,7 +1,7 @@
 import { Client, Message, MessageEmbed, TextChannel } from "discord.js";
-import { INFO_CHANNEL_ID, DEBUG_INFO_MSG_TIME_DEL } from "../common/constants.js";
+import { INFO_CHANNEL_ID, DEBUG_INFO_MSG_TIME_DEL, COLORS } from "../common/constants.js";
 import deleteMessage from "./deleteMessage.js";
-import sendMessage from "./sendMessage.js";
+import sendRawMessage from "./sendRawMessage.js";
 
 const defaultOnSuccess = (sentMsg : Message) => deleteMessage(sentMsg, DEBUG_INFO_MSG_TIME_DEL);
 
@@ -12,7 +12,7 @@ const defaultOnSuccess = (sentMsg : Message) => deleteMessage(sentMsg, DEBUG_INF
  * @param onSuccess - optional callback to run when message sends successfully
  * @param onError - optional callback to run when message sends fails
  */
-export default function sendInfoMessage(
+export default function sendDebugInfoMessage(
     bot: Client,
     info : string,
     onSuccess : Function = defaultOnSuccess,
@@ -25,9 +25,10 @@ export default function sendInfoMessage(
     }
     const infoEmbed = new MessageEmbed()
         .setTitle('INFO')
+        .setColor(COLORS.DEBUG_INFO)
         .addField('DateTime', new Date().toISOString())
         .addField('Message', info);
-    sendMessage(
+    sendRawMessage(
         bot.channels.cache.get(INFO_CHANNEL_ID) as TextChannel,
         infoEmbed,
         onSuccess,

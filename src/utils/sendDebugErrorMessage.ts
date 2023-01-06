@@ -1,6 +1,6 @@
 import { Client, MessageEmbed, TextChannel } from "discord.js";
-import { ERROR_CHANNEL_ID } from "../common/constants.js";
-import sendMessage from "./sendMessage.js";
+import { COLORS, ERROR_CHANNEL_ID } from "../common/constants.js";
+import sendRawMessage from "./sendRawMessage.js";
 
 /**
  * Send an error message
@@ -9,7 +9,7 @@ import sendMessage from "./sendMessage.js";
  * @param onSuccess - optional callback to run when message sends successfully
  * @param onError - optional callback to run when message sends fails
  */
-export default function sendErrorMessage(
+export default function sendDebugErrorMessage(
     bot: Client,
     error : Error,
     onSuccess : Function = () => {},
@@ -22,9 +22,10 @@ export default function sendErrorMessage(
     }
     const errorEmbed = new MessageEmbed()
         .setTitle('ERROR')
+        .setColor(COLORS.DEBUG_ERROR)
         .addField('DateTime', new Date().toISOString())
         .addField('Message', error.toString());
-    sendMessage(
+    sendRawMessage(
         bot.channels.cache.get(ERROR_CHANNEL_ID) as TextChannel,
         errorEmbed,
         onSuccess,

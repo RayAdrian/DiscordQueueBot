@@ -1,11 +1,11 @@
 import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches/index.js';
 import { ALPHANUMERIC, PREFIX } from '../common/constants.js';
-import { sendErrorMessage, sendMessageEmbed } from '../utils/index.js';
+import { sendDebugErrorMessage, sendMessage } from '../utils/index.js';
 import { CommandInputs } from './processCommand.js';
 
 /**
- * Function to handle `.user view <game/s>`
+ * Function to handle `.user view`
  * View list of games saved by the user
  * @param parameters - contains the necessary parameters for the command
  */
@@ -19,11 +19,11 @@ import { CommandInputs } from './processCommand.js';
     // first validation
     const argsCount = args.length;
     if (argsCount > 0) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expecting at 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
+        const content = {
+            'Unexpected number of arguments': `Expecting 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.user view\`',
+        };
+        sendMessage(message.channel, content, 'error', 'User View');
         return;
     }
 
@@ -31,9 +31,8 @@ import { CommandInputs } from './processCommand.js';
     const userId = `<@${message.author.id}>`;
     cache.confirmUserInit(userId).then(() => {
         const userGames = cache.getUserGames(userId);
-        const title = `Saved Games - ${message.author.username}`;
-        const content = userGames.length ? `${userGames.join('\n')}` : 'No games saved';
-        sendMessageEmbed(message.channel, title, { Games: content });
+        const content = { Games: userGames.length ? `${userGames.join('\n')}` : 'No games saved' };
+        sendMessage(message.channel, content, 'information', `Saved Games - ${message.author.username}`);
     });
 }
 
@@ -52,11 +51,11 @@ function userSave(commandInputs : CommandInputs) {
     // first validation
     const argsCount = args.length;
     if (argsCount < 1) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expecting at least 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
+        const content = {
+            'Unexpected number of arguments': `Expecting at least 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.user save <game/s>\`',
+        };
+        sendMessage(message.channel, content, 'error', 'User Save');
         return;
     }
 
@@ -76,11 +75,8 @@ function userSave(commandInputs : CommandInputs) {
     }
 
     if (errorMessages.length) {
-        sendMessageEmbed(
-            message.channel,
-            'Invalid arguments',
-            errorMessages.join('\n'),
-        );
+        const content = { 'Invalid arguments': errorMessages.join('\n') };
+        sendMessage(message.channel, content, 'error', 'User Save');
         return;
     }
 
@@ -102,11 +98,11 @@ function userSave(commandInputs : CommandInputs) {
         if (validGameNames.length) {
             cache.saveToUserGames(userId, gameNames).then(() => {
                 content['Successfully saved the following games to your gameslist'] = `\`${validGameNames.join(' ')}\``;
-                sendMessageEmbed(message.channel, 'Notification', content);
-            }).catch((error : Error) => sendErrorMessage(bot, error));
+                sendMessage(message.channel, content, 'success', 'User Save');
+            }).catch((error : Error) => sendDebugErrorMessage(bot, error));
         } else {
             content['No games saved'] = 'All specified games already in user\'s saved games list';
-            sendMessageEmbed(message.channel, 'Notification', content);
+            sendMessage(message.channel, content, 'error', 'User Save');
         }
     });
 }
@@ -126,11 +122,11 @@ const {
     // first validation
     const argsCount = args.length;
     if (argsCount < 1) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expecting at least 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
+        const content = {
+            'Unexpected number of arguments': `Expecting at least 1 argument for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.user remove <game/s>\`',
+        };
+        sendMessage(message.channel, content, 'error', 'User Remove');
         return;
     }
 
@@ -150,11 +146,8 @@ const {
     }
 
     if (errorMessages.length) {
-        sendMessageEmbed(
-            message.channel,
-            'Invalid arguments',
-            errorMessages.join('\n'),
-        );
+        const content = { 'Invalid arguments': errorMessages.join('\n') };
+        sendMessage(message.channel, content, 'error', 'User Remove');
         return;
     }
 
@@ -176,11 +169,11 @@ const {
         if (validGameNames.length) {
             cache.removeFromUserGames(userId, gameNames).then(() => {
                 content['Successfully removed the following games from your games list'] = `\`${validGameNames.join(' ')}\``;
-                sendMessageEmbed(message.channel, 'Notification', content);
-            }).catch((error : Error) => sendErrorMessage(bot, error));
+                sendMessage(message.channel, content, 'success', 'User Remove');
+            }).catch((error : Error) => sendDebugErrorMessage(bot, error));
         } else {
             content['No games removed'] = 'None of the specified games are in the user\'s games list';
-            sendMessageEmbed(message.channel, 'Notification', content);
+            sendMessage(message.channel, content, 'success', 'User Remove');
         }
     });
 }
@@ -200,11 +193,11 @@ const {
     // first validation
     const argsCount = args.length;
     if (argsCount > 0) {
-        sendMessageEmbed(
-            message.channel,
-            'Unexpected number of arguments',
-            `Expecting at 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
-        );
+        const content = {
+            'Unexpected number of arguments': `Expecting 0 arguments for \`${PREFIX}${command}\`. Received ${argsCount}.`,
+            'Expected Format/s': '\`.user clear\`',
+        };
+        sendMessage(message.channel, content, 'error', 'User Clear');
         return;
     }
 
@@ -212,9 +205,11 @@ const {
     const userId = `<@${message.author.id}>`;
     cache.confirmUserInit(userId).then(() => {
         cache.clearUserGames(userId).then(() => {
-            sendMessageEmbed(message.channel, 'Notification', 'Removed all games from user\'s save list');
+            const content = { 'Notification': 'Removed all games from user\'s save list' };
+            sendMessage(message.channel, content, 'success', 'User Clear');
         }, (error) => {
-            sendMessageEmbed(message.channel, 'Error Notification ', error);
+            const content = { 'Error Notification': 'Removed all games from user\'s save list' };
+            sendMessage(message.channel, content, 'error', 'User Clear');
         });
     });
 }
@@ -227,22 +222,20 @@ function invalidUserCommand(commandInputs : CommandInputs) {
     const { args, message } : { args : Array<string>, message : Message } = commandInputs;
 
     if (args.length === 0) {
-        sendMessageEmbed(
-            message.channel,
-            `Invalid \`${PREFIX}user\` command`,
-            `
+        const content = {
+            'Error Notification': `
                 Command for \`${PREFIX}user\` lacking.
-                Possible options include \`save\`, and \`remove\`.
+                Possible options include \`view\`, \`save\`, \`remove\`, and \`clear\`.
                 ie. \`.user save\`
             `,
-        );
+        };
+        sendMessage(message.channel, content, 'error', 'Invalid User Command');
         return;
     }
-    sendMessageEmbed(
-        message.channel,
-        `Invalid \`${PREFIX}user\` command`,
-        `Command for \`${PREFIX}user\` unrecognized.`,
-    );
+    const content = {
+        'Error Notification': `Command for \`${PREFIX}user\` unrecognized.`,
+    };
+    sendMessage(message.channel, content, 'error', 'Invalid User Command');
 }
 
 /**

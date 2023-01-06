@@ -1,6 +1,6 @@
 import { Message, MessageEmbed } from 'discord.js';
-import { PREFIX } from '../common/constants.js';
-import { sendMessage } from '../utils/index.js';
+import { COLORS, PREFIX } from '../common/constants.js';
+import { sendRawMessage } from '../utils/index.js';
 import gameCommands from './game.js';
 import lineupCommands, { specialJoinCommand } from './lineup.js';
 import { CommandInputs } from './processCommand.js';
@@ -36,9 +36,11 @@ function help(commandInputs : CommandInputs) {
 
     const simpleHelpEmbed = new MessageEmbed()
         .setTitle('GentleBot Help')
+        .setColor(COLORS.INFORMATION)
         .addField('Comprehensive Help', 'For a comprehensive help message, check your DM\'s.');
     const helpEmbed = new MessageEmbed()
         .setTitle('GentleBot Help')
+        .setColor(COLORS.INFORMATION)
         .addField('Queueing Commands', `
             Command formats listed under the aliases, highlighted like the ff. command.
             e.g. \`.help\`
@@ -61,7 +63,7 @@ function help(commandInputs : CommandInputs) {
         commands.forEach(({ name, description }) => helpEmbed.addField(name, description, true));
     });
 
-    sendMessage(message.channel, simpleHelpEmbed, () => {});
+    sendRawMessage(message.channel, simpleHelpEmbed, () => {});
     message.author.send(helpEmbed);   
 }
 

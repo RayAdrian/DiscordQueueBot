@@ -1,5 +1,5 @@
 import { Document } from 'mongoose';
-import { Games, Game, IGame, IGameMethods } from "../models/index.js";
+import { Games, Game, IGame } from "../models/index.js";
 
 export default class GamesCache {
     private gamesMap: Map<string, Game>;
@@ -17,7 +17,7 @@ export default class GamesCache {
         return Games.find({}).exec().then((data) => {
             data.forEach((game) => {
                 const name = game.name;
-                this.gamesMap.set(name, game);
+                this.gamesMap.set(name, new Game(game));
                 this.gameNames.add(name);
             });
         });
@@ -28,8 +28,7 @@ export default class GamesCache {
      * @param name - name of the game
      */
     getGame(name : string) : Game {
-        const gameData = this.gamesMap.get(name);
-        return JSON.parse(JSON.stringify(gameData)) as Game;
+        return this.gamesMap.get(name);
     }
 
     /**
@@ -51,14 +50,13 @@ export default class GamesCache {
         name : string,
         roleId : string,
         limit : number,
-    ) : Promise<IGame & Document<any, any, IGame> & IGameMethods> {
+    ) : Promise<IGame & Document<any, any, IGame>> {
         const newGame = new Game({
             name, roleId, limit,
         });
         this.gamesMap.set(name, newGame);
         this.gameNames.add(name);
         return Games.create(newGame);
-            
     }
 
     /**
@@ -72,11 +70,11 @@ export default class GamesCache {
         name : string,
         roleId : string,
         limit ?: string,
-    ) : Promise<IGame & Document<any, any, IGame> & IGameMethods> {
+    ) : Promise<IGame & Document<any, any, IGame>> {
         const currentGame = this.gamesMap.get(name);
 
         // check if there any changes to be done
-        if (roleId === currentGame.roleId && (!limit || Number(limit) === currentGame.limit)) {
+        if (roleId === currentGame.getRoleId() && (!limit || Number(limit) === currentGame.getLimit())) {
             return Promise.reject(`No changes requested to game \`${name}\`.`);
         }
 
