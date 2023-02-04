@@ -26,25 +26,41 @@ const serviceProvider = new ServiceProvider();
 /**
  * Setup and run bot
  */
-bot.on('ready', () => {
+bot.on('ready', async () => {
     sendDebugInfoMessage(bot, 'Setting up bot');
     if (bot && bot.user) {
         bot.user.setActivity(".help | Sup gamers");
 
         sendDebugInfoMessage(bot, 'Connecting to MongoDB.');
-        mongoose.connect(process.env.DB_URL, {
+        const isConnectedToDB = await mongoose.connect(process.env.DB_URL, {
             useFindAndModify: false,
             useNewUrlParser: true,
             useUnifiedTopology: true,
         }).then(() => {
             sendDebugInfoMessage(bot, 'Connected to MongoDB.');
-            sendDebugInfoMessage(bot, 'Connecting to Redis.');
-            return serviceProvider.init();
-        }).then(() => {
+            return true;
+        }).catch((error : Error) => {
+            sendDebugErrorMessage(bot, error);
+            sendDebugInfoMessage(bot, 'Failed to connect to MongoDB.');
+            return false;
+        });
+
+        if (!isConnectedToDB) {
+            // TODO: Perhaps create cron to retry connecting to mongoDB
+            return;
+        }
+
+        sendDebugInfoMessage(bot, 'Connecting to Redis.');
+        await serviceProvider.init().then(() => {
             sendDebugInfoMessage(bot, 'Connected to Redis.');
-            sendDebugInfoMessage(bot, 'Fetching data to local cache.'); // TODO: Deprecate
-            return localCache.fetchAll(); // TODO: Deprecate
-        }).then(async (fetchData) => {
+        }).catch((error : Error) => {
+            sendDebugErrorMessage(bot, error)
+            sendDebugInfoMessage(bot, 'Failed to connect to Redis.');
+        })
+
+        // TODO: Deprecate
+        sendDebugInfoMessage(bot, 'Fetching data to local cache.');
+        await localCache.fetchAll().then(async (fetchData) => {
             if (fetchData && fetchData.length) {
                 const { missingLineups, invalidLineups } = fetchData[0];
 
@@ -61,8 +77,9 @@ bot.on('ready', () => {
                     });
                 }
             }
-            sendDebugInfoMessage(bot, 'Bot is ready', () => {});
-        }).catch((error : Error) => sendDebugErrorMessage(bot, error));
+        });
+
+        sendDebugInfoMessage(bot, 'Bot is ready', () => {});
     }
 });
 
