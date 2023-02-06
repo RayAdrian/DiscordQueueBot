@@ -2,7 +2,7 @@ import { createClient, RedisClientType } from 'redis';
 import GameService from './gameService.js';
 
 export default class ServiceProvider {
-    public redisClient: RedisClientType;
+    private redisClient: RedisClientType;
     public gameService : GameService;
 
     constructor() {
@@ -17,7 +17,6 @@ export default class ServiceProvider {
     }
 
     redisConnect() : Promise<void> {
-        this.redisClient.on("error", (error) => console.log('[ERROR]', error));
         return this.redisClient.connect();
     }
 };
