@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import cron from 'node-cron';
 import { LocalCache } from './caches/index.js';
 import { processCommand } from './commands/index.js';
-import { MAIN_CHANNEL_ID, PREFIX, RESET_CRON_SCHEDULE } from './common/constants.js';
+import { MAIN_CHANNEL_ID, PREFIX, REDIS_ENABLED, RESET_CRON_SCHEDULE } from './common/constants.js';
 import { Lineups } from './models/index.js';
 import ServiceProvider from './services/serviceProvider.js';
 import { sendDebugErrorMessage, sendDebugInfoMessage, sendMessage } from './utils/index.js';
@@ -50,13 +50,15 @@ bot.on('ready', async () => {
             return;
         }
 
-        sendDebugInfoMessage(bot, 'Connecting to Redis.');
-        await serviceProvider.init().then(() => {
-            sendDebugInfoMessage(bot, 'Connected to Redis.');
-        }).catch((error : Error) => {
-            sendDebugErrorMessage(bot, error)
-            sendDebugInfoMessage(bot, 'Failed to connect to Redis.');
-        })
+        if (REDIS_ENABLED) {
+            sendDebugInfoMessage(bot, 'Connecting to Redis.');
+            await serviceProvider.init().then(() => {
+                sendDebugInfoMessage(bot, 'Connected to Redis.');
+            }).catch((error : Error) => {
+                sendDebugErrorMessage(bot, error)
+                sendDebugInfoMessage(bot, 'Failed to connect to Redis.');
+            })
+        }
 
         // TODO: Deprecate
         sendDebugInfoMessage(bot, 'Fetching data to local cache.');
