@@ -6,6 +6,7 @@ export const PREFIX = '.'; // TODO: Replace with slash commands
 export const RESET_CRON_SCHEDULE = '0 6 * * *';
 
 export const REDIS_ENABLED = process.env.REDIS_ENABLED !== null ? process.env.REDIS_ENABLED : true;
+export const ARRAY_SEPARATOR = ',';
 
 export const NOTIF_MSG_TIME_DEL = 10000;
 export const ERROR_MSG_TIME_DEL = 15000;
