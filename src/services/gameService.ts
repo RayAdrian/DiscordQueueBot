@@ -1,5 +1,5 @@
 import { RedisClientType } from 'redis';
-import { ARRAY_SEPARATOR, REDIS_ENABLED } from '../common/constants.js';
+import { ARRAY_SEPARATOR } from '../common/constants.js';
 import { Games, Game } from "../models/index.js";
 
 export default class GameService {
@@ -20,7 +20,7 @@ export default class GameService {
     getGame(name : string) : Promise<Game> {
         let fetchingCached = Promise.resolve(null);
         const key = `game-${name}`;
-        if (REDIS_ENABLED && this.hasRedis) {
+        if (this.hasRedis) {
             fetchingCached = this.redisClient.get(key).then((cachedGame) => {
                 if (cachedGame) {
                     return new Game(JSON.parse(cachedGame));
@@ -36,7 +36,7 @@ export default class GameService {
             return Games.findOne({ name }).then((rawGame) => {
                 if (rawGame) {
                     const game = new Game(rawGame);
-                    if (REDIS_ENABLED && this.hasRedis) {
+                    if (this.hasRedis) {
                         this.redisClient.set(key, JSON.stringify(game));
                     } 
                     return game;
@@ -53,7 +53,7 @@ export default class GameService {
     getGameNames() : Promise<Array<string>> {
         let fetchingCached = Promise.resolve(null);
         const gameNamesKey = `game-names`;
-        if (REDIS_ENABLED && this.hasRedis) {
+        if (this.hasRedis) {
             fetchingCached = this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
                 if (cachedGameNames) {
                     return cachedGameNames.split(ARRAY_SEPARATOR);
@@ -68,7 +68,7 @@ export default class GameService {
             }
             return Games.find({}).exec().then((rawGames) => {
                 const gameNames = rawGames.map((game) => game.name).sort();
-                if (REDIS_ENABLED && this.hasRedis) {
+                if (this.hasRedis) {
                     this.redisClient.set(gameNamesKey, gameNames.join(ARRAY_SEPARATOR));
                 }
                 return gameNames;
@@ -78,7 +78,7 @@ export default class GameService {
 
     /**
      * Function to handle `.game add <name> <role> <limit>`
-     * Add a game to local games cache and to the database
+     * Add a game to the database, then to the cache
      * @param name - name of the game
      * @param roleId - role to link to game
      * @param limit - number of slots for the game's lineup
