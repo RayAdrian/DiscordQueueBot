@@ -52,9 +52,9 @@ export default class GameService {
      */
     getGameNames() : Promise<Array<string>> {
         let fetchingCached = Promise.resolve(null);
-        const key = `games`;
+        const gameNamesKey = `game-names`;
         if (REDIS_ENABLED && this.hasRedis) {
-            fetchingCached = this.redisClient.get(key).then((cachedGameNames) => {
+            fetchingCached = this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
                 if (cachedGameNames) {
                     return cachedGameNames.split(ARRAY_SEPARATOR);
                 }
@@ -66,13 +66,41 @@ export default class GameService {
             if (gameNames) {
                 return Promise.resolve(gameNames);
             }
-            return Games.find({}).exec().then((data) => {
-                const gameNames = data.map((game) => game.name).sort();
+            return Games.find({}).exec().then((rawGames) => {
+                const gameNames = rawGames.map((game) => game.name).sort();
                 if (REDIS_ENABLED && this.hasRedis) {
-                    this.redisClient.set(key, gameNames.join(ARRAY_SEPARATOR));
+                    this.redisClient.set(gameNamesKey, gameNames.join(ARRAY_SEPARATOR));
                 }
                 return gameNames;
             });
         }).then((gameNames) => gameNames);
+    }
+
+    /**
+     * Function to handle `.game add <name> <role> <limit>`
+     * Add a game to local games cache and to the database
+     * @param name - name of the game
+     * @param roleId - role to link to game
+     * @param limit - number of slots for the game's lineup
+     */
+    addGame(name : string, roleId : string, limit : number) : Promise<Game> {
+        return Games.create({
+            name, roleId, limit,
+        }).then((data) => {
+            const newGame = new Game(data);
+
+            const gameNamesKey = 'game-names';
+            if (this.hasRedis && this.redisClient.exists(gameNamesKey)) {
+                this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
+                    const newCachedGameNames = [
+                        ...cachedGameNames.split(ARRAY_SEPARATOR),
+                        newGame.getName(),
+                    ].sort().join(ARRAY_SEPARATOR);
+                    this.redisClient.set(gameNamesKey, newCachedGameNames);
+                });
+            }
+
+            return newGame;
+        });
     }
 };
