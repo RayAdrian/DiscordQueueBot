@@ -19,9 +19,9 @@ export default class GameService {
      */
     getGame(name : string) : Promise<Game> {
         let fetchingCached = Promise.resolve(null);
-        const key = `game-${name}`;
+        const gameKey = `game-${name}`;
         if (this.hasRedis) {
-            fetchingCached = this.redisClient.get(key).then((cachedGame) => {
+            fetchingCached = this.redisClient.get(gameKey).then((cachedGame) => {
                 if (cachedGame) {
                     return new Game(JSON.parse(cachedGame));
                 }
@@ -37,7 +37,7 @@ export default class GameService {
                 if (rawGame) {
                     const game = new Game(rawGame);
                     if (this.hasRedis) {
-                        this.redisClient.set(key, JSON.stringify(game));
+                        this.redisClient.set(gameKey, JSON.stringify(game));
                     } 
                     return game;
                 }
@@ -102,5 +102,43 @@ export default class GameService {
 
             return newGame;
         });
+    }
+
+    /**
+     * Function to handle `.game edit <name> <role> <?limit>`
+     * Edit a game's set parameters
+     * @param name - name of the game
+     * @param roleId - role to link to game
+     * @param limit - (optional) number of slots for the game's lineup
+     */
+    editGame(name : string, roleId : string, limit ?: string) : Promise<Game> {
+        let updatingGame = this.getGame(name).then((currentGame) => {
+            // check if there any changes to be done
+            if (roleId === currentGame.getRoleId() && (!limit || Number(limit) === currentGame.getLimit())) {
+                return Promise.reject(`No changes requested to game \`${name}\`.`);
+            }
+
+            // apply changes
+            const newGameParams = { roleId };
+            if (limit) {
+                newGameParams['limit'] = Number(limit);
+            }
+
+            return Games.findOneAndUpdate(
+                { name },
+                { $set: newGameParams },
+                { new: true },
+            ).exec();
+        }).then((data) => new Game(data));
+
+        if (this.hasRedis) {
+            const gameKey = `game-${name}`;
+            updatingGame = updatingGame.then((editedGame) => {
+                this.redisClient.set(gameKey, JSON.stringify(editedGame));
+                return editedGame;
+            })
+        }
+
+        return updatingGame;
     }
 };
