@@ -90,13 +90,15 @@ export default class GameService {
             const newGame = new Game(data);
 
             const gameNamesKey = 'game-names';
-            if (this.hasRedis && this.redisClient.exists(gameNamesKey)) {
+            if (this.hasRedis) {
                 this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
-                    const newCachedGameNames = [
-                        ...cachedGameNames.split(ARRAY_SEPARATOR),
-                        newGame.getName(),
-                    ].sort().join(ARRAY_SEPARATOR);
-                    this.redisClient.set(gameNamesKey, newCachedGameNames);
+                    if (cachedGameNames !== null) {
+                        const newCachedGameNames = [
+                            ...cachedGameNames.split(ARRAY_SEPARATOR),
+                            newGame.getName(),
+                        ].sort().join(ARRAY_SEPARATOR);
+                        this.redisClient.set(gameNamesKey, newCachedGameNames);
+                    }
                 });
             }
 
