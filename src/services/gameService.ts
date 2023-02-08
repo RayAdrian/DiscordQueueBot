@@ -52,7 +52,7 @@ export default class GameService {
      */
     getGameNames() : Promise<Array<string>> {
         let fetchingCached = Promise.resolve(null);
-        const gameNamesKey = `game-names`;
+        const gameNamesKey = 'game-names';
         if (this.hasRedis) {
             fetchingCached = this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
                 if (cachedGameNames) {
@@ -142,5 +142,33 @@ export default class GameService {
         }
 
         return updatingGame;
+    }
+
+    /**
+     * Function to handle `.game remove <name>`
+     * Remove a game from the database, then the cache
+     * @param name - name of the game
+     */
+    removeGame(name : string) : Promise<void> {
+        let deletingGame : Promise<any> = Games.deleteOne({ name }).exec();
+
+        if (this.hasRedis) {
+            const gameKey = `game-${name}`;
+            deletingGame = deletingGame.then(() => this.redisClient.del(gameKey));
+
+            const gameNamesKey = 'game-names';
+            deletingGame = deletingGame.then(() => {
+                return this.redisClient.get(gameNamesKey);
+            }).then((cachedGameNames) => {
+                if (cachedGameNames !== null) {
+                    const newCachedGameNames = new Set(cachedGameNames.split(ARRAY_SEPARATOR));
+                    newCachedGameNames.delete(name);
+                    return this.redisClient.set(gameNamesKey, [...newCachedGameNames].sort().join(ARRAY_SEPARATOR));
+                }
+                return Promise.resolve(null);
+            });
+        }
+
+        return deletingGame.then(() => {});
     }
 };
