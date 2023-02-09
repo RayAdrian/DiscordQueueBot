@@ -1,6 +1,7 @@
 import { Client, Message } from 'discord.js';
 import { LocalCache } from '../caches/index.js';
 import { PREFIX } from '../common/constants.js';
+import ServiceProvider from '../services/serviceProvider.js';
 import { sendMessage } from '../utils/index.js';
 import gameCommands from './game.js';
 import helpCommands from './help.js';
@@ -17,6 +18,7 @@ export class CommandInputs {
     cache : LocalCache;
     command : string;
     message : Message;
+    serviceProvider : ServiceProvider;
 
     constructor (
         args : Array<string> = [],
@@ -24,12 +26,14 @@ export class CommandInputs {
         cache : LocalCache = null,
         command : string = '',
         message : Message = null,
+        serviceProvider : ServiceProvider = null,
     ) {
         this.args = args;
         this.bot = bot;
         this.cache = cache;
         this.command = command;
         this.message = message;
+        this.serviceProvider = serviceProvider;
     }
 };
 
@@ -55,7 +59,9 @@ const getCommandRegExp = (command : string) : RegExp => new RegExp(`^${PREFIX}($
  * @param cache - contains all the local cache objects 
  * @param msg - message object sent by user
  */
-export default function processCommand(bot : Client, cache: LocalCache, message : Message) : void {
+export default function processCommand(
+    bot : Client, cache: LocalCache, message : Message, serviceProvider : ServiceProvider,
+) : void {
     const { content = '' } : { content : string } = message;
     const cleanedContent = content.trim();
 
@@ -67,13 +73,13 @@ export default function processCommand(bot : Client, cache: LocalCache, message 
                 const command = result[1].trim();
                 const args = result[2].trim().split(' ').filter((arg) => arg.length);
 
-                const parameters = new CommandInputs(args, bot, cache, command, message);
+                const parameters = new CommandInputs(args, bot, cache, command, message, serviceProvider);
                 run(parameters);
                 return true;
             }
 
             if (specialCharacters === alias) {
-                const parameters = new CommandInputs([], bot, cache, alias, message);
+                const parameters = new CommandInputs([], bot, cache, alias, message, serviceProvider);
                 run(parameters);
                 return true;
             }
@@ -91,7 +97,7 @@ export default function processCommand(bot : Client, cache: LocalCache, message 
                 const command = 'lineup join';
                 const args = [alias];
 
-                const parameters = new CommandInputs(args, bot, cache, command, message);
+                const parameters = new CommandInputs(args, bot, cache, command, message, serviceProvider);
                 run(parameters);
                 return true;
             }
