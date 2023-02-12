@@ -11,7 +11,7 @@ export default class UserService {
         this.gameService = gameService;
     }
 
-    setRedisClient() : void {
+    enableRedisClient() : void {
         if (this.redisClient) {
             this.isRedisEnabled = true;
         }

@@ -16,6 +16,7 @@ export default class ServiceProvider {
     init() : Promise<void> {
         return this.redisConnect().then(() => {
             this.gameService.enableRedisClient();
+            this.userService.enableRedisClient();
         });
     }
 
