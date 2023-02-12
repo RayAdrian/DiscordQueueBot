@@ -6,9 +6,12 @@ export default class GameService {
     private redisClient: RedisClientType;
     private hasRedis: boolean = false;
 
-    setRedisClient(redisClient : RedisClientType) : void {
+    constructor(redisClient : RedisClientType) {
         this.redisClient = redisClient;
-        if (redisClient) {
+    }
+
+    enableRedisClient() : void {
+        if (this.redisClient) {
             this.hasRedis = true;
         }
     }
@@ -150,6 +153,7 @@ export default class GameService {
      * @param name - name of the game
      */
     removeGame(name : string) : Promise<void> {
+        // TODO: Delete associated lineup from db and cache
         let deletingGame : Promise<any> = Games.deleteOne({ name }).exec();
 
         if (this.hasRedis) {
