@@ -69,4 +69,29 @@ export default class UserService {
     getUserGames(id : string) : Promise<Array<string>> {
         return this.getUser(id).then((user) => user.getGameNames());
     }
+
+    /**
+     * Split games into games that the user has saved, and games that they have not.
+     * @param userId - id of the specified user
+     * @param gameNames - the list of games to process
+     * @returns an object containing 2 arrays, one for saved games, and the other for unsaved games
+     */
+    processIfUserHasGames(
+        id : string, gameNames : Array<string>,
+    ) : Promise<{ savedGames: Array<string>; unsavedGames: Array<string>; }> {
+        const savedGames : Array<string> = []; // games not yet in user's gamelist
+        const unsavedGames : Array<string> = []; // games already saved
+
+        return this.getUser(id).then((user) => {
+            gameNames.forEach((gameName) => {
+                if (user.hasGame(gameName)) {
+                    savedGames.push(gameName);
+                } else {
+                    unsavedGames.push(gameName);
+                }
+            });
+
+            return { savedGames, unsavedGames };
+        })
+    }
 };
