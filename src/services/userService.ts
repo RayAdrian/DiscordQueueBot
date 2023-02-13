@@ -94,4 +94,29 @@ export default class UserService {
             return { savedGames, unsavedGames };
         })
     }
+
+    /**
+     * Save game/s to user's game list to database and then to the cache
+     * @param id - id of the specified user
+     * @param gameNames - name of the games to be saved
+     */
+    saveToUserGames(id : string, gameNames : Array<string>) : Promise<User> {
+        return this.getUser(id).then((user) => {
+            user.addGameNames(gameNames);
+            return Users.findOneAndUpdate(
+                { id },
+                { gameNames: user.getGameNames() },
+                { new: true }
+            ).exec();
+        }).then((rawUpdatedUser) => {
+            const updatedUser = new User(rawUpdatedUser);
+
+            if (this.isRedisEnabled) {
+                const userKey = `user-${id}`;
+                this.redisClient.set(userKey, JSON.stringify(updatedUser.getUserWrapper()));
+            }
+
+            return updatedUser;
+        });
+    }
 };
