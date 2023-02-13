@@ -10,7 +10,7 @@ export default class ServiceProvider {
     constructor() {
         this.redisClient = createClient();
         this.gameService = new GameService(this.redisClient);
-        this.userService = new UserService(this.redisClient, this.gameService);
+        this.userService = new UserService(this.redisClient);
     }
 
     init() : Promise<void> {

@@ -1,15 +1,12 @@
 import { RedisClientType } from 'redis';
 import { Users, User } from '../models/index.js';
-import GameService from './gameService.js';
 
 export default class UserService {
-    private gameService: GameService;
     private redisClient: RedisClientType;
     private isRedisEnabled: boolean = false;
 
-    constructor(redisClient : RedisClientType, gameService: GameService) {
+    constructor(redisClient : RedisClientType) {
         this.redisClient = redisClient;
-        this.gameService = gameService;
     }
 
     enableRedisClient() : void {
