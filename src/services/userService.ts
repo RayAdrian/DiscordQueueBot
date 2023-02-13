@@ -121,13 +121,41 @@ export default class UserService {
     }
 
     /**
-     * Remove game/s from user's game list from database, and update cache
+     * Remove game/s from user's game list in the database, and updates the cache
      * @param id - id of the specified user
      * @param gameNames - name of the games to be removed
      */
     removeFromUserGames(id : string, gameNames : Array<string>) : Promise<User> {
         return this.getUser(id).then((user) => {
             user.deleteGameNames(gameNames);
+            return Users.findOneAndUpdate(
+                { id },
+                { gameNames: user.getGameNames() },
+                { new: true }
+            ).exec();
+        }).then((rawUpdatedUser) => {
+            const updatedUser = new User(rawUpdatedUser);
+
+            if (this.isRedisEnabled) {
+                const userKey = `user-${id}`;
+                this.redisClient.set(userKey, JSON.stringify(updatedUser.getUserWrapper()));
+            }
+
+            return updatedUser;
+        });
+    }
+
+    /**
+     * Clear all games from user's game list in the database, and updates the cache
+     * @param id - id of the specified user
+     */
+    clearUserGames(id : string) : Promise<User> {
+        return this.getUser(id).then((user) => {
+            if (user.getGameNames().length === 0) {
+                return Promise.reject('User\'s saved games list already clear.');
+            }
+
+            user.clearGameNames();
             return Users.findOneAndUpdate(
                 { id },
                 { gameNames: user.getGameNames() },
