@@ -9,9 +9,9 @@ export class User {
     private id: string;
     private gameNames: Set<string>;
 
-    constructor(id : string, gameNames : Array<string> = []) {
-        this.id = id;
-        this.gameNames = new Set(gameNames);
+    constructor(user : IUser) {
+        this.id = user.id;
+        this.gameNames = new Set(user.gameNames);
     }
 
     getUserWrapper() : IUser {

@@ -4,12 +4,15 @@ import { Games, Game } from "../models/index.js";
 
 export default class GameService {
     private redisClient: RedisClientType;
-    private hasRedis: boolean = false;
+    private isRedisEnabled: boolean = false;
 
-    setRedisClient(redisClient : RedisClientType) : void {
+    constructor(redisClient : RedisClientType) {
         this.redisClient = redisClient;
-        if (redisClient) {
-            this.hasRedis = true;
+    }
+
+    enableRedisClient() : void {
+        if (this.redisClient) {
+            this.isRedisEnabled = true;
         }
     }
 
@@ -20,7 +23,7 @@ export default class GameService {
     getGame(name : string) : Promise<Game> {
         let fetchingCached = Promise.resolve(null);
         const gameKey = `game-${name}`;
-        if (this.hasRedis) {
+        if (this.isRedisEnabled) {
             fetchingCached = this.redisClient.get(gameKey).then((cachedGame) => {
                 if (cachedGame) {
                     return new Game(JSON.parse(cachedGame));
@@ -36,7 +39,7 @@ export default class GameService {
             return Games.findOne({ name }).then((rawGame) => {
                 if (rawGame) {
                     const game = new Game(rawGame);
-                    if (this.hasRedis) {
+                    if (this.isRedisEnabled) {
                         this.redisClient.set(gameKey, JSON.stringify(game));
                     } 
                     return game;
@@ -53,7 +56,7 @@ export default class GameService {
     getGameNames() : Promise<Array<string>> {
         let fetchingCached = Promise.resolve(null);
         const gameNamesKey = 'game-names';
-        if (this.hasRedis) {
+        if (this.isRedisEnabled) {
             fetchingCached = this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
                 if (cachedGameNames) {
                     return cachedGameNames.split(ARRAY_SEPARATOR);
@@ -68,7 +71,7 @@ export default class GameService {
             }
             return Games.find({}).exec().then((rawGames) => {
                 const gameNames = rawGames.map((game) => game.name).sort();
-                if (this.hasRedis) {
+                if (this.isRedisEnabled) {
                     this.redisClient.set(gameNamesKey, gameNames.join(ARRAY_SEPARATOR));
                 }
                 return gameNames;
@@ -90,7 +93,7 @@ export default class GameService {
             const newGame = new Game(data);
 
             const gameNamesKey = 'game-names';
-            if (this.hasRedis) {
+            if (this.isRedisEnabled) {
                 this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
                     if (cachedGameNames !== null) {
                         const newCachedGameNames = [
@@ -133,7 +136,7 @@ export default class GameService {
             ).exec();
         }).then((data) => new Game(data));
 
-        if (this.hasRedis) {
+        if (this.isRedisEnabled) {
             const gameKey = `game-${name}`;
             updatingGame = updatingGame.then((editedGame) => {
                 this.redisClient.set(gameKey, JSON.stringify(editedGame));
@@ -150,9 +153,10 @@ export default class GameService {
      * @param name - name of the game
      */
     removeGame(name : string) : Promise<void> {
+        // TODO: Delete associated lineup from db and cache
         let deletingGame : Promise<any> = Games.deleteOne({ name }).exec();
 
-        if (this.hasRedis) {
+        if (this.isRedisEnabled) {
             const gameKey = `game-${name}`;
             deletingGame = deletingGame.then(() => this.redisClient.del(gameKey));
 
