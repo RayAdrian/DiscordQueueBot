@@ -8,9 +8,9 @@ export class Lineup {
     private gameName: string;
     private users: Set<string>;
 
-    constructor(gameName : string, users : Array<string>) {
-        this.gameName = gameName;
-        this.users = new Set(users);
+    constructor(lineup : ILineup) {
+        this.gameName = lineup.gameName;
+        this.users = new Set(lineup.users);
     }
 
     getLineupWrapper() : ILineup {
