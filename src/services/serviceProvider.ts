@@ -12,7 +12,7 @@ export default class ServiceProvider {
     constructor() {
         this.redisClient = createClient();
         this.gameService = new GameService(this.redisClient);
-        this.lineupService = new UserService(this.redisClient);
+        this.lineupService = new LineupService(this.redisClient);
         this.userService = new UserService(this.redisClient);
     }
 
