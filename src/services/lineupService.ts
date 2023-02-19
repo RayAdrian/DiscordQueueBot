@@ -84,4 +84,15 @@ export default class LineupService {
             })
         }).then((lineups) => lineups);
     }
+
+    /**
+     * Get a specific list of Lineups
+     * @param gameNames - game names of the specified Lineups
+     * @returns Promise of a list of the specified Lineups
+     */
+    getFilteredLineups(gameNames : Array<string>) : Promise<Array<Lineup>> {
+        return this.getLineups().then((lineups) => {
+            return lineups.filter((lineup) => gameNames.includes(lineup.getGameName()));
+        });
+    }
 };
