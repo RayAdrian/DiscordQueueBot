@@ -49,4 +49,39 @@ export default class LineupService {
             });
         }).then((lineup) => lineup);
     }
+
+    /**
+     * Get list of all the Lineup
+     * @returns Promise of a list of all the Lineups
+     */
+    getLineups() : Promise<Array<Lineup>> {
+        let fetchingCached : Promise<Array<Lineup>> = Promise.resolve(null);
+        const lineupsKey = `lineups`;
+        if (this.isRedisEnabled) {
+            fetchingCached = this.redisClient.get(lineupsKey).then((cachedLineups) => {
+                if (cachedLineups) {
+                    console.log(`${lineupsKey} hit`);
+                    const rawLineups = JSON.parse(cachedLineups);
+                    return rawLineups.map((rawLineup) => new Lineup(rawLineup));
+                }
+                return null;
+            });
+        }
+    
+        return fetchingCached.then((lineups) => {
+            if (lineups !== null) {
+                return Promise.resolve(lineups);
+            }
+            return Lineups.find().then((rawLineups) => {
+                return rawLineups.map((rawLineup) => new Lineup(rawLineup));
+            }).then((lineups) => {
+                if (this.isRedisEnabled) {
+                    console.log(`caching ${lineupsKey}`);
+                    const wrappedLineups = lineups.map((lineup) => lineup.getLineupWrapper());
+                    this.redisClient.set(lineupsKey, JSON.stringify(wrappedLineups));
+                }
+                return lineups;
+            })
+        }).then((lineups) => lineups);
+    }
 };
