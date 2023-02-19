@@ -47,15 +47,14 @@ export default class UserService {
                 }
 
                 return user;
+            }).then((user) => {
+                if (this.isRedisEnabled) {
+                    const wrappedUser = user.getUserWrapper();
+                    this.redisClient.set(userKey, JSON.stringify(wrappedUser));
+                }
+                return user;
             });
-        }).then((user) => {
-            const wrappedUser = user.getUserWrapper();
-            if (this.isRedisEnabled) {
-                this.redisClient.set(userKey, JSON.stringify(wrappedUser));
-            }
-
-            return user;
-        });
+        }).then((user) => user);
     }
 
     /**
