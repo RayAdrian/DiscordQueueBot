@@ -26,7 +26,6 @@ export default class LineupService {
         if (this.isRedisEnabled) {
             fetchingCached = this.redisClient.get(lineupKey).then((cachedLineup) => {
                 if (cachedLineup) {
-                    console.log(`${lineupKey} hit`);
                     return new Lineup(JSON.parse(cachedLineup));
                 }
                 return null;
@@ -41,7 +40,6 @@ export default class LineupService {
                 (rawLineup) => new Lineup(rawLineup),
             ).then((lineup) => {
                 if (this.isRedisEnabled) {
-                    console.log(`caching ${lineupKey}`);
                     const wrappedLineup = lineup.getLineupWrapper();
                     this.redisClient.set(lineupKey, JSON.stringify(wrappedLineup));
                 }
@@ -60,7 +58,6 @@ export default class LineupService {
         if (this.isRedisEnabled) {
             fetchingCached = this.redisClient.get(lineupsKey).then((cachedLineups) => {
                 if (cachedLineups) {
-                    console.log(`${lineupsKey} hit`);
                     const rawLineups = JSON.parse(cachedLineups);
                     return rawLineups.map((rawLineup) => new Lineup(rawLineup));
                 }
@@ -76,7 +73,6 @@ export default class LineupService {
                 return rawLineups.map((rawLineup) => new Lineup(rawLineup));
             }).then((lineups) => {
                 if (this.isRedisEnabled) {
-                    console.log(`caching ${lineupsKey}`);
                     const wrappedLineups = lineups.map((lineup) => lineup.getLineupWrapper());
                     this.redisClient.set(lineupsKey, JSON.stringify(wrappedLineups));
                 }
