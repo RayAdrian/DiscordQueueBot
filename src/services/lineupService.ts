@@ -91,4 +91,15 @@ export default class LineupService {
             return lineups.filter((lineup) => gameNames.includes(lineup.getGameName()));
         });
     }
+
+    /**
+     * Get the Lineups a user is part in
+     * @param user
+     * @returns Promise of a list of Lineups the specified user is in
+     */
+    getUserLineups(user : string) : Promise<Array<Lineup>> {
+        return this.getLineups().then((lineups) => {
+            return lineups.filter((lineup) => lineup.hasUser(user));
+        });
+    }
 };
