@@ -80,7 +80,7 @@ export default class LineupService {
             })
         }).then((lineups) => lineups);
     }
-
+        
     /**
      * Get a specific list of Lineups
      * @param gameNames - game names of the specified Lineups
@@ -100,6 +100,36 @@ export default class LineupService {
     getUserLineups(user : string) : Promise<Array<Lineup>> {
         return this.getLineups().then((lineups) => {
             return lineups.filter((lineup) => lineup.hasUser(user));
+        });
+    }
+
+    /**
+     * Add a lineup for a game
+     * @param gameName - game name of the lineup to be created
+     * @returns Promise of the created Lineup
+     */
+    addLineup(gameName : string) : Promise<Lineup> {
+        return Lineups.create(
+            { gameName, users: [] },
+        ).then((rawLineup) => {
+            const newLineup = new Lineup(rawLineup);
+            const newLineupWrapper = newLineup.getLineupWrapper();
+
+            if (this.isRedisEnabled) {
+                const lineupsKey = 'lineups';
+                this.redisClient.get(lineupsKey).then((cachedLineups) => {
+                    if (cachedLineups !== null) {
+                        const rawLineups = JSON.parse(cachedLineups);
+                        rawLineups.push(newLineupWrapper);
+                        this.redisClient.set(lineupsKey, rawLineups);
+                    }
+                });
+
+                const lineupKey = `lineup-${gameName}`;
+                this.redisClient.set(lineupKey, JSON.stringify(newLineupWrapper));
+            }
+
+            return newLineup;
         });
     }
 };
