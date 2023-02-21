@@ -11,12 +11,13 @@ export default class ServiceProvider {
 
     constructor() {
         this.redisClient = createClient();
-        this.gameService = new GameService(this.redisClient);
         this.lineupService = new LineupService(this.redisClient);
+        this.gameService = new GameService(this.redisClient);
         this.userService = new UserService(this.redisClient);
     }
 
     init() : Promise<void> {
+        this.gameService.init(this.lineupService);
         return this.redisConnect().then(() => {
             this.gameService.enableRedisClient();
             this.lineupService.enableRedisClient();

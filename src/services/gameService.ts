@@ -1,13 +1,19 @@
 import { RedisClientType } from 'redis';
 import { ARRAY_SEPARATOR } from '../common/constants.js';
 import { Games, Game } from "../models/index.js";
+import LineupService from './lineupService.js';
 
 export default class GameService {
     private redisClient: RedisClientType;
     private isRedisEnabled: boolean = false;
+    private lineupService: LineupService;
 
     constructor(redisClient : RedisClientType) {
         this.redisClient = redisClient;
+    }
+
+    init(lineupService : LineupService) : void {
+        this.lineupService = lineupService;
     }
 
     enableRedisClient() : void {
@@ -89,11 +95,11 @@ export default class GameService {
     addGame(name : string, roleId : string, limit : number) : Promise<Game> {
         return Games.create({
             name, roleId, limit,
-        }).then((data) => {
+        }).then(async (data) => {
             const newGame = new Game(data);
 
-            const gameNamesKey = 'game-names';
             if (this.isRedisEnabled) {
+                const gameNamesKey = 'game-names';
                 this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
                     if (cachedGameNames !== null) {
                         const newCachedGameNames = [
@@ -104,6 +110,8 @@ export default class GameService {
                     }
                 });
             }
+            
+            await this.lineupService.addLineup(newGame.getName());
 
             return newGame;
         });
