@@ -121,7 +121,9 @@ export default class LineupService {
                     if (cachedLineups !== null) {
                         const rawLineups = JSON.parse(cachedLineups);
                         rawLineups.push(newLineupWrapper);
-                        this.redisClient.set(lineupsKey, rawLineups);
+                        this.redisClient.set(lineupsKey, JSON.stringify(rawLineups));
+                    } else {
+                        this.redisClient.set(lineupsKey, JSON.stringify([newLineupWrapper]));
                     }
                 });
 
