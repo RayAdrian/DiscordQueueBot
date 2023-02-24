@@ -148,7 +148,10 @@ export default class LineupService {
             const asyncOperations : Array<Promise<any>> = [];
 
             if (this.isRedisEnabled) {
+                const lineupKey = `lineup-${gameName}`;
                 const lineupsKey = 'lineups';
+
+                asyncOperations.push(this.redisClient.del(lineupKey));
                 asyncOperations.push(this.redisClient.get(lineupsKey).then((cachedLineups) => {
                     if (cachedLineups !== null) {
                         const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
@@ -164,8 +167,6 @@ export default class LineupService {
                     }
                 }));
 
-                const lineupKey = `lineup-${gameName}`;
-                asyncOperations.push(this.redisClient.del(lineupKey));
             }
 
             return Promise.allSettled(asyncOperations).then(() => deletedLineup);
