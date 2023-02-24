@@ -18,6 +18,7 @@ export default class ServiceProvider {
 
     init() : Promise<void> {
         this.gameService.init(this.lineupService);
+        this.lineupService.init(this.gameService);
         return this.redisConnect().then(() => {
             this.gameService.enableRedisClient();
             this.lineupService.enableRedisClient();

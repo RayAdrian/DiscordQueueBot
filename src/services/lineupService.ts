@@ -1,12 +1,18 @@
 import { RedisClientType } from 'redis';
 import { Lineups, Lineup, ILineup } from '../models/index.js';
+import GameService from './gameService.js';
 
 export default class LineupService {
     private redisClient: RedisClientType;
     private isRedisEnabled: boolean = false;
+    private gameService: GameService;
 
     constructor(redisClient : RedisClientType) {
         this.redisClient = redisClient;
+    }
+
+    init(gameService : GameService) : void {
+        this.gameService = gameService;
     }
 
     enableRedisClient() : void {
@@ -106,8 +112,8 @@ export default class LineupService {
     }
 
     /**
-     * Add a lineup for a game
-     * @param gameName - game name of the lineup to be created
+     * Add a Lineup for a game
+     * @param gameName - game name of the Lineup to be created
      * @returns Promise of the created Lineup
      */
     addLineup(gameName : string) : Promise<Lineup> {
@@ -137,8 +143,8 @@ export default class LineupService {
     }
 
     /**
-     * Removes a lineup from the map ie. when a game is deleted.
-     * @param gameName - game name of the lineup to be deleted
+     * Removes a Lineup from the map ie. when a game is deleted.
+     * @param gameName - game name of the Lineup to be deleted
      * @returns Promise of the deleted Lineup
      */
     removeLineup(gameName : string) : Promise<Lineup> {
@@ -167,7 +173,6 @@ export default class LineupService {
                         this.redisClient.set(lineupsKey, JSON.stringify(iLineups));
                     }
                 }));
-
             }
 
             return Promise.allSettled(asyncOperations).then(() => deletedLineup);
