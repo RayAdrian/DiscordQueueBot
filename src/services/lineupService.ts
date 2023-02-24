@@ -1,5 +1,5 @@
 import { RedisClientType } from 'redis';
-import { Lineups, Lineup } from '../models/index.js';
+import { Lineups, Lineup, ILineup } from '../models/index.js';
 
 export default class LineupService {
     private redisClient: RedisClientType;
@@ -119,9 +119,9 @@ export default class LineupService {
                 const lineupsKey = 'lineups';
                 this.redisClient.get(lineupsKey).then((cachedLineups) => {
                     if (cachedLineups !== null) {
-                        const rawLineups = JSON.parse(cachedLineups);
-                        rawLineups.push(newLineupWrapper);
-                        this.redisClient.set(lineupsKey, JSON.stringify(rawLineups));
+                        const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
+                        iLineups.push(newLineupWrapper);
+                        this.redisClient.set(lineupsKey, JSON.stringify(iLineups));
                     } else {
                         this.redisClient.set(lineupsKey, JSON.stringify([newLineupWrapper]));
                     }
@@ -132,6 +132,43 @@ export default class LineupService {
             }
 
             return newLineup;
+        });
+    }
+
+    /**
+     * Removes a lineup from the map ie. when a game is deleted.
+     * @param gameName - game name of the lineup to be deleted
+     * @returns Promise of the deleted Lineup
+     */
+    removeLineup(gameName : string) : Promise<Lineup> {
+        return Lineups.findOneAndDelete(
+            { gameName },
+        ).exec().then((rawLineup) => {
+            const deletedLineup = new Lineup(rawLineup);
+            const asyncOperations : Array<Promise<any>> = [];
+
+            if (this.isRedisEnabled) {
+                const lineupsKey = 'lineups';
+                asyncOperations.push(this.redisClient.get(lineupsKey).then((cachedLineups) => {
+                    if (cachedLineups !== null) {
+                        const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
+
+                        const lineupIndex = iLineups.findIndex(
+                            ({ gameName }) => gameName === deletedLineup.getGameName(),
+                        );
+                        if (lineupIndex != -1) {
+                            iLineups.splice(lineupIndex, 1);
+                        }
+
+                        this.redisClient.set(lineupsKey, JSON.stringify(iLineups));
+                    }
+                }));
+
+                const lineupKey = `lineup-${gameName}`;
+                asyncOperations.push(this.redisClient.del(lineupKey));
+            }
+
+            return Promise.allSettled(asyncOperations).then(() => deletedLineup);
         });
     }
 };
