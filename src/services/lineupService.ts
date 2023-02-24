@@ -208,7 +208,6 @@ export default class LineupService {
             excludedUsers = validUsers.splice(remainingSlotsCount);
 
             // arguments validated
-            console.log('validUsers', validUsers)
             lineup.addUsers(validUsers);
             return Lineups.findOneAndUpdate(
                 { gameName },
@@ -218,7 +217,6 @@ export default class LineupService {
         }).then(
             (rawUpdatedLineup) => new Lineup(rawUpdatedLineup),
         ).then((updatedLineup) => {
-            console.log('updatedLineup', updatedLineup);
             const updatedLineupWrapper = updatedLineup.getLineupWrapper();
             const asyncOperations : Array<Promise<any>> = [];
 
@@ -234,8 +232,6 @@ export default class LineupService {
                         const lineupIndex = iLineups.findIndex(
                             ({ gameName }) => gameName === updatedLineup.getGameName(),
                         );
-                        console.log('iLineups', iLineups);
-                        console.log('lineupIndex', lineupIndex);
                         if (lineupIndex != -1) {
                             iLineups[lineupIndex] = updatedLineupWrapper;
                         }
