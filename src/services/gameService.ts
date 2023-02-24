@@ -95,12 +95,19 @@ export default class GameService {
     addGame(name : string, roleId : string, limit : number) : Promise<Game> {
         return Games.create({
             name, roleId, limit,
-        }).then(async (data) => {
+        }).then((data) => {
             const newGame = new Game(data);
+            const newGameWrapper = newGame.getGameWrapper();
+            const asyncOperations : Array<Promise<any>> = [];
+
+            asyncOperations.push(this.lineupService.addLineup(newGame.getName()));
 
             if (this.isRedisEnabled) {
+                const gameKey = `game-${name}`;
                 const gameNamesKey = 'game-names';
-                this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
+
+                asyncOperations.push(this.redisClient.set(gameKey, JSON.stringify(newGameWrapper)));
+                asyncOperations.push(this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
                     if (cachedGameNames !== null) {
                         const newCachedGameNames = [
                             ...cachedGameNames.split(ARRAY_SEPARATOR),
@@ -108,12 +115,10 @@ export default class GameService {
                         ].sort().join(ARRAY_SEPARATOR);
                         this.redisClient.set(gameNamesKey, newCachedGameNames);
                     }
-                });
+                }));
             }
-            
-            await this.lineupService.addLineup(newGame.getName());
 
-            return newGame;
+            return Promise.allSettled(asyncOperations).then(() => newGame);
         });
     }
 
