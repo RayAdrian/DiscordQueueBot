@@ -39,11 +39,12 @@ export default class LineupService {
             return Lineups.findOne({ gameName }).then(
                 (rawLineup) => new Lineup(rawLineup),
             ).then((lineup) => {
+                const asyncOperations : Array<Promise<any>> = [];
                 if (this.isRedisEnabled) {
                     const wrappedLineup = lineup.getLineupWrapper();
-                    this.redisClient.set(lineupKey, JSON.stringify(wrappedLineup));
+                    asyncOperations.push(this.redisClient.set(lineupKey, JSON.stringify(wrappedLineup)));
                 }
-                return lineup;
+                return Promise.allSettled(asyncOperations).then(() => lineup);
             });
         }).then((lineup) => lineup);
     }
@@ -72,11 +73,12 @@ export default class LineupService {
             return Lineups.find().then((rawLineups) => {
                 return rawLineups.map((rawLineup) => new Lineup(rawLineup));
             }).then((lineups) => {
+                const asyncOperations : Array<Promise<any>> = [];
                 if (this.isRedisEnabled) {
                     const wrappedLineups = lineups.map((lineup) => lineup.getLineupWrapper());
-                    this.redisClient.set(lineupsKey, JSON.stringify(wrappedLineups));
+                    asyncOperations.push(this.redisClient.set(lineupsKey, JSON.stringify(wrappedLineups)));
                 }
-                return lineups;
+                return Promise.allSettled(asyncOperations).then(() => lineups);
             })
         }).then((lineups) => lineups);
     }
@@ -122,7 +124,6 @@ export default class LineupService {
 
                 asyncOperations.push(this.redisClient.set(lineupKey, JSON.stringify(newLineupWrapper)));
                 asyncOperations.push(this.redisClient.get(lineupsKey).then((cachedLineups) => {
-                    console.log('cachedLineups', cachedLineups);
                     if (cachedLineups !== null) {
                         const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
                         iLineups.push(newLineupWrapper);
