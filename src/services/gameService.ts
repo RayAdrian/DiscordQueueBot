@@ -160,27 +160,29 @@ export default class GameService {
      * Remove a game from the database, then the cache
      * @param name - name of the game
      */
-    removeGame(name : string) : Promise<void> {
-        // TODO: Delete associated lineup from db and cache
-        let deletingGame : Promise<any> = Games.deleteOne({ name }).exec();
+    removeGame(name : string) : Promise<Game> {
+        return Games.findOneAndDelete({ name }).exec().then((rawGame) => {
+            const deletedGame = new Game(rawGame);
+            const asyncOperations : Array<Promise<any>> = [];
 
-        if (this.isRedisEnabled) {
-            const gameKey = `game-${name}`;
-            deletingGame = deletingGame.then(() => this.redisClient.del(gameKey));
+            asyncOperations.push(this.lineupService.removeLineup(deletedGame.getName()));
 
-            const gameNamesKey = 'game-names';
-            deletingGame = deletingGame.then(() => {
-                return this.redisClient.get(gameNamesKey);
-            }).then((cachedGameNames) => {
-                if (cachedGameNames !== null) {
-                    const newCachedGameNames = new Set(cachedGameNames.split(ARRAY_SEPARATOR));
-                    newCachedGameNames.delete(name);
-                    return this.redisClient.set(gameNamesKey, [...newCachedGameNames].sort().join(ARRAY_SEPARATOR));
-                }
-                return Promise.resolve(null);
-            });
-        }
+            if (this.isRedisEnabled) {
+                const gameKey = `game-${name}`;
+                const gameNamesKey = 'game-names';
 
-        return deletingGame.then(() => {});
+                asyncOperations.push(this.redisClient.del(gameKey));
+                asyncOperations.push(this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
+                    if (cachedGameNames !== null) {
+                        const newCachedGameNames = new Set(cachedGameNames.split(ARRAY_SEPARATOR));
+                        newCachedGameNames.delete(name);
+                        return this.redisClient.set(gameNamesKey, [...newCachedGameNames].sort().join(ARRAY_SEPARATOR));
+                    }
+                    return Promise.resolve(null);
+                }));
+            }
+
+            return Promise.allSettled(asyncOperations).then(() => deletedGame);
+        });
     }
 };
