@@ -56,6 +56,21 @@ export default class GameService {
     }
 
     /**
+     * Get game objects
+     * @param names - names of the games
+     */
+    getGames(names : Array<string>) : Promise<Array<Game>> {
+        return this.getGameNames().then((gameNames) => {
+            const validNamesSet = new Set(gameNames);
+            const validatedGameNames = names.filter((name) => validNamesSet.has(name)).sort();
+
+            return Promise.all(validatedGameNames.map((gameName) => {
+                return this.getGame(gameName);
+            }));
+        });
+    }
+
+    /**
      * Get list of all game names.
      * @returns An array of strings with the list of the names of the games
      */
