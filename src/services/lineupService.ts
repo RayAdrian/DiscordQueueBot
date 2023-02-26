@@ -353,4 +353,66 @@ export default class LineupService {
             }));
         });
     }
+
+    /**
+     * Removes user/s from a specified Lineup
+     * @param gameName - game name of the specified Lineup
+     * @param users - user ids to be added to the Lineup
+     * @returns Object containing the ff:
+     * lineup - the updated Lineup
+     * validUsers - the users (ids) removed
+     * invalidUsers - the users (ids) that were not in the lineup
+     */
+    removeUsers = (gameName : string, users : Array<string>) : Promise<{
+        lineup : Lineup,
+        validUsers : Array<string>,
+        invalidUsers : Array<string>,
+    }> => {
+        const validUsers = []; // in lineup
+        const invalidUsers = []; // not in lineup
+
+        return this.getLineup(gameName).then((lineup) => {
+            users.forEach((user) => (lineup.hasUser(user) ? validUsers : invalidUsers).push(user));
+
+            // arguments validated
+            lineup.deleteUsers(validUsers);
+            return Lineups.findOneAndUpdate(
+                { gameName },
+                { users: lineup.getUsers() },
+                { new: true },
+            ).exec();
+        }).then(
+            (rawUpdatedLineup) => new Lineup(rawUpdatedLineup),
+        ).then((updatedLineup) => {
+            const updatedLineupWrapper = updatedLineup.getLineupWrapper();
+            const asyncOperations : Array<Promise<any>> = [];
+
+            if (this.isRedisEnabled) {
+                const lineupKey = `lineup-${gameName}`;
+                const lineupsKey = 'lineups';
+
+                asyncOperations.push(this.redisClient.set(lineupKey, JSON.stringify(updatedLineupWrapper)));
+                asyncOperations.push(this.redisClient.get(lineupsKey).then((cachedLineups) => {
+                    if (cachedLineups !== null) {
+                        const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
+
+                        const lineupIndex = iLineups.findIndex(
+                            ({ gameName }) => gameName === updatedLineup.getGameName(),
+                        );
+                        if (lineupIndex != -1) {
+                            iLineups[lineupIndex] = updatedLineupWrapper;
+                        }
+
+                        this.redisClient.set(lineupsKey, JSON.stringify(iLineups));
+                    }
+                }));
+            }
+
+            return Promise.allSettled(asyncOperations).then(() => ({
+                lineup: updatedLineup,
+                validUsers,
+                invalidUsers,
+            }));
+        });
+    }
 };
