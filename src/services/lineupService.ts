@@ -96,7 +96,9 @@ export default class LineupService {
      */
     getFilteredLineups(gameNames : Array<string>) : Promise<Array<Lineup>> {
         return this.getLineups().then((lineups) => {
-            return lineups.filter((lineup) => gameNames.includes(lineup.getGameName()));
+            return lineups.filter(
+                (lineup) => gameNames.includes(lineup.getGameName()),
+            ).sort((lineupA, lineupB) => lineupA.getGameName().localeCompare(lineupB.getGameName()));
         });
     }
 
@@ -183,7 +185,11 @@ export default class LineupService {
      * Adds user/s to a specified Lineup
      * @param gameName - game name of the specified Lineup
      * @param users - user ids to be added to the Lineup
-     * @returns Promise of the deleted Lineup
+     * @returns Object containing the ff:
+     * lineup - the updated Lineup
+     * validUsers - the users (ids) added
+     * invalidUsers - the users (ids) that are already in the lineup
+     * excludedUsers - the users (ids) that cannot be added due to lack of slots
      */
     addUsers = (gameName : string, users : Array<string>) : Promise<{
         lineup : Lineup,
