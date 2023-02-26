@@ -372,6 +372,10 @@ export default class LineupService {
         const invalidUsers = []; // not in lineup
 
         return this.getLineup(gameName).then((lineup) => {
+            if (lineup.getUserCount() <= 0) {
+                return Promise.reject(`Lineup for \`${gameName}\` is already empty.`);
+            }
+
             users.forEach((user) => (lineup.hasUser(user) ? validUsers : invalidUsers).push(user));
 
             // arguments validated
