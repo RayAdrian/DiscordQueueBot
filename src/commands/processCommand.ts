@@ -7,6 +7,7 @@ import helpCommands from './help.js';
 import hiddenCommands from './hidden.js';
 import lineupCommands, { specialJoinCommand } from './lineup.js';
 import userCommands from './user.js';
+import openAiCommands from './openai.js';
 
 /**
  * Class for generalizing inputs to command functions
@@ -39,6 +40,7 @@ const commands = [
     ...lineupCommands,
     ...userCommands,
     ...hiddenCommands,
+    ...openAiCommands
 ];
 
 const extractSpecialCharacters = (content : string) : string => {
@@ -81,7 +83,6 @@ export default function processCommand(bot : Client, cache: LocalCache, message 
 
         return false;
     });
-
     if (!isValidCommand) { // test for special game name join command
         const { run } = specialJoinCommand;
         const aliases = cache.getGameNames();

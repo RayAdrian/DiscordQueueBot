@@ -3,6 +3,7 @@ import { COLORS, PREFIX } from '../common/constants.js';
 import { sendRawMessage } from '../utils/index.js';
 import gameCommands from './game.js';
 import lineupCommands, { specialJoinCommand } from './lineup.js';
+import openAiCommands from './openai.js';
 import { CommandInputs } from './processCommand.js';
 import userCommands from './user.js';
 
@@ -24,6 +25,7 @@ const helpDescriptions = {
     'Games': getDescriptions(gameCommands),
     'Lineups': getDescriptions([...lineupCommands, specialJoinCommand]),
     'Users': getDescriptions(userCommands),
+    'OpenAI': getDescriptions(openAiCommands),
 };
 
 /**
