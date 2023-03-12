@@ -42,14 +42,17 @@ export default class LineupService {
             if (lineup) {
                 return Promise.resolve(lineup);
             }
-            return Lineups.findOne({ gameName }).then(
+
+            return Lineups.findOne({ gameName }).exec().then(
                 (rawLineup) => new Lineup(rawLineup),
             ).then((lineup) => {
                 const asyncOperations : Array<Promise<any>> = [];
+
                 if (this.isRedisEnabled) {
                     const wrappedLineup = lineup.getLineupWrapper();
                     asyncOperations.push(this.redisClient.set(lineupKey, JSON.stringify(wrappedLineup)));
                 }
+
                 return Promise.allSettled(asyncOperations).then(() => lineup);
             });
         }).then((lineup) => lineup);
@@ -63,18 +66,22 @@ export default class LineupService {
         const fetchedLineups : Array<Lineup> = [];
         return this.gameService.getGameNames().then((gameNames) => {
             const asyncOperations : Array<Promise<any>> = [];
+
             if (this.isRedisEnabled) {
-                asyncOperations.push(...gameNames.map((gameName) => {
+                gameNames.forEach((gameName) => {
                     const lineupKey = `lineup-${gameName}`;
-                    return this.redisClient.get(lineupKey).then((cachedLineup) => {
-                        if (cachedLineup) {
-                            fetchedLineups.push(new Lineup(JSON.parse(cachedLineup)));
-                            return null;
-                        }
-                        return gameName;
-                    });
-                }))
+                    asyncOperations.push(
+                        this.redisClient.get(lineupKey).then((cachedLineup) => {
+                            if (cachedLineup) {
+                                fetchedLineups.push(new Lineup(JSON.parse(cachedLineup)));
+                                return null;
+                            }
+                            return gameName;
+                        }),
+                    );
+                });
             }
+
             return Promise.all(asyncOperations);
         }).then((remainingGameNames) => {
             const filteredGameNames = remainingGameNames.filter((gameName) => gameName);
@@ -82,19 +89,19 @@ export default class LineupService {
             return Lineups.find({ gameName: { $in: filteredGameNames } }).exec();
         }).then((rawLineups) => {
             const remainingLineups = rawLineups.map((rawLineup) => new Lineup(rawLineup));
-            fetchedLineups.push(...remainingLineups);
-
             const asyncOperations : Array<Promise<any>> = [];
+
             if (this.isRedisEnabled) {
-                asyncOperations.push(...remainingLineups.map((lineup) => {
+                remainingLineups.forEach((lineup) => {
                     const lineupKey = `lineup-${lineup.getGameName()}`;
-                    return this.redisClient.set(
+                    asyncOperations.push(this.redisClient.set(
                         lineupKey,
-                        JSON.stringify(lineup.getLineupWrapper()),
-                    );
-                }));
+                        JSON.stringify(lineup.getLineupWrapper())
+                    ));
+                });
             }
 
+            fetchedLineups.push(...remainingLineups);
             return Promise.allSettled(asyncOperations).then(() => fetchedLineups);
         });
     }
@@ -133,21 +140,14 @@ export default class LineupService {
             { gameName, users: [] },
         ).then((rawLineup) => {
             const newLineup = new Lineup(rawLineup);
-            const newLineupWrapper = newLineup.getLineupWrapper();
             const asyncOperations : Array<Promise<any>> = [];
 
             if (this.isRedisEnabled) {
                 const lineupKey = `lineup-${gameName}`;
-                const lineupsKey = 'lineups';
-
-                asyncOperations.push(this.redisClient.set(lineupKey, JSON.stringify(newLineupWrapper)));
-                asyncOperations.push(this.redisClient.get(lineupsKey).then((cachedLineups) => {
-                    if (cachedLineups !== null) {
-                        const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
-                        iLineups.push(newLineupWrapper);
-                        this.redisClient.set(lineupsKey, JSON.stringify(iLineups));
-                    }
-                }));
+                asyncOperations.push(this.redisClient.set(
+                    lineupKey,
+                    JSON.stringify(newLineup.getLineupWrapper()),
+                ));
             }
 
             return Promise.allSettled(asyncOperations).then(() => newLineup);
@@ -168,23 +168,7 @@ export default class LineupService {
 
             if (this.isRedisEnabled) {
                 const lineupKey = `lineup-${gameName}`;
-                const lineupsKey = 'lineups';
-
                 asyncOperations.push(this.redisClient.del(lineupKey));
-                asyncOperations.push(this.redisClient.get(lineupsKey).then((cachedLineups) => {
-                    if (cachedLineups !== null) {
-                        const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
-
-                        const lineupIndex = iLineups.findIndex(
-                            ({ gameName }) => gameName === deletedLineup.getGameName(),
-                        );
-                        if (lineupIndex != -1) {
-                            iLineups.splice(lineupIndex, 1);
-                        }
-
-                        this.redisClient.set(lineupsKey, JSON.stringify(iLineups));
-                    }
-                }));
             }
 
             return Promise.allSettled(asyncOperations).then(() => deletedLineup);
@@ -233,28 +217,14 @@ export default class LineupService {
         }).then(
             (rawUpdatedLineup) => new Lineup(rawUpdatedLineup),
         ).then((updatedLineup) => {
-            const updatedLineupWrapper = updatedLineup.getLineupWrapper();
             const asyncOperations : Array<Promise<any>> = [];
 
             if (this.isRedisEnabled) {
                 const lineupKey = `lineup-${gameName}`;
-                const lineupsKey = 'lineups';
-
-                asyncOperations.push(this.redisClient.set(lineupKey, JSON.stringify(updatedLineupWrapper)));
-                asyncOperations.push(this.redisClient.get(lineupsKey).then((cachedLineups) => {
-                    if (cachedLineups !== null) {
-                        const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
-
-                        const lineupIndex = iLineups.findIndex(
-                            ({ gameName }) => gameName === updatedLineup.getGameName(),
-                        );
-                        if (lineupIndex != -1) {
-                            iLineups[lineupIndex] = updatedLineupWrapper;
-                        }
-
-                        this.redisClient.set(lineupsKey, JSON.stringify(iLineups));
-                    }
-                }));
+                asyncOperations.push(this.redisClient.set(
+                    lineupKey,
+                    JSON.stringify(updatedLineup.getLineupWrapper()),
+                ));
             }
 
             return Promise.allSettled(asyncOperations).then(() => ({
@@ -323,36 +293,13 @@ export default class LineupService {
             const asyncOperations : Array<Promise<any>> = [];
 
             if (this.isRedisEnabled) {
-                const updatedLineupWrappers = updatedLineups.map((updatedLineup) => {
-                    const gameName = updatedLineup.getGameName();
-                    const updatedLineupWrapper = updatedLineup.getLineupWrapper();
-
-                    const lineupKey = `lineup-${gameName}`;
-                    asyncOperations.push(this.redisClient.set(lineupKey, JSON.stringify(updatedLineupWrapper)));
-
-                    return updatedLineupWrapper;
+                updatedLineups.forEach((updatedLineup) => {
+                    const lineupKey = `lineup-${updatedLineup.getGameName()}`;
+                    asyncOperations.push(this.redisClient.set(
+                        lineupKey,
+                        JSON.stringify(updatedLineup.getLineupWrapper())
+                    ));
                 });
-
-                const lineupsKey = 'lineups';
-                asyncOperations.push(this.redisClient.get(lineupsKey).then((cachedLineups) => {
-                    if (cachedLineups !== null) {
-                        const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
-                        const iLineupsMap : Map<String, ILineup> = new Map<String, ILineup>();
-
-                        iLineups.forEach((iLineup) => {
-                            const key = iLineup.gameName;
-                            const value = iLineup;
-                            iLineupsMap.set(key, value);
-                        });
-
-                        updatedLineupWrappers.forEach((updatedLineupWrapper) => {
-                            iLineupsMap.set(updatedLineupWrapper.gameName, updatedLineupWrapper);
-                        });
-
-                        const updatedILineups = [...iLineupsMap.values()]
-                        this.redisClient.set(lineupsKey, JSON.stringify(updatedILineups));
-                    }
-                }));
             }
 
             return Promise.allSettled(asyncOperations).then(() => ({
@@ -398,28 +345,14 @@ export default class LineupService {
         }).then(
             (rawUpdatedLineup) => new Lineup(rawUpdatedLineup),
         ).then((updatedLineup) => {
-            const updatedLineupWrapper = updatedLineup.getLineupWrapper();
             const asyncOperations : Array<Promise<any>> = [];
 
             if (this.isRedisEnabled) {
                 const lineupKey = `lineup-${gameName}`;
-                const lineupsKey = 'lineups';
-
-                asyncOperations.push(this.redisClient.set(lineupKey, JSON.stringify(updatedLineupWrapper)));
-                asyncOperations.push(this.redisClient.get(lineupsKey).then((cachedLineups) => {
-                    if (cachedLineups !== null) {
-                        const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
-
-                        const lineupIndex = iLineups.findIndex(
-                            ({ gameName }) => gameName === updatedLineup.getGameName(),
-                        );
-                        if (lineupIndex != -1) {
-                            iLineups[lineupIndex] = updatedLineupWrapper;
-                        }
-
-                        this.redisClient.set(lineupsKey, JSON.stringify(iLineups));
-                    }
-                }));
+                asyncOperations.push(this.redisClient.set(
+                    lineupKey,
+                    JSON.stringify(updatedLineup.getLineupWrapper()),
+                ));
             }
 
             return Promise.allSettled(asyncOperations).then(() => ({
@@ -492,36 +425,13 @@ export default class LineupService {
             const asyncOperations : Array<Promise<any>> = [];
 
             if (this.isRedisEnabled) {
-                const updatedLineupWrappers = updatedLineups.map((updatedLineup) => {
-                    const gameName = updatedLineup.getGameName();
-                    const updatedLineupWrapper = updatedLineup.getLineupWrapper();
-
-                    const lineupKey = `lineup-${gameName}`;
-                    asyncOperations.push(this.redisClient.set(lineupKey, JSON.stringify(updatedLineupWrapper)));
-
-                    return updatedLineupWrapper;
+                updatedLineups.forEach((updatedLineup) => {
+                    const lineupKey = `lineup-${updatedLineup.getGameName()}`;
+                    asyncOperations.push(this.redisClient.set(
+                        lineupKey,
+                        JSON.stringify(updatedLineup.getLineupWrapper())
+                    ));
                 });
-
-                const lineupsKey = 'lineups';
-                asyncOperations.push(this.redisClient.get(lineupsKey).then((cachedLineups) => {
-                    if (cachedLineups !== null) {
-                        const iLineups : Array<ILineup> = JSON.parse(cachedLineups);
-                        const iLineupsMap : Map<String, ILineup> = new Map<String, ILineup>();
-
-                        iLineups.forEach((iLineup) => {
-                            const key = iLineup.gameName;
-                            const value = iLineup;
-                            iLineupsMap.set(key, value);
-                        });
-
-                        updatedLineupWrappers.forEach((updatedLineupWrapper) => {
-                            iLineupsMap.set(updatedLineupWrapper.gameName, updatedLineupWrapper);
-                        });
-
-                        const updatedILineups = [...iLineupsMap.values()]
-                        this.redisClient.set(lineupsKey, JSON.stringify(updatedILineups));
-                    }
-                }));
             }
 
             return Promise.allSettled(asyncOperations).then(() => ({
@@ -555,10 +465,13 @@ export default class LineupService {
             const asyncOperations : Array<Promise<any>> = [];
 
             if (this.isRedisEnabled) {
-                asyncOperations.push(...resetLineups.map((lineup) => {
-                    const lineupKey = `lineup-${lineup.getGameName()}`;
-                    return this.redisClient.set(lineupKey, JSON.stringify(lineup.getLineupWrapper()));
-                }));
+                resetLineups.forEach((resetLineup) => {
+                    const lineupKey = `lineup-${resetLineup.getGameName()}`;
+                    asyncOperations.push(this.redisClient.set(
+                        lineupKey,
+                        JSON.stringify(resetLineup.getLineupWrapper())
+                    ));
+                });
             }
 
             return Promise.allSettled(asyncOperations).then(() => resetGameNames);
