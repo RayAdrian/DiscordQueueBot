@@ -1,5 +1,6 @@
 import { RedisClientType } from 'redis';
 import { Lineups, Lineup, ILineup } from '../models/index.js';
+import lineup from '../models/lineup.js';
 import GameService from './gameService.js';
 
 export default class LineupService {
@@ -519,6 +520,39 @@ export default class LineupService {
                 invalidGameNames,
                 validGameNames,
             }));
+        });
+    }
+
+    /**
+     * Reset specified lineups
+     * @param gameNames - list of names of game lineups to be reset
+     */
+    resetLineups(gameNames : Array<string>) : Promise<Array<string>> {
+        const isAll = gameNames.length === 0;
+        const fetchingLineups = isAll ? this.getLineups() : this.getFilteredLineups(gameNames);
+        const resetGameNames : Array<string> = []
+        return fetchingLineups.then((lineups) => {
+            const resetLineups = lineups.filter((lineup) => lineup.getUserCount() > 0);
+            resetLineups.forEach((lineup) => {
+                lineup.clear();
+                resetGameNames.push(lineup.getGameName());
+            })
+
+            return Lineups.updateMany(
+                { gameName: { $in: resetGameNames } },
+                { users: [] },
+            ).exec().then(() => resetLineups);
+        }).then((resetLineups) => {
+            const asyncOperations : Array<Promise<any>> = [];
+
+            if (this.isRedisEnabled) {
+                asyncOperations.push(...resetLineups.map((lineup) => {
+                    const lineupKey = `lineup-${lineup.getGameName()}`;
+                    return this.redisClient.set(lineupKey, JSON.stringify(lineup.getLineupWrapper()));
+                }));
+            }
+
+            return Promise.allSettled(asyncOperations).then(() => resetGameNames);
         });
     }
 };
