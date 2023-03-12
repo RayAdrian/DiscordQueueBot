@@ -1,6 +1,5 @@
 import { RedisClientType } from 'redis';
 import { Lineups, Lineup, ILineup } from '../models/index.js';
-import lineup from '../models/lineup.js';
 import GameService from './gameService.js';
 
 export default class LineupService {
@@ -61,33 +60,43 @@ export default class LineupService {
      * @returns Promise of a list of all the Lineups
      */
     getLineups() : Promise<Array<Lineup>> {
-        let fetchingCached : Promise<Array<Lineup>> = Promise.resolve(null);
-        const lineupsKey = `lineups`;
-        if (this.isRedisEnabled) {
-            fetchingCached = this.redisClient.get(lineupsKey).then((cachedLineups) => {
-                if (cachedLineups) {
-                    const rawLineups = JSON.parse(cachedLineups);
-                    return rawLineups.map((rawLineup) => new Lineup(rawLineup));
-                }
-                return null;
-            });
-        }
-    
-        return fetchingCached.then((lineups) => {
-            if (lineups !== null) {
-                return Promise.resolve(lineups);
+        const fetchedLineups : Array<Lineup> = [];
+        return this.gameService.getGameNames().then((gameNames) => {
+            const asyncOperations : Array<Promise<any>> = [];
+            if (this.isRedisEnabled) {
+                asyncOperations.push(...gameNames.map((gameName) => {
+                    const lineupKey = `lineup-${gameName}`;
+                    return this.redisClient.get(lineupKey).then((cachedLineup) => {
+                        if (cachedLineup) {
+                            fetchedLineups.push(new Lineup(JSON.parse(cachedLineup)));
+                            return null;
+                        }
+                        return gameName;
+                    });
+                }))
             }
-            return Lineups.find().then((rawLineups) => {
-                return rawLineups.map((rawLineup) => new Lineup(rawLineup));
-            }).then((lineups) => {
-                const asyncOperations : Array<Promise<any>> = [];
-                if (this.isRedisEnabled) {
-                    const wrappedLineups = lineups.map((lineup) => lineup.getLineupWrapper());
-                    asyncOperations.push(this.redisClient.set(lineupsKey, JSON.stringify(wrappedLineups)));
-                }
-                return Promise.allSettled(asyncOperations).then(() => lineups);
-            })
-        }).then((lineups) => lineups);
+            return Promise.all(asyncOperations);
+        }).then((remainingGameNames) => {
+            const filteredGameNames = remainingGameNames.filter((gameName) => gameName);
+
+            return Lineups.find({ gameName: { $in: filteredGameNames } }).exec();
+        }).then((rawLineups) => {
+            const remainingLineups = rawLineups.map((rawLineup) => new Lineup(rawLineup));
+            fetchedLineups.push(...remainingLineups);
+
+            const asyncOperations : Array<Promise<any>> = [];
+            if (this.isRedisEnabled) {
+                asyncOperations.push(...remainingLineups.map((lineup) => {
+                    const lineupKey = `lineup-${lineup.getGameName()}`;
+                    return this.redisClient.set(
+                        lineupKey,
+                        JSON.stringify(lineup.getLineupWrapper()),
+                    );
+                }));
+            }
+
+            return Promise.allSettled(asyncOperations).then(() => fetchedLineups);
+        });
     }
         
     /**
