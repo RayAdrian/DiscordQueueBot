@@ -1,5 +1,5 @@
 import { RedisClientType } from 'redis';
-import { Lineups, Lineup } from '../models/index.js';
+import { Lineups, Lineup, Game } from '../models/index.js';
 import GameService from './gameService.js';
 
 export default class LineupService {
@@ -20,6 +20,33 @@ export default class LineupService {
             this.isRedisEnabled = true;
         }
     }
+
+    /**
+     * Check how many slots are available in a lineup
+     * @param lineup - lineup to check
+     * @param game - game associated with the lineup
+     * @returns the number of slots remaining
+     */
+    getRemainingSlots(lineup : Lineup, game : Game) : number {
+        if (game.isInfinite()) {
+            return Infinity;
+        }
+
+        const userCount = lineup.getUserCount();
+        const limit = game.getLimit();
+
+        return limit - userCount;
+    }
+
+    /**
+     * Check if lineup is full
+     * @param lineup - lineup to check
+     * @param game - game associated with the lineup
+     * @returns true if the lineup is full, false otherwise
+     */
+    isLineupFull(lineup : Lineup, game : Game) : boolean {
+        return this.getRemainingSlots(lineup, game) <= 0;
+    };
 
     /**
      * Get the specified game's Lineup
@@ -195,11 +222,11 @@ export default class LineupService {
         const invalidUsers = []; // already in lineup
         let excludedUsers = []; // cannot be added due to full lineup
 
-        const fetchingGame = this.gameService.getGame(gameName);
         const fetchingLineup = this.getLineup(gameName);
+        const fetchingGame = this.gameService.getGame(gameName);
 
-        return Promise.all([fetchingGame, fetchingLineup]).then(([game, lineup]) => {
-            const remainingSlots = game.getLimit() - lineup.getUserCount();
+        return Promise.all([fetchingLineup, fetchingGame]).then(([lineup, game]) => {
+            const remainingSlots = this.getRemainingSlots(lineup, game);
             if (remainingSlots <= 0) {
                 return Promise.reject(`Lineup for \`${gameName}\` already full.`);
             }
@@ -256,18 +283,17 @@ export default class LineupService {
         const invalidGameNames = []; // game names of lineups user is already in
         const validGameNames = []; // game names of lineups user can join
 
-        const fetchingGamesMap = this.gameService.getGamesMap(gameNames);
         const fetchingLineups = this.getFilteredLineups(gameNames);
+        const fetchingGamesMap = this.gameService.getGamesMap(gameNames);
 
-        return Promise.all([fetchingGamesMap, fetchingLineups]).then(([gamesMap, lineups]) => {
+        return Promise.all([fetchingLineups, fetchingGamesMap]).then(([lineups, gamesMap]) => {
             const updateOperations = [];
 
             lineups.forEach((lineup) => {
                 const gameName = lineup.getGameName();
                 const game = gamesMap.get(gameName);
-                const remainingSlots = game.getLimit() - lineup.getUserCount();
 
-                if (remainingSlots <= 0) {
+                if (this.isLineupFull(lineup, game)) {
                     fullGameNames.push(gameName);
                 } else if (lineup.hasUser(user)) {
                     invalidGameNames.push(gameName);
@@ -514,7 +540,7 @@ export default class LineupService {
             lineups.forEach((lineup) => {
                 const gameName = lineup.getGameName();
                 const game = gamesMap.get(gameName);
-                const remainingSlots = game.getLimit() - lineup.getUserCount();
+                const remainingSlots = this.getRemainingSlots(lineup, game);
 
                 if (remainingSlots <= 0) {
                     fullGameNames.push(gameName);
