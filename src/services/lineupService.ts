@@ -199,13 +199,13 @@ export default class LineupService {
         const fetchingLineup = this.getLineup(gameName);
 
         return Promise.all([fetchingGame, fetchingLineup]).then(([game, lineup]) => {
-            const remainingSlotsCount = game.getLimit() - lineup.getUserCount();
-            if (remainingSlotsCount <= 0) {
+            const remainingSlots = game.getLimit() - lineup.getUserCount();
+            if (remainingSlots <= 0) {
                 return Promise.reject(`Lineup for \`${gameName}\` already full.`);
             }
 
             users.forEach((user) => (lineup.hasUser(user) ? invalidUsers : validUsers).push(user));
-            excludedUsers = validUsers.splice(remainingSlotsCount);
+            excludedUsers = validUsers.splice(remainingSlots);
 
             // arguments validated
             lineup.addUsers(validUsers);
@@ -256,19 +256,18 @@ export default class LineupService {
         const invalidGameNames = []; // game names of lineups user is already in
         const validGameNames = []; // game names of lineups user can join
 
-        const fetchingGames = this.gameService.getGames(gameNames);
+        const fetchingGamesMap = this.gameService.getGamesMap(gameNames);
         const fetchingLineups = this.getFilteredLineups(gameNames);
 
-        return Promise.all([fetchingGames, fetchingLineups]).then(([games, lineups]) => {
+        return Promise.all([fetchingGamesMap, fetchingLineups]).then(([gamesMap, lineups]) => {
             const updateOperations = [];
 
-            // assume games and lineups have the same length, and have 'aligned' values
-            games.forEach((game, index) => {
-                const gameName = game.getName();
-                const lineup = lineups[index];
-                const remainingSlotsCount = game.getLimit() - lineup.getUserCount();
+            lineups.forEach((lineup) => {
+                const gameName = lineup.getGameName();
+                const game = gamesMap.get(gameName);
+                const remainingSlots = game.getLimit() - lineup.getUserCount();
 
-                if (remainingSlotsCount <= 0) {
+                if (remainingSlots <= 0) {
                     fullGameNames.push(gameName);
                 } else if (lineup.hasUser(user)) {
                     invalidGameNames.push(gameName);
