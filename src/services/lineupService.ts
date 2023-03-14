@@ -479,7 +479,7 @@ export default class LineupService {
     }
 
     /**
-     * Reset specified lineups
+     * Create invite message for specified lineups
      * @param user - user id to be removed
      * @param gameNames - game names of the specified Lineups
      * @returns Object containing the ff:
@@ -506,8 +506,8 @@ export default class LineupService {
         }
 
         return fetchingLineups.then(async (lineups) => {
-            const gameNames = lineups.map((lineup) => lineup.getGameName());
-            const gamesMap = await this.gameService.getGamesMap(gameNames);
+            const retrievedGameNames = lineups.map((lineup) => lineup.getGameName());
+            const gamesMap = await this.gameService.getGamesMap(retrievedGameNames);
 
             const fullGameNames = []; // full lineups
             const validGameInvites = []; // games that have available slots for invites
@@ -534,6 +534,54 @@ export default class LineupService {
                 fullGamesMessage,
                 inviteMessage,
             }
+        });
+    }
+
+    /**
+     * Create ready message for specified lineups
+     * @param user - user id to be removed
+     * @param gameNames - game names of the specified Lineups
+     * @returns Object containing the ff:
+     * invalidGameNames - empty lineups
+     * validLineups - games that can have ready messages sent for
+     */
+    readyLineups(user : string, gameNames : Array<string>) : Promise<{
+        invalidGameNames : Array<Lineup>,
+        validLineups : Array<Lineup>,
+    }> {
+        let fetchingLineups : Promise<Array<Lineup>> = null;
+
+        if (gameNames.length === 0) { // only lineups user is in
+            fetchingLineups = this.getUserLineups(user).then((userLineups) => {
+                if (userLineups.length === 0) {
+                    return Promise.reject('User not in any lineup.');
+                }
+                return userLineups;
+            });
+        } else if (gameNames.length === 1 && gameNames[0] === 'all') { // all non-empty game lineups
+            fetchingLineups = this.getLineups().then((lineups) => {
+                return lineups.filter((lineup) => lineup.getUserCount() > 0);
+            });
+        } else {
+            fetchingLineups = this.getFilteredLineups(gameNames);
+        }
+
+        return fetchingLineups.then((lineups) => {
+            const invalidGameNames = []; // game names with empty lineups (only when for when games are specified)
+            const validLineups = []; // non-empty lineups
+
+            lineups.forEach((lineup) => {
+                if (lineup.getUserCount() > 0) {
+                    validLineups.push(lineup);
+                } else {
+                    invalidGameNames.push(lineup.getGameName());
+                }
+            });
+
+            return {
+                invalidGameNames,
+                validLineups,
+            };
         });
     }
 };
