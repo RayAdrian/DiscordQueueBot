@@ -71,6 +71,25 @@ export default class GameService {
     }
 
     /**
+     * Get game objects arranged in a map
+     * @param names - names of the games
+     */
+    getGamesMap(names : Array<string>) : Promise<Map<String, Game>> {
+        return this.getGames(names).then((games) => {
+            const gamesMap = new Map<String, Game>();
+
+            games.forEach((game) => {
+                gamesMap.set(
+                    game.getName(),
+                    game,
+                );
+            });
+
+            return gamesMap;
+        });
+    }
+
+    /**
      * Get list of all game names.
      * @returns An array of strings with the list of the names of the games
      */
