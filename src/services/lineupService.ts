@@ -1,5 +1,5 @@
 import { RedisClientType } from 'redis';
-import { Lineups, Lineup, ILineup } from '../models/index.js';
+import { Lineups, Lineup } from '../models/index.js';
 import GameService from './gameService.js';
 
 export default class LineupService {
@@ -475,6 +475,65 @@ export default class LineupService {
             }
 
             return Promise.allSettled(asyncOperations).then(() => resetGameNames);
+        });
+    }
+
+    /**
+     * Reset specified lineups
+     * @param user - user id to be removed
+     * @param gameNames - game names of the specified Lineups
+     * @returns Object containing the ff:
+     * fullGameNames - full lineups
+     * validGameNames - games that have available slots for invites
+     */
+    inviteLineups(user : string, gameNames : Array<string>) : Promise<{
+        fullGamesMessage : String,
+        inviteMessage : String,
+    }> {
+        let fetchingLineups : Promise<Array<Lineup>> = null;
+
+        if (gameNames.length === 0) { // only lineups user is in
+            fetchingLineups = this.getUserLineups(user).then((userLineups) => {
+                if (userLineups.length === 0) {
+                    return Promise.reject('User not in any lineup.');
+                }
+                return userLineups;
+            });
+        } else if (gameNames.length === 1 && gameNames[0] === 'all') { // all game lineups
+            fetchingLineups = this.getLineups();
+        } else {
+            fetchingLineups = this.getFilteredLineups(gameNames);
+        }
+
+        return fetchingLineups.then(async (lineups) => {
+            const gameNames = lineups.map((lineup) => lineup.getGameName());
+            const gamesMap = await this.gameService.getGamesMap(gameNames);
+
+            const fullGameNames = []; // full lineups
+            const validGameInvites = []; // games that have available slots for invites
+
+            lineups.forEach((lineup) => {
+                const gameName = lineup.getGameName();
+                const game = gamesMap.get(gameName);
+                const remainingSlots = game.getLimit() - lineup.getUserCount();
+
+                if (remainingSlots <= 0) {
+                    fullGameNames.push(gameName);
+                } else {
+                    const role = game.getRoleId();
+                    validGameInvites.push(
+                        `${gameName.toLocaleUpperCase()} ${role} + ${remainingSlots}`,
+                    );
+                }
+            })
+
+            const fullGamesMessage = fullGameNames.length ? fullGameNames.join(' ') : null;
+            const inviteMessage = validGameInvites.length ? validGameInvites.join('\n') : null;
+
+            return {
+                fullGamesMessage,
+                inviteMessage,
+            }
         });
     }
 };
