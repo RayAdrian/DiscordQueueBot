@@ -158,6 +158,26 @@ export default class LineupService {
     }
 
     /**
+     * Get full Lineups, either from all available lineups or from a specified list
+     * @param gameNames - game names of (optional) specified Lineups
+     * @returns Promise of a list of the specified Lineups
+     */
+    getFullLineups(gameNames : Array<string>) : Promise<Array<Lineup>> {
+        const fetchingGamesMap = gameNames.length === 0
+            ? this.gameService.getGameNames().then((storedGameNames) => this.gameService.getGamesMap(storedGameNames))
+            : this.gameService.getGamesMap(gameNames);
+        const fetchingLineups = gameNames.length === 0
+            ? this.getLineups()
+            : this.getFilteredLineups(gameNames);
+        return Promise.all([fetchingGamesMap, fetchingLineups]).then(([gamesMap, lineups]) => {
+            return lineups.filter((lineup) => {
+                const game = gamesMap.get(lineup.getGameName());
+                return this.isLineupFull(lineup, game);
+            });
+        });
+    }
+
+    /**
      * Add a Lineup for a game
      * @param gameName - game name of the Lineup to be created
      * @returns Promise of the created Lineup
