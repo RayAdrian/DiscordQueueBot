@@ -11,7 +11,7 @@ export default class UsersCache {
     fetch() : Promise<void> {
         return Users.find({}).exec().then((data) => {
             data.forEach(({ id, gameNames }) => {
-                this.usersMap.set(id, new User(id, gameNames));
+                this.usersMap.set(id, new User({ id, gameNames }));
             });
         });
     }
@@ -76,7 +76,7 @@ export default class UsersCache {
         if (this.usersMap.has(id)) {
             return Promise.resolve();
         }
-        const newUser = new User(id, []);
+        const newUser = new User({ id, gameNames: [] });
         this.usersMap.set(id, newUser);
         return Users.create(newUser.getUserWrapper()).then(() => {});
     }
