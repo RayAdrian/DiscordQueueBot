@@ -1,6 +1,6 @@
 import { Client, Message } from 'discord.js';
-import { LocalCache } from '../caches/index.js';
 import { ALPHANUMERIC, PREFIX, RESERVED_KEYWORDS } from '../common/constants.js';
+import ServiceProvider from '../services/serviceProvider.js';
 import { isValidLimit, isValidRole, sendDebugErrorMessage } from '../utils/index.js';
 import sendMessage from '../utils/sendMessage.js';
 import { CommandInputs } from './processCommand.js';
@@ -10,10 +10,11 @@ import { CommandInputs } from './processCommand.js';
  * Sends list of all available games
  * @param commandInputs - contains the necessary parameters for the command
  */
-function gameList(commandInputs : CommandInputs) {
-    const { args, cache, command, message } : {
-        args : Array<string>, cache : LocalCache, command : string, message : Message,
+async function gameList(commandInputs : CommandInputs) {
+    const { args, command, message, serviceProvider } : {
+        args : Array<string>, command : string, message : Message, serviceProvider : ServiceProvider,
     } = commandInputs;
+    const { gameService } = serviceProvider;
 
     // validation
     const argsCount = args.length;
@@ -27,7 +28,7 @@ function gameList(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    const gameNames = cache.getGameNames();
+    const gameNames = await gameService.getGameNames();
     const content = {
         'Current available games': gameNames.length ? gameNames.join('\n') : 'No games available',
     };
@@ -39,12 +40,13 @@ function gameList(commandInputs : CommandInputs) {
  * Show the info pertaining to a game
  * @param commandInputs - contains the necessary parameters for the command
  */
- function gameDescribe(commandInputs : CommandInputs) {
+ async function gameDescribe(commandInputs : CommandInputs) {
     const {
-        args, cache, command, message,
+        args, command, message, serviceProvider,
     } : {
-        args : Array<string>, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, command : string, message : Message, serviceProvider : ServiceProvider,
     } = commandInputs;
+    const { gameService } = serviceProvider;
 
     // validation
     const argsCount = args.length;
@@ -58,14 +60,15 @@ function gameList(commandInputs : CommandInputs) {
     }
  
     const gameName = args[0].toLowerCase();
-    const gameNames = cache.getGameNames();
+    const gameNames = await gameService.getGameNames();
     let errorMessage = '';
 
     if (!ALPHANUMERIC.test(gameName)) {
         errorMessage = 'Invalid game name. Should only consist of alphanumeric characters.';
     } else if (RESERVED_KEYWORDS.includes(gameName)) {
         errorMessage = 'Invalid game name. Uses a reserved keyword.';
-    } else if (!gameNames.includes(gameName)) {
+    }
+    else if (!gameNames.includes(gameName)) {
         errorMessage = 'Invalid game name. Does not exist.';
     }
 
@@ -76,7 +79,7 @@ function gameList(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    const game = cache.getGame(gameName);
+    const game = await gameService.getGame(gameName);
     const descriptionMessage = {
         'Information': `
             name - ${game.getName()}
@@ -84,7 +87,7 @@ function gameList(commandInputs : CommandInputs) {
             limit - ${game.getLimit() === 0 ? 'none' : game.getLimit()}
         `,
     };
-    sendMessage(message.channel, descriptionMessage, 'information', `Game Description - \`${gameName}\``);
+    sendMessage(message.channel, descriptionMessage, 'information', `Game Description - ${gameName}`);
 }
 
 /**
@@ -92,12 +95,13 @@ function gameList(commandInputs : CommandInputs) {
  * Add a game
  * @param commandInputs - contains the necessary parameters for the command
  */
-function gameAdd(commandInputs : CommandInputs) {
+async function gameAdd(commandInputs : CommandInputs) {
     const {
-        args, bot, cache, command, message,
+        args, bot, command, message, serviceProvider,
     } : {
-        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, bot : Client, command : string, message : Message, serviceProvider : ServiceProvider,
     } = commandInputs;
+    const { gameService } = serviceProvider;
 
     // validation
     const argsCount = args.length;
@@ -111,7 +115,7 @@ function gameAdd(commandInputs : CommandInputs) {
     }
 
     const [gameName, role, limit] = args.map(arg => arg?.toLowerCase());
-    const gameNames = cache.getGameNames();
+    const gameNames = await gameService.getGameNames();
     const errorMessages = [];
 
     if (!ALPHANUMERIC.test(gameName)) {
@@ -135,11 +139,12 @@ function gameAdd(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.addGame(gameName, role, Number(limit)).then(() => {
+    gameService.addGame(gameName, role, Number(limit)).then((newGame) => {
+        const newGameName = newGame.getName();
         const content = {
-            'Notification': `Game and Lineup for \`${gameName}\` added.`,
+            'Notification': `Game and Lineup for \`${newGameName}\` added.`,
         };
-        sendMessage(message.channel, content, 'success', 'Game Add');
+        sendMessage(message.channel, content, 'success', `Game Add - ${newGameName}`);
     }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }
 
@@ -148,12 +153,13 @@ function gameAdd(commandInputs : CommandInputs) {
  * Remove a game
  * @param commandInputs - contains the necessary parameters for the command
  */
-function gameRemove(commandInputs : CommandInputs) {
+async function gameRemove(commandInputs : CommandInputs) {
     const {
-        args, bot, cache, command, message,
+        args, bot, command, message, serviceProvider,
     } : {
-        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, bot : Client, command : string, message : Message, serviceProvider : ServiceProvider,
     } = commandInputs;
+    const { gameService } = serviceProvider;
 
     // validation
     const argsCount = args.length;
@@ -167,7 +173,7 @@ function gameRemove(commandInputs : CommandInputs) {
     }
  
     const gameName = args[0].toLowerCase();
-    const gameNames = cache.getGameNames();
+    const gameNames = await gameService.getGameNames();
     let errorMessage = '';
 
     if (!ALPHANUMERIC.test(gameName)) {
@@ -185,11 +191,11 @@ function gameRemove(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.removeGame(gameName).then(() => {
+    gameService.removeGame(gameName).then(() => {
         const content = {
             'Notification':  `Game and Lineup/s for \`${gameName}\` deleted.`,
         };
-        sendMessage(message.channel, content, 'success', 'Game Remove');
+        sendMessage(message.channel, content, 'success', `Game Remove - ${gameName}`);
     }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }
 
@@ -198,12 +204,13 @@ function gameRemove(commandInputs : CommandInputs) {
  * Edit a game's set parameters
  * @param commandInputs - contains the necessary parameters for the command
  */
-function gameEdit(commandInputs : CommandInputs) {
+async function gameEdit(commandInputs : CommandInputs) {
     const {
-        args, bot, cache, command, message,
+        args, bot, command, message, serviceProvider,
     } : {
-        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, bot : Client, command : string, message : Message, serviceProvider : ServiceProvider,
     } = commandInputs;
+    const { gameService } = serviceProvider;
 
     // validation
     const argsCount = args.length;
@@ -217,7 +224,7 @@ function gameEdit(commandInputs : CommandInputs) {
     }
  
     const [gameName, role, limit] = args.map(arg => arg?.toLowerCase());
-    const gameNames = cache.getGameNames();
+    const gameNames = await gameService.getGameNames();
     const errorMessages = [];
 
     if (!ALPHANUMERIC.test(gameName)) {
@@ -241,11 +248,12 @@ function gameEdit(commandInputs : CommandInputs) {
     }
 
     // arguments validated
-    cache.editGame(gameName, role, limit).then(() => {
+    gameService.editGame(gameName, role, limit).then((editedGame) => {
+        const editedGameName = editedGame.getName();
         const content = {
-            'Notification': `Game \`${gameName}\` edited.`,
+            'Notification': `Game \`${editedGameName}\` edited.`,
         };
-        sendMessage(message.channel, content, 'success', `Game Edit - ${gameName}`);
+        sendMessage(message.channel, content, 'success', `Game Edit - ${editedGameName}`);
     }, (error : any) => {
         if (error instanceof Error) {
             throw error;
