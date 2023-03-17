@@ -1,13 +1,19 @@
 import { RedisClientType } from 'redis';
 import { ARRAY_SEPARATOR } from '../common/constants.js';
 import { Games, Game } from "../models/index.js";
+import LineupService from './lineupService.js';
 
 export default class GameService {
     private redisClient: RedisClientType;
     private isRedisEnabled: boolean = false;
+    private lineupService: LineupService;
 
     constructor(redisClient : RedisClientType) {
         this.redisClient = redisClient;
+    }
+
+    init(lineupService : LineupService) : void {
+        this.lineupService = lineupService;
     }
 
     enableRedisClient() : void {
@@ -47,6 +53,40 @@ export default class GameService {
                 return null;
             });
         }).then((game) => game);
+    }
+
+    /**
+     * Get game objects
+     * @param names - names of the games
+     */
+    getGames(names : Array<string>) : Promise<Array<Game>> {
+        return this.getGameNames().then((gameNames) => {
+            const validNamesSet = new Set(gameNames);
+            const validatedGameNames = names.filter((name) => validNamesSet.has(name)).sort();
+
+            return Promise.all(validatedGameNames.map((gameName) => {
+                return this.getGame(gameName);
+            }));
+        });
+    }
+
+    /**
+     * Get game objects arranged in a map
+     * @param names - names of the games
+     */
+    getGamesMap(names : Array<string>) : Promise<Map<String, Game>> {
+        return this.getGames(names).then((games) => {
+            const gamesMap = new Map<String, Game>();
+
+            games.forEach((game) => {
+                gamesMap.set(
+                    game.getName(),
+                    game,
+                );
+            });
+
+            return gamesMap;
+        });
     }
 
     /**
@@ -91,10 +131,17 @@ export default class GameService {
             name, roleId, limit,
         }).then((data) => {
             const newGame = new Game(data);
+            const newGameWrapper = newGame.getGameWrapper();
+            const asyncOperations : Array<Promise<any>> = [];
 
-            const gameNamesKey = 'game-names';
+            asyncOperations.push(this.lineupService.addLineup(newGame.getName()));
+
             if (this.isRedisEnabled) {
-                this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
+                const gameKey = `game-${name}`;
+                const gameNamesKey = 'game-names';
+
+                asyncOperations.push(this.redisClient.set(gameKey, JSON.stringify(newGameWrapper)));
+                asyncOperations.push(this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
                     if (cachedGameNames !== null) {
                         const newCachedGameNames = [
                             ...cachedGameNames.split(ARRAY_SEPARATOR),
@@ -102,10 +149,10 @@ export default class GameService {
                         ].sort().join(ARRAY_SEPARATOR);
                         this.redisClient.set(gameNamesKey, newCachedGameNames);
                     }
-                });
+                }));
             }
 
-            return newGame;
+            return Promise.allSettled(asyncOperations).then(() => newGame);
         });
     }
 
@@ -152,27 +199,29 @@ export default class GameService {
      * Remove a game from the database, then the cache
      * @param name - name of the game
      */
-    removeGame(name : string) : Promise<void> {
-        // TODO: Delete associated lineup from db and cache
-        let deletingGame : Promise<any> = Games.deleteOne({ name }).exec();
+    removeGame(name : string) : Promise<Game> {
+        return Games.findOneAndDelete({ name }).exec().then((rawGame) => {
+            const deletedGame = new Game(rawGame);
+            const asyncOperations : Array<Promise<any>> = [];
 
-        if (this.isRedisEnabled) {
-            const gameKey = `game-${name}`;
-            deletingGame = deletingGame.then(() => this.redisClient.del(gameKey));
+            asyncOperations.push(this.lineupService.removeLineup(deletedGame.getName()));
 
-            const gameNamesKey = 'game-names';
-            deletingGame = deletingGame.then(() => {
-                return this.redisClient.get(gameNamesKey);
-            }).then((cachedGameNames) => {
-                if (cachedGameNames !== null) {
-                    const newCachedGameNames = new Set(cachedGameNames.split(ARRAY_SEPARATOR));
-                    newCachedGameNames.delete(name);
-                    return this.redisClient.set(gameNamesKey, [...newCachedGameNames].sort().join(ARRAY_SEPARATOR));
-                }
-                return Promise.resolve(null);
-            });
-        }
+            if (this.isRedisEnabled) {
+                const gameKey = `game-${name}`;
+                const gameNamesKey = 'game-names';
 
-        return deletingGame.then(() => {});
+                asyncOperations.push(this.redisClient.del(gameKey));
+                asyncOperations.push(this.redisClient.get(gameNamesKey).then((cachedGameNames) => {
+                    if (cachedGameNames !== null) {
+                        const newCachedGameNames = new Set(cachedGameNames.split(ARRAY_SEPARATOR));
+                        newCachedGameNames.delete(name);
+                        return this.redisClient.set(gameNamesKey, [...newCachedGameNames].sort().join(ARRAY_SEPARATOR));
+                    }
+                    return Promise.resolve(null);
+                }));
+            }
+
+            return Promise.allSettled(asyncOperations).then(() => deletedGame);
+        });
     }
 };

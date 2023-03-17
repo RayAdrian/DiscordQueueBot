@@ -14,7 +14,9 @@ export default class LineupsCache {
      */
     initialize(gameNames : Array<string>) : void {
         gameNames.forEach((gameName) => {
-            this.lineups.set(gameName, new Lineup(gameName, []));
+            this.lineups.set(gameName, new Lineup({
+                gameName, users: [],
+            }));
         });
     }
 
@@ -103,7 +105,7 @@ export default class LineupsCache {
      * @param gameName - game name of the lineup to be created
      */
     addLineup(gameName : string) : Promise<ILineup & Document<any, any, ILineup>> {
-        const newLineup = new Lineup(gameName, []);
+        const newLineup = new Lineup({ gameName, users: [] });
         this.lineups.set(gameName, newLineup);
         return Lineups.create(newLineup.getLineupWrapper());
     }
