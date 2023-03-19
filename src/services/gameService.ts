@@ -55,6 +55,10 @@ export default class GameService {
         }).then((game) => game);
     }
 
+    // TODO: Modify getGames to:
+    // 1. Accept specified boolean if retrieving all games or not
+    // 2. Be able to retrieve from cache and/or db more efficiently
+
     /**
      * Get game objects
      * @param names - names of the games
