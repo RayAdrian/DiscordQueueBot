@@ -36,6 +36,8 @@ export const PUNISH_TIME_DEL = 500;
 export const COPYPASTA_DELAY = 3000;
 export const COPYPASTA_COOLDOWN = 60000;
 
+export const AI_COOLDOWN = 20000;
+
 export const READY_MESSAGE = 'G ';
 
 export const RESERVED_KEYWORDS = [
