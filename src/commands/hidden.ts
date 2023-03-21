@@ -1,7 +1,9 @@
+import { Client } from 'discord.js';
 import { Message } from 'discord.js';
-import LocalCache from '../caches/local.js';
 import { COPYPASTA_COOLDOWN, COPYPASTA_DELAY } from '../common/constants.js';
 import { CLUB_PENGUIN } from '../common/copypastas.js';
+import ServiceProvider from '../services/serviceProvider.js';
+import sendDebugErrorMessage from '../utils/sendDebugErrorMessage.js';
 import sendMessage from '../utils/sendMessage.js';
 import { CommandInputs } from './processCommand.js';
 
@@ -12,10 +14,11 @@ import { CommandInputs } from './processCommand.js';
  */
 function clubPenguin(commandInputs : CommandInputs) {
     const {
-        args, cache, command, message,
+        args, bot, command, message, serviceProvider,
     } : {
-        args : Array<string>, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, bot : Client, command : string, message : Message, serviceProvider : ServiceProvider,
     } = commandInputs;
+    const { cooldownService } = serviceProvider;
 
     // validation
     const argsCount = args.length;
@@ -25,25 +28,35 @@ function clubPenguin(commandInputs : CommandInputs) {
     }
 
     // check if in cooldown
-    const endCooldown = cache.getCooldown('club penguin');
-    const now = new Date();
-    if (endCooldown && endCooldown > now) {
-        const remainingDuration = ((endCooldown.getTime() - now.getTime()) / 1000).toFixed(0);
-        const content = {
-            'Command Cooldown': `.\`${command}\` is in cooldown for ${remainingDuration} more seconds.`,
-        };
+    const userId = `<@${message.author.id}>`;
+    const commandKey = 'club penguin';
+
+    cooldownService.getCooldown(userId, commandKey).then((endCooldown) => {
+        const now = new Date();
+        if (endCooldown && endCooldown > now) {
+            const remainingDuration = ((endCooldown.getTime() - now.getTime()) / 1000).toFixed(0);
+            const content = {
+                'Command Cooldown': `.\`${command}\` is in cooldown for ${remainingDuration} more seconds.`,
+            };
+            sendMessage(message.channel, content, 'error', command);
+            return;
+        }
+    
+        // set cooldown
+        return cooldownService.addCooldown(userId, commandKey, COPYPASTA_COOLDOWN).then(() => {
+            // send copypasta line per line with delay
+            CLUB_PENGUIN.split('\n').forEach((line, index) => {
+                const delay = COPYPASTA_DELAY * index;
+                setTimeout(() => sendMessage(message.channel, line, 'meme'), delay);
+            });
+        });
+    }, (error : any) => {
+        if (error instanceof Error) {
+            throw error;
+        }
+        const content = { 'Error Notification': error };
         sendMessage(message.channel, content, 'error', command);
-        return;
-    }
-
-    // send copypasta line per line with delay
-    CLUB_PENGUIN.split('\n').forEach((line, index) => {
-        const delay = COPYPASTA_DELAY * index;
-        setTimeout(() => sendMessage(message.channel, line, 'meme'), delay);
-    });
-
-    // set cooldown
-    cache.addCooldown('club penguin', COPYPASTA_COOLDOWN);
+    }).catch((error : Error) => sendDebugErrorMessage(bot, error));
 }
 
 /**
