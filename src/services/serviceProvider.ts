@@ -30,7 +30,9 @@ export default class ServiceProvider {
         });
     }
 
-    redisConnect() : Promise<void> {
-        return this.redisClient.connect();
+    redisConnect() : Promise<string | void> {
+        return this.redisClient.connect().then(() => {
+            return this.redisClient.flushAll();
+        });
     }
 };
