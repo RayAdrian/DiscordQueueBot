@@ -1,5 +1,4 @@
 import { Client, Message } from 'discord.js';
-import { LocalCache } from '../caches/index.js';
 import { PREFIX } from '../common/constants.js';
 import ServiceProvider from '../services/serviceProvider.js';
 import { sendMessage } from '../utils/index.js';
@@ -16,7 +15,6 @@ import openAiCommands from './openai.js';
 export class CommandInputs {
     args : Array<string>;
     bot : Client;
-    cache : LocalCache;
     command : string;
     message : Message;
     serviceProvider : ServiceProvider;
@@ -24,14 +22,12 @@ export class CommandInputs {
     constructor (
         args : Array<string> = [],
         bot : Client = null,
-        cache : LocalCache = null,
         command : string = '',
         message : Message = null,
         serviceProvider : ServiceProvider = null,
     ) {
         this.args = args;
         this.bot = bot;
-        this.cache = cache;
         this.command = command;
         this.message = message;
         this.serviceProvider = serviceProvider;
@@ -58,12 +54,12 @@ const getCommandRegExp = (command : string) : RegExp => new RegExp(`^${PREFIX}($
 /**
  * Process the command sent by the user (contained in msg param)
  * @param bot - Client object for discord related operations and data
- * @param cache - contains all the local cache objects 
  * @param msg - message object sent by user
+ * @param serviceProvider - object for accessing services
  */
-export default function processCommand(
-    bot : Client, cache: LocalCache, message : Message, serviceProvider : ServiceProvider,
-) : void {
+export default async function processCommand(
+    bot : Client, message : Message, serviceProvider : ServiceProvider,
+) : Promise<void> {
     const { content = '' } : { content : string } = message;
     const cleanedContent = content.trim();
 
@@ -75,13 +71,13 @@ export default function processCommand(
                 const command = result[1].trim();
                 const args = result[2].trim().split(' ').filter((arg) => arg.length);
 
-                const parameters = new CommandInputs(args, bot, cache, command, message, serviceProvider);
+                const parameters = new CommandInputs(args, bot, command, message, serviceProvider);
                 run(parameters);
                 return true;
             }
 
             if (specialCharacters === alias) {
-                const parameters = new CommandInputs([], bot, cache, alias, message, serviceProvider);
+                const parameters = new CommandInputs([], bot, alias, message, serviceProvider);
                 run(parameters);
                 return true;
             }
@@ -89,16 +85,19 @@ export default function processCommand(
 
         return false;
     });
+
     if (!isValidCommand) { // test for special game name join command
         const { run } = specialJoinCommand;
-        const aliases = cache.getGameNames();
+        const { gameService } = serviceProvider;
+
+        const aliases = await gameService.getGameNames();
 
         isValidCommand = aliases.some((alias) => {
             if (cleanedContent.localeCompare(`${PREFIX}${alias}`) === 0) { // check if command matches
                 const command = 'lineup join';
                 const args = [alias];
 
-                const parameters = new CommandInputs(args, bot, cache, command, message, serviceProvider);
+                const parameters = new CommandInputs(args, bot, command, message, serviceProvider);
                 run(parameters);
                 return true;
             }
