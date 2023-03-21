@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import cron from 'node-cron';
-import { LocalCache } from './caches/index.js';
 import { processCommand } from './commands/index.js';
 import { MAIN_CHANNEL_ID, PREFIX, REDIS_ENABLED, RESET_CRON_SCHEDULE } from './common/constants.js';
 import { Lineups } from './models/index.js';
@@ -20,7 +19,6 @@ app.listen(port, () => {
 });
 
 const bot = new Client();
-const localCache = new LocalCache(); // TODO: Deprecate
 const serviceProvider = new ServiceProvider();
 
 /**
@@ -60,27 +58,6 @@ bot.on('ready', async () => {
             })
         }
 
-        // TODO: Deprecate
-        sendDebugInfoMessage(bot, 'Fetching data to local cache.');
-        await localCache.fetchAll().then(async (fetchData) => {
-            if (fetchData && fetchData.length) {
-                const { missingLineups, invalidLineups } = fetchData[0];
-
-                if (missingLineups.length > 0) {
-                    await Lineups.create(missingLineups);
-                }
-                
-                if (invalidLineups.length > 0) {
-                    const invalidLineupIds = invalidLineups.map((lineup) => lineup._id);
-                    await Lineups.deleteMany({ _id: { $in: invalidLineupIds } }).exec().then(() => {
-                        const invalidLineupNames = invalidLineups.map((lineup) => lineup.gameName);
-                        const message = `Deleted the following lineup ids: \`${invalidLineupNames.join()}\``;
-                        sendDebugInfoMessage(bot, message, () => {});
-                    });
-                }
-            }
-        });
-
         sendDebugInfoMessage(bot, 'Bot is ready', () => {});
     }
 });
@@ -93,14 +70,15 @@ if (process.env.ALLOW_LEGACY_MESSAGING) {
 
         // original manual method with PREFIX ('.' by default)
         if (message.content.startsWith(PREFIX)) {
-            processCommand(bot, localCache, message, serviceProvider);
+            processCommand(bot, message, serviceProvider);
         }
     });
 }
 
 /** Reset lineups daily based on a schedule */
 cron.schedule(RESET_CRON_SCHEDULE, () => {
-    localCache.resetAllLineups().then(() => {
+    const { lineupService } = serviceProvider;
+    lineupService.resetLineups([]).then(() => {
         const content = { 'Notification': 'All lineups have been reset.' };
         sendMessage(
             bot.channels.cache.get(MAIN_CHANNEL_ID) as TextChannel,
