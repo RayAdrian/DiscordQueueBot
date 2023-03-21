@@ -5,7 +5,6 @@ import mongoose from 'mongoose';
 import cron from 'node-cron';
 import { processCommand } from './commands/index.js';
 import { MAIN_CHANNEL_ID, PREFIX, REDIS_ENABLED, RESET_CRON_SCHEDULE } from './common/constants.js';
-import { Lineups } from './models/index.js';
 import ServiceProvider from './services/serviceProvider.js';
 import { sendDebugErrorMessage, sendDebugInfoMessage, sendMessage } from './utils/index.js';
 
