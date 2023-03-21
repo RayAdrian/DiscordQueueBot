@@ -1,6 +1,6 @@
 import { Client, Message } from 'discord.js';
-import { LocalCache } from '../caches/index.js';
 import { ALPHANUMERIC, PREFIX } from '../common/constants.js';
+import ServiceProvider from '../services/serviceProvider.js';
 import { sendDebugErrorMessage, sendMessage } from '../utils/index.js';
 import { CommandInputs } from './processCommand.js';
 
@@ -11,10 +11,11 @@ import { CommandInputs } from './processCommand.js';
  */
  function userView(commandInputs : CommandInputs) {
     const {
-        args, cache, command, message,
+        args, command, message, serviceProvider,
     } : {
-        args : Array<string>, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, command : string, message : Message, serviceProvider : ServiceProvider,
     } = commandInputs;
+    const { userService } = serviceProvider;
 
     // first validation
     const argsCount = args.length;
@@ -29,8 +30,7 @@ import { CommandInputs } from './processCommand.js';
 
     // non-blocking validation and actual cache+db actions
     const userId = `<@${message.author.id}>`;
-    cache.confirmUserInit(userId).then(() => {
-        const userGames = cache.getUserGames(userId);
+    userService.getUserGames(userId).then((userGames) => {
         const content = { Games: userGames.length ? `${userGames.join('\n')}` : 'No games saved' };
         sendMessage(message.channel, content, 'information', `Saved Games - ${message.author.username}`);
     });
@@ -41,12 +41,13 @@ import { CommandInputs } from './processCommand.js';
  * Save game/s to user's game list
  * @param parameters - contains the necessary parameters for the command
  */
-function userSave(commandInputs : CommandInputs) {
+async function userSave(commandInputs : CommandInputs) {
     const {
-        args, bot, cache, command, message,
+        args, bot, command, message, serviceProvider,
     } : {
-        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, bot : Client, command : string, message : Message, serviceProvider : ServiceProvider,
     } = commandInputs;
+    const { gameService, userService } = serviceProvider;
 
     // first validation
     const argsCount = args.length;
@@ -62,7 +63,7 @@ function userSave(commandInputs : CommandInputs) {
     // blocking game args validation
     const errorMessages = [];
     const gameNames = Array(...new Set(args.map(arg => arg?.trim()?.toLowerCase())));
-    const storedGameNames = cache.getGameNames();
+    const storedGameNames = await gameService.getGameNames();
 
     if (!(gameNames.length === 1 && gameNames[0] === 'all')) { // validate game names
         gameNames.forEach((gameName) => {
@@ -82,29 +83,29 @@ function userSave(commandInputs : CommandInputs) {
 
     // non-blocking validation and actual cache+db actions
     const userId = `<@${message.author.id}>`;
-    cache.confirmUserInit(userId).then(() => {
-        const {
-            unsavedGames : validGameNames,
-            savedGames : invalidGameNames,
-        } = cache.processIfUserHasGames(userId, gameNames[0] === 'all' ? storedGameNames : gameNames);
+    const {
+        unsavedGames : validGameNames,
+        savedGames : invalidGameNames,
+    } = await userService.processIfUserHasGames(
+        userId, gameNames[0] === 'all' ? storedGameNames : gameNames,
+    );
 
-        // info messages and actual cache operations
-        const content = {};
+    // info messages and actual cache operations
+    const content = {};
 
-        if (invalidGameNames.length) {
-            content['Following games already saved in user\'s games list'] = `\`${invalidGameNames.join(' ')}\``;
-        }
+    if (invalidGameNames.length) {
+        content['Following games already saved in user\'s games list'] = `\`${invalidGameNames.join(' ')}\``;
+    }
 
-        if (validGameNames.length) {
-            cache.saveToUserGames(userId, gameNames).then(() => {
-                content['Successfully saved the following games to your gameslist'] = `\`${validGameNames.join(' ')}\``;
-                sendMessage(message.channel, content, 'success', 'User Save');
-            }).catch((error : Error) => sendDebugErrorMessage(bot, error));
-        } else {
-            content['No games saved'] = 'All specified games already in user\'s saved games list';
-            sendMessage(message.channel, content, 'error', 'User Save');
-        }
-    });
+    if (validGameNames.length) {
+        userService.saveToUserGames(userId, gameNames).then(() => {
+            content['Successfully saved the following games to your gameslist'] = `\`${validGameNames.join(' ')}\``;
+            sendMessage(message.channel, content, 'success', 'User Save');
+        }).catch((error : Error) => sendDebugErrorMessage(bot, error));
+    } else {
+        content['No games saved'] = 'All specified games already in user\'s saved games list';
+        sendMessage(message.channel, content, 'warning', 'User Save');
+    }
 }
 
 /**
@@ -112,12 +113,13 @@ function userSave(commandInputs : CommandInputs) {
  * Remove game/s from user's game list
  * @param parameters - contains the necessary parameters for the command
  */
-function userRemove(commandInputs : CommandInputs) {
-const {
-        args, bot, cache, command, message,
+async function userRemove(commandInputs : CommandInputs) {
+    const {
+        args, bot, command, message, serviceProvider,
     } : {
-        args : Array<string>, bot : Client, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, bot : Client, command : string, message : Message, serviceProvider : ServiceProvider,
     } = commandInputs;
+    const { gameService, userService } = serviceProvider;
 
     // first validation
     const argsCount = args.length;
@@ -133,7 +135,7 @@ const {
     // blocking game args validation
     const errorMessages = [];
     const gameNames = Array(...new Set(args.map(arg => arg?.trim()?.toLowerCase())));
-    const storedGameNames = cache.getGameNames();
+    const storedGameNames = await gameService.getGameNames();
 
     if (!(gameNames.length === 1 && gameNames[0] === 'all')) { // validate game names
         gameNames.forEach((gameName) => {
@@ -153,29 +155,29 @@ const {
 
     // non-blocking validation and actual cache+db actions
     const userId = `<@${message.author.id}>`;
-    cache.confirmUserInit(userId).then(() => {
-        const {
-            savedGames : validGameNames,
-            unsavedGames : invalidGameNames,
-        } = cache.processIfUserHasGames(userId, gameNames[0] === 'all' ? storedGameNames : gameNames);
+    const {
+        savedGames : validGameNames,
+        unsavedGames : invalidGameNames,
+    } = await userService.processIfUserHasGames(
+        userId, gameNames[0] === 'all' ? storedGameNames : gameNames,
+    );
 
-        // info messages and actual cache operations
-        const content = {};
+    // info messages and actual cache operations
+    const content = {};
 
-        if (invalidGameNames.length) {
-            content['Following games are not saved in the user\'s games list'] = `\`${invalidGameNames.join(' ')}\``;
-        }
+    if (invalidGameNames.length) {
+        content['Following games are not saved in the user\'s games list'] = `\`${invalidGameNames.join(' ')}\``;
+    }
 
-        if (validGameNames.length) {
-            cache.removeFromUserGames(userId, gameNames).then(() => {
-                content['Successfully removed the following games from your games list'] = `\`${validGameNames.join(' ')}\``;
-                sendMessage(message.channel, content, 'success', 'User Remove');
-            }).catch((error : Error) => sendDebugErrorMessage(bot, error));
-        } else {
-            content['No games removed'] = 'None of the specified games are in the user\'s games list';
+    if (validGameNames.length) {
+        userService.removeFromUserGames(userId, gameNames).then(() => {
+            content['Successfully removed the following games from your games list'] = `\`${validGameNames.join(' ')}\``;
             sendMessage(message.channel, content, 'success', 'User Remove');
-        }
-    });
+        }).catch((error : Error) => sendDebugErrorMessage(bot, error));
+    } else {
+        content['No games removed'] = 'None of the specified games are in the user\'s games list';
+        sendMessage(message.channel, content, 'warning', 'User Remove');
+    }
 }
 
 /**
@@ -183,12 +185,13 @@ const {
  * Clear all games from user's game list
  * @param parameters - contains the necessary parameters for the command
  */
- function userClear(commandInputs : CommandInputs) {
+function userClear(commandInputs : CommandInputs) {
     const {
-        args, cache, command, message,
+        args, command, message, serviceProvider,
     } : {
-        args : Array<string>, cache : LocalCache, command : string, message : Message,
+        args : Array<string>, command : string, message : Message, serviceProvider : ServiceProvider,
     } = commandInputs;
+    const { userService } = serviceProvider;
 
     // first validation
     const argsCount = args.length;
@@ -203,14 +206,12 @@ const {
 
     // non-blocking validation and actual cache+db actions
     const userId = `<@${message.author.id}>`;
-    cache.confirmUserInit(userId).then(() => {
-        cache.clearUserGames(userId).then(() => {
-            const content = { 'Notification': 'Removed all games from user\'s save list' };
-            sendMessage(message.channel, content, 'success', 'User Clear');
-        }, (error) => {
-            const content = { 'Error Notification': 'Removed all games from user\'s save list' };
-            sendMessage(message.channel, content, 'error', 'User Clear');
-        });
+    userService.clearUserGames(userId).then(() => {
+        const content = { 'Notification': 'Removed all games from user\'s save list' };
+        sendMessage(message.channel, content, 'success', 'User Clear');
+    }).catch((errorMessage) => {
+        const content = { 'Error Notification': errorMessage };
+        sendMessage(message.channel, content, 'warning', 'User Clear');
     });
 }
 
