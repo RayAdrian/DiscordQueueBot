@@ -1,4 +1,4 @@
-# Use the official Node.js 10 image.
+# Use the official Node.js 18 image.
 # https://hub.docker.com/_/node
 FROM node:18-bullseye-slim
 # Create and change to the app directory.
