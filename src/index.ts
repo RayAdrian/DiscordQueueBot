@@ -21,6 +21,10 @@ app.listen(port, () => {
 const bot = new Client();
 const localCache = new LocalCache();
 
+app.get('/api/hello', (req, res) => {
+    res.send('Hello, World!');
+});
+
 /**
  * Setup and run bot
  */
