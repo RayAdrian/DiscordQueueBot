@@ -29,7 +29,7 @@ app.get('/api/hello', async (req, res) => {
         res.status(200).send(jobs);
     } catch (error) {
         console.error('Error fetching jobs:', error);
-        res.status(500).send('Error fetching jobs');
+        res.status(500).send(`Error fetching jobs ${error.toString()}`);
     }
 });
 
