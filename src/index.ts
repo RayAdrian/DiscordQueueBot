@@ -2,6 +2,7 @@ import { Client, TextChannel } from 'discord.js';
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
+import axios from 'axios';
 import cron from 'node-cron';
 import { LocalCache } from './caches/index.js';
 import { processCommand } from './commands/index.js';
@@ -21,8 +22,15 @@ app.listen(port, () => {
 const bot = new Client();
 const localCache = new LocalCache();
 
-app.get('/api/hello', (req, res) => {
-    res.send('Hello, World!');
+app.get('/api/hello', async (req, res) => {
+    try {
+        const response = await axios.get('https://www.kalibrr.com/api/job_board/search');
+        const jobs = response.data.jobs;
+        res.status(200).send(jobs);
+    } catch (error) {
+        console.error('Error fetching jobs:', error);
+        res.status(500).send('Error fetching jobs');
+    }
 });
 
 /**
