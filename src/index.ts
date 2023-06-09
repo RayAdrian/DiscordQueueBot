@@ -24,7 +24,7 @@ const localCache = new LocalCache();
 
 app.get('/api/hello', async (req, res) => {
     try {
-        const response = await axios.get('https://www.kalibrr.com/api/job_board/search');
+        const response = await axios.get('https://stg.kalibrr.com/api/job_board/search');
         const jobs = response.data.jobs;
         res.status(200).send(jobs);
     } catch (error) {
