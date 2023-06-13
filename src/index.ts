@@ -24,7 +24,11 @@ const localCache = new LocalCache();
 
 app.get('/api/hello', async (req, res) => {
     try {
-        const response = await axios.get('https://www.kalibrr.com/kjs/job_board/search?limit=10&offset=0');
+        const response = await axios.get('https://www.kalibrr.com/api/job_board/search', {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
+            }
+        });
         const jobs = response.data.jobs;
         res.status(200).send(jobs);
     } catch (error) {
