@@ -24,16 +24,12 @@ const localCache = new LocalCache();
 
 app.get('/api/hello', async (req, res) => {
     try {
-        const response = await axios.get('https://www.kalibrr.com/api/job_board/search', {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
-            }
-        });
+        const response = await axios.get('https://www.kalibrr.com/api/job_board/search');
         const jobs = response.data.jobs;
         res.status(200).send(jobs);
     } catch (error) {
         console.error('Error fetching jobs:', error);
-        res.status(500).send(`Error fetching jobs ${JSON.stringify(error.response)}`);
+        res.status(500).send(`Error fetching jobs ${error.toString()}`);
     }
 });
 
