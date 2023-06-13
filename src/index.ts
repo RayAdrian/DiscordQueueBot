@@ -24,11 +24,7 @@ const localCache = new LocalCache();
 
 app.get('/api/hello', async (req, res) => {
     try {
-        const response = await axios.get('https://stg.kalibrr.com/api/job_board/search', {
-            headers: {
-                'X-goog-api-key': process.env.GOOGLE_API_KEY
-              }
-            })
+        const response = await axios.get(`https://stg.kalibrr.com/api/job_board/search?key=${process.env.GOOGLE_API_KEY}`);
         const jobs = response.data.jobs;
         res.status(200).send(jobs);
     } catch (error) {
