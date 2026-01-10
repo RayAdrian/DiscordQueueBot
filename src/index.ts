@@ -14,6 +14,10 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8080;
+app.get('/', (req, res) => {
+    res.status(200).send('Bot is running');
+});
+
 app.listen(port, () => {
     console.log('[INFO] Hello world! Listening on port', port);
 });
